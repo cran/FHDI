@@ -1,0 +1,4 @@
+useDynLib(FHDI)
+export(FHDI_Driver)
+export(FHDI_CellMake)
+export(FHDI_CellProb)
