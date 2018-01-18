@@ -1,4 +1,4 @@
-//LAST UPDATE: March 1, 2017
+//LAST UPDATE: January 15, 2018
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -7216,7 +7216,7 @@ void categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 // Note: as of Dec 2016, NA values (missing data) is marked by a long number at the parent "r" code
 
-//                       the long number is 123456789123456789
+//                       the long number is 1234567899
 
 // original R code: Dr. Im, J. and Dr. Kim, J. 
 
@@ -7270,7 +7270,7 @@ void categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 		{
 
-			if(fabs(x_one_column[i] - 123456789123456789) > 1e-5) 
+			if(fabs(x_one_column[i] - 1234567899) > 1e-5) 
 
 			//if(   !std::isnan(x_one_column[i])   ) //non-NA value only	
 
@@ -7376,7 +7376,7 @@ void categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 		{
 
-			if(fabs(x_one_column[i] - 123456789123456789) > 1e-5) //non-NA value only
+			if(fabs(x_one_column[i] - 1234567899) > 1e-5) //non-NA value only
 
 			//if(   !std::isnan(x_one_column[i])   ) //non-NA value only
 
@@ -7490,7 +7490,7 @@ void categorize_cpp(double* x, const int nrow, const double k, double* z)
 
 // 
 
-// Note: as of Oct 2016, NA values (missing data) is marked by 123456789123456789 at the parent "r" code
+// Note: as of Oct 2016, NA values (missing data) is marked by 1234567899 at the parent "r" code
 
 //
 
@@ -7540,7 +7540,7 @@ void categorize_cpp(double* x, const int nrow, const double k, double* z)
 
 		{
 
-			if(fabs(x_one_column[i] - 123456789123456789) > 1e-5) 
+			if(fabs(x_one_column[i] - 1234567899) > 1e-5) 
 
 			//if(  !std::isnan(x_one_column[i])  ) 	
 
@@ -7640,7 +7640,7 @@ void categorize_cpp(double* x, const int nrow, const double k, double* z)
 
 		{
 
-			if(fabs(x_one_column[i] - 123456789123456789) > 1e-5) //non-NA value only
+			if(fabs(x_one_column[i] - 1234567899) > 1e-5) //non-NA value only
 
 			//if(   !std::isnan(x_one_column[i])   ) //non-NA value only
 

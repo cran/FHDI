@@ -40,7 +40,7 @@ to compute the variance estimate of the estimators.
 }
 \references{
 Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fractional hot deck imputation, \emph{Proceeding of the Survey Research Methods Section}, Americal Statistical Association, Seattle, WA. 
-Im, J., Cho, I.H. and Kim, J.K. (2017). FHDI: A \bold{R} Package for Fractional Hot-Deck Imputation for multivariate missing data. \emph{Journal of Statistical Software}. Under review.
+Im, J., Cho, I.H. and Kim, J.K. (2017). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. Under review.
 }
 \author{
 Dr. Im, Jongho

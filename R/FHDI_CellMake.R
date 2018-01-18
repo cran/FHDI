@@ -100,8 +100,11 @@ if(is.null(w))   w = rep(1.0, nrow_y)
 for(i in 1:ncol_y){
 	for(j in 1:nrow_y){
 		r_i = datr[j,i]; #one unit of r
-		if(r_i==0) daty[j,i]=123456789123456789; #replace NA unit with this long number 
-	}
+		#below is replaced with a short integer to avoid a possible error 
+		#if(r_i==0) daty[j,i]=123456789123456789; #replace NA unit with this long number 
+		if(r_i==0) daty[j,i]=1234567899; #replace NA unit with this long number 
+
+		}
 }
 
 #----------------------
