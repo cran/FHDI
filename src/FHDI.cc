@@ -48,15 +48,15 @@ using namespace std;
 
 
 //Fn===========================================================================
-
 //matrix_utility_FHDI.cc-------------------------------------------------------
-
 //Fn===========================================================================
+//below local functions for avoiding error for other compilers 
+int    fabs_FHDI(int x)    { if(x>=0)   {return x;} if(x<0)   {return x*-1;}   return x;}
+double fabs_FHDI(double x) { if(x>=0.0) {return x;} if(x<0.0) {return x*-1.0;} return x;}
+
 
 //---------------------
-
 //Collection of basic matrix and vector utilities
-
 //for FHDI program 
 
 //October 5, 2016
@@ -537,7 +537,7 @@ int Find_dValue(double** d_matrix, int n_row, int n_col,
 
          double d_temp=0.0;
 
-         d_temp = fabs(d_matrix[i][n_rowcol] - d_value);
+         d_temp = fabs_FHDI(d_matrix[i][n_rowcol] - d_value);
 
          if(d_temp < 10.E-10)
 
@@ -561,7 +561,7 @@ int Find_dValue(double** d_matrix, int n_row, int n_col,
 
          double d_temp=0.0;
 
-         d_temp = fabs(d_matrix[n_rowcol][i] - d_value);
+         d_temp = fabs_FHDI(d_matrix[n_rowcol][i] - d_value);
 
          if(d_temp < 10.E-10)
 
@@ -1019,7 +1019,7 @@ void Inverse_dMatrix(double** d_Mat, const int n, double** d_Inv)
 
       //================
 
-      if(fabs(c)<eps )
+      if(fabs_FHDI(c)<eps )
 
       {
 
@@ -1033,7 +1033,7 @@ void Inverse_dMatrix(double** d_Mat, const int n, double** d_Inv)
 
          {
 
-            if(fabs(d_temp)< fabs(d_Mat[i][i_diag]) )
+            if(fabs_FHDI(d_temp)< fabs_FHDI(d_Mat[i][i_diag]) )
 
             {
 
@@ -1233,7 +1233,7 @@ void dMatrix_Mul_AB(double** A, int n_row, int n_col1,
 
          }
 
-         if(fabs(d_temp) < tolerance ) d_temp =0.0 ; //delete numerical error
+         if(fabs_FHDI(d_temp) < tolerance ) d_temp =0.0 ; //delete numerical error
 
 
 
@@ -1309,7 +1309,7 @@ void dMatrix_Mul_AtB(double** A, int n_row, int n_col1,
 
 
 
-         if(fabs(d_temp) < tolerance ) d_temp =0.0 ; //delete numerical error
+         if(fabs_FHDI(d_temp) < tolerance ) d_temp =0.0 ; //delete numerical error
 
          AtB[ir][ic] = d_temp ;
 
@@ -1407,7 +1407,7 @@ void dMatrix_Mul_AtBA(double** A, const int n_row, const int n_col,
 
 
 
-         if(fabs(d_temp) < tolerance ) d_temp =0.0 ; //delete numerical error
+         if(fabs_FHDI(d_temp) < tolerance ) d_temp =0.0 ; //delete numerical error
 
          AtB[ir][ic] = d_temp ;
 
@@ -1443,7 +1443,7 @@ void dMatrix_Mul_AtBA(double** A, const int n_row, const int n_col,
 
          }
 
-         if(fabs(d_temp) < tolerance ) d_temp =0.0 ; //delete numerical error
+         if(fabs_FHDI(d_temp) < tolerance ) d_temp =0.0 ; //delete numerical error
 
 
 
@@ -1513,7 +1513,7 @@ void dMatrix_dVector_Mul_Av(double** A, int n_row, int n_col,
 
       }
 
-      if(fabs(d_temp) < tolerance) d_temp =0.0;
+      if(fabs_FHDI(d_temp) < tolerance) d_temp =0.0;
 
 
 
@@ -1573,7 +1573,7 @@ void dMatrix_dVector_Mul_Atv(double** A, int n_row, int n_col,
 
       }
 
-      if(fabs(d_temp) < tolerance) d_temp =0.0;
+      if(fabs_FHDI(d_temp) < tolerance) d_temp =0.0;
 
 
 
@@ -1705,7 +1705,7 @@ void Compare_Two_dMatrix(double** A, double** B, int n_row, int n_col)
 
       {
 
-         if(fabs(A[i][j] - B[i][j]) != 0.0)
+         if(fabs_FHDI(A[i][j] - B[i][j]) != 0.0)
 
          {
 
@@ -1838,7 +1838,7 @@ bool Inverse_dMatrix_FHDI(double** d_Mat, const int n, double** d_Inv)
 
    //------------------
 
-    if(fabs(d_Mat[0][0]) > eps) 
+    if(fabs_FHDI(d_Mat[0][0]) > eps) 
 
     {
 
@@ -1848,7 +1848,7 @@ bool Inverse_dMatrix_FHDI(double** d_Mat, const int n, double** d_Inv)
 
 	}
 
-    if(fabs(d_Mat[0][0]) <= eps) 
+    if(fabs_FHDI(d_Mat[0][0]) <= eps) 
 
     {
 
@@ -1870,7 +1870,7 @@ bool Inverse_dMatrix_FHDI(double** d_Mat, const int n, double** d_Inv)
 
    const double det2 = d_Mat[0][0]*d_Mat[1][1] - d_Mat[0][1]*d_Mat[1][0];
 
-    if(fabs(det2) > eps) 
+    if(fabs_FHDI(det2) > eps) 
 
     {
 
@@ -1888,7 +1888,7 @@ bool Inverse_dMatrix_FHDI(double** d_Mat, const int n, double** d_Inv)
 
 	}
 
-    if(fabs(det2) <= eps) 
+    if(fabs_FHDI(det2) <= eps) 
 
     {
 
@@ -1946,7 +1946,7 @@ bool Inverse_dMatrix_FHDI(double** d_Mat, const int n, double** d_Inv)
 
       //================
 
-      if(fabs(c)<eps )
+      if(fabs_FHDI(c)<eps )
 
       {
 
@@ -1960,7 +1960,7 @@ bool Inverse_dMatrix_FHDI(double** d_Mat, const int n, double** d_Inv)
 
          {
 
-            if(fabs(d_temp)< fabs(d_Mat[i][i_diag]) )
+            if(fabs_FHDI(d_temp)< fabs_FHDI(d_Mat[i][i_diag]) )
 
             {
 
@@ -2012,7 +2012,7 @@ bool Inverse_dMatrix_FHDI(double** d_Mat, const int n, double** d_Inv)
 
 			//----
 
-			if(fabs(c) < eps)
+			if(fabs_FHDI(c) < eps)
 
 			{ 
 
@@ -2024,7 +2024,7 @@ bool Inverse_dMatrix_FHDI(double** d_Mat, const int n, double** d_Inv)
 
 			}
 
-			if(fabs(c) >= eps)
+			if(fabs_FHDI(c) >= eps)
 
 			{
 
@@ -2153,7 +2153,7 @@ namespace FHDI
 // for FHDI
 
 //------------------------
-
+bool isnan_FHDI(double x) { return x!=x; } //added to avoid error regarding std::isnan
 
 
 //-------------------------
@@ -2668,8 +2668,8 @@ void table_cpp( double* d_source, const int nrow,
 
 		d_temp = d_source_temp[i]; 
 
-		if(std::isnan(d_temp) !=1) //only meaningful value
-
+		//if(std::isnan(d_temp) !=1) //only meaningful value
+		if(isnan_FHDI(d_temp) != 1) //only meaningful value
 		{
 
 			//-----
@@ -2682,7 +2682,7 @@ void table_cpp( double* d_source, const int nrow,
 
 			{
 
-				if(fabs(d_temp - d_source_temp[j])<1e-15) //~0: equal value
+				if(fabs_FHDI(d_temp - d_source_temp[j])<1e-15) //~0: equal value
 
 				{
 
@@ -2876,7 +2876,7 @@ void which(double* d_vector, const int n, const double d_target, std::vector<int
 
 	{
 
-		if(fabs(d_vector[i]-d_target)<1e-15) v_location.push_back(i+1); //actual location 
+		if(fabs_FHDI(d_vector[i]-d_target)<1e-15) v_location.push_back(i+1); //actual location 
 
 	}
 
@@ -2992,7 +2992,7 @@ void whichINV(double* d_vector, const int n, const double d_target, std::vector<
 
 	{
 
-		if(fabs(d_vector[i] - d_target) > 1e-15) v_location.push_back(i+1); //actual location 
+		if(fabs_FHDI(d_vector[i] - d_target) > 1e-15) v_location.push_back(i+1); //actual location 
 
 	}
 
@@ -3656,7 +3656,7 @@ void order_FHDI(int* i_original, const int n)
 
 		{
 
-			if(fabs(i_now - i_original[j])<1e-3)
+			if(fabs_FHDI(i_now - i_original[j])<1e-3)
 
 			{
 
@@ -3772,7 +3772,7 @@ void order_FHDI(double* d_original_0, const int n, int* i_return)
 
 		{
 
-			if(fabs(d_now - d_original[j])<1e-15)
+			if(fabs_FHDI(d_now - d_original[j])<1e-15)
 
 			{
 
@@ -4536,7 +4536,7 @@ void match_FHDI(double* d_cn, const int nrow, double* d_cn_large, const int nrow
 
 		{
 
-			if(fabs(d_temp - d_cn_large[j])<1e-15) 
+			if(fabs_FHDI(d_temp - d_cn_large[j])<1e-15) 
 
 			{
 
@@ -7270,7 +7270,7 @@ void categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 		{
 
-			if(fabs(x_one_column[i] - 1234567899) > 1e-5) 
+			if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) 
 
 			//if(   !std::isnan(x_one_column[i])   ) //non-NA value only	
 
@@ -7294,7 +7294,7 @@ void categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 		int k_one_column = (int)k[i_col];
 
-		if(fabs(k_one_column)<=1.0) 
+		if(fabs_FHDI(k_one_column)<=1.0) 
 
 		{Rprintf("Error! in categorize_cpp, k_one_column is <=1.0!"); return;} //error check
 
@@ -7376,7 +7376,7 @@ void categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 		{
 
-			if(fabs(x_one_column[i] - 1234567899) > 1e-5) //non-NA value only
+			if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) //non-NA value only
 
 			//if(   !std::isnan(x_one_column[i])   ) //non-NA value only
 
@@ -7540,7 +7540,7 @@ void categorize_cpp(double* x, const int nrow, const double k, double* z)
 
 		{
 
-			if(fabs(x_one_column[i] - 1234567899) > 1e-5) 
+			if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) 
 
 			//if(  !std::isnan(x_one_column[i])  ) 	
 
@@ -7564,7 +7564,7 @@ void categorize_cpp(double* x, const int nrow, const double k, double* z)
 
 		int k_one_column = (int)k;
 
-		if(fabs(k_one_column)<=1.0) {Rprintf("Error! in categorize_cpp, k_one_column is <=1.0!"); return;} //error check
+		if(fabs_FHDI(k_one_column)<=1.0) {Rprintf("Error! in categorize_cpp, k_one_column is <=1.0!"); return;} //error check
 
 
 
@@ -7640,7 +7640,7 @@ void categorize_cpp(double* x, const int nrow, const double k, double* z)
 
 		{
 
-			if(fabs(x_one_column[i] - 1234567899) > 1e-5) //non-NA value only
+			if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) //non-NA value only
 
 			//if(   !std::isnan(x_one_column[i])   ) //non-NA value only
 
@@ -7830,13 +7830,13 @@ void Zmat_Extension_cpp(double** z, const int nrow, const int ncol, std::string 
 
 		
 
-		if(fabs(d_temp) > 1e-15 ) //this row has no missing cells
+		if(fabs_FHDI(d_temp) > 1e-15 ) //this row has no missing cells
 
 		{ol[i_ol_temp] = i_row + 1; i_ol_temp++;} //actual number of the row having no missing cells
 
 		
 
-		if(fabs(d_temp) < 1e-15) //this row has AT LEAST one missing cells
+		if(fabs_FHDI(d_temp) < 1e-15) //this row has AT LEAST one missing cells
 
 		{ml[i_ml_temp] = i_row + 1; i_ml_temp++;}  //actual number of the row having missing cells
 
@@ -8051,7 +8051,7 @@ void Zmat_Extension_cpp(double** z, const int nrow, const int ncol, std::string 
 
 		d_temp = 0.0; //initialize 
 
-		for(int j=0; j<ncol; j++) {d_temp += fabs(uox[i][j] - uox[i-1][j]) ;} //difference of adjacent rows
+		for(int j=0; j<ncol; j++) {d_temp += fabs_FHDI(uox[i][j] - uox[i-1][j]) ;} //difference of adjacent rows
 
 		
 
@@ -8089,7 +8089,7 @@ void Zmat_Extension_cpp(double** z, const int nrow, const int ncol, std::string 
 
 		d_temp = 0.0; //initialize
 
-		for(int j=0; j<ncol; j++) {d_temp += fabs(mox[i][j] - mox[i-1][j]) ;} //difference of adjacent rows
+		for(int j=0; j<ncol; j++) {d_temp += fabs_FHDI(mox[i][j] - mox[i-1][j]) ;} //difference of adjacent rows
 
 		
 
@@ -8651,15 +8651,15 @@ void nDAU_cpp(double** uox, double** mox, const int nrow_uox, const int nrow_mox
 
 		double d_t2 = v_table_item_List_nU[i]; //Note: Actual number is stored!
 
-		if(std::isnan(d_t2)==1) {break;} //Exit at the end of the table list. only for meaningful number 
-
+		//if(std::isnan(d_t2)==1) {break;} //Exit at the end of the table list. only for meaningful number 
+		if(isnan_FHDI(d_t2) == 1) {break;} //Exit at the end of the table list. only for meaningful number 
 		
 
 		for(int j=1; j<nrow_uox+1; j++) //"+1" is needed for Actual # stored
 
 		{
 
-			if(fabs(d_t2 - j) < 1e-15) {tnU[i] = v_table_count_List_nU[i]; break;}
+			if(fabs_FHDI(d_t2 - j) < 1e-15) {tnU[i] = v_table_count_List_nU[i]; break;}
 
 		}
 
@@ -9980,7 +9980,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		{
 
-			if(fabs(z[i_row][i_col]) < 1e-15) //count only  "0"
+			if(fabs_FHDI(z[i_row][i_col]) < 1e-15) //count only  "0"
 
 			{ i_temp++; }
 
@@ -10476,7 +10476,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 	//testout
 
-	Rprintf("converged in Cell_Make after iterations of i+1:"); Rprintf("%d ", i_loop+1);
+	Rprintf("converged in Cell_Make after iterations: "); Rprintf("%d ", i_loop+1);
 
 	
 
@@ -10526,7 +10526,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 	//RPrint(" ========= Cell_Make_Extension.. has successfully finished!");
 
-	Rprintf(" ========= Cell_Make_Extension.. has successfully finished!");
+	Rprintf(" ========= FHDI_CellMake has successfully finished!\n");
 
 	
 
@@ -10900,7 +10900,7 @@ void AGMAT_Extension_cpp(double** mox, const int nrow_mox,
 
 					//Note: in below check, mox is fixed at ith row 
 
-					if(fabs(mox[i][k] - uox[j][k])<1e-3) //part of missing cell = obserbed cell 
+					if(fabs_FHDI(mox[i][k] - uox[j][k])<1e-3) //part of missing cell = obserbed cell 
 
 					{
 
@@ -11310,7 +11310,7 @@ void Cal_W_Extension_cpp(double** mox, const int nrow_mox,
 
 				//Note: in below check, mox is fixed at ith row 
 
-				if(fabs(mox[i][k] - d_mx[j][k])<1e-3) //part of missing cell = obserbed cell 
+				if(fabs_FHDI(mox[i][k] - d_mx[j][k])<1e-3) //part of missing cell = obserbed cell 
 
 				{
 
@@ -11604,7 +11604,7 @@ void Cal_W_Extension_cpp(double** mox, const int nrow_mox,
 
 					//Note: in below check, mox is fixed at ith row 
 
-					if(fabs(mox[i][k] - uox[j][k])<1e-3) //part of missing cell = obserbed cell 
+					if(fabs_FHDI(mox[i][k] - uox[j][k])<1e-3) //part of missing cell = obserbed cell 
 
 					{
 
@@ -12004,13 +12004,13 @@ void Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 		
 
-		if(fabs(d_temp) > 1e-15 ) //this row has no missing cells
+		if(fabs_FHDI(d_temp) > 1e-15 ) //this row has no missing cells
 
 		{ol.push_back(i_row + 1);} //actual number of the row having no missing cells
 
 		
 
-		if(fabs(d_temp) < 1e-15) //this row has AT LEAST one missing cells
+		if(fabs_FHDI(d_temp) < 1e-15) //this row has AT LEAST one missing cells
 
 		{ml.push_back(i_row + 1);}  //actual number of the row having missing cells
 
@@ -12328,7 +12328,7 @@ void Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 		d_temp = 0.0; //initialize 
 
-		for(int j=0; j<ncol; j++) {d_temp += fabs(uox[i][j] - uox[i-1][j]) ;} //difference of adjacent rows
+		for(int j=0; j<ncol; j++) {d_temp += fabs_FHDI(uox[i][j] - uox[i-1][j]) ;} //difference of adjacent rows
 
 		
 
@@ -12382,7 +12382,7 @@ void Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 		d_temp = 0.0; //initialize
 
-		for(int j=0; j<ncol; j++) {d_temp += fabs(mox[i][j] - mox[i-1][j]) ;} //difference of adjacent rows
+		for(int j=0; j<ncol; j++) {d_temp += fabs_FHDI(mox[i][j] - mox[i-1][j]) ;} //difference of adjacent rows
 
 		
 
@@ -13450,7 +13450,7 @@ void Fractional_Hot_Deck_Imputation(const int i,
 
 	for(int k=0; k<ncol; k++) 
 
-	{ if(fabs(mox[i][k]) < 1e-15) v_rloc.push_back(k+1); }//+1 for actual location
+	{ if(fabs_FHDI(mox[i][k]) < 1e-15) v_rloc.push_back(k+1); }//+1 for actual location
 
 	const int i_size_v_rloc = (int)v_rloc.size(); 
 
@@ -15422,13 +15422,13 @@ void FHDI_Extension_cpp(double** y, double** z, int** r,
 
 		
 
-		if(fabs(d_temp) > 1e-15 ) //this row has no missing cells
+		if(fabs_FHDI(d_temp) > 1e-15 ) //this row has no missing cells
 
 		{ol.push_back(i_row + 1);} //actual number of the row having no missing cells
 
 		
 
-		if(fabs(d_temp) < 1e-15) //this row has AT LEAST one missing cells
+		if(fabs_FHDI(d_temp) < 1e-15) //this row has AT LEAST one missing cells
 
 		{ml.push_back(i_row + 1);}  //actual number of the row having missing cells
 
@@ -15798,7 +15798,7 @@ void FHDI_Extension_cpp(double** y, double** z, int** r,
 
 		d_temp = 0.0; //initialize 
 
-		for(int j=0; j<ncol; j++) {d_temp += fabs(uox[i][j] - uox[i-1][j]) ;} //difference of adjacent rows
+		for(int j=0; j<ncol; j++) {d_temp += fabs_FHDI(uox[i][j] - uox[i-1][j]) ;} //difference of adjacent rows
 
 		
 
@@ -15852,7 +15852,7 @@ void FHDI_Extension_cpp(double** y, double** z, int** r,
 
 		d_temp = 0.0; //initialize
 
-		for(int j=0; j<ncol; j++) {d_temp += fabs(mox[i][j] - mox[i-1][j]) ;} //difference of adjacent rows
+		for(int j=0; j<ncol; j++) {d_temp += fabs_FHDI(mox[i][j] - mox[i-1][j]) ;} //difference of adjacent rows
 
 		
 
@@ -16076,7 +16076,7 @@ void FHDI_Extension_cpp(double** y, double** z, int** r,
 
 					//Note: in below check, mox is fixed at ith row 
 
-					if(fabs(mox[i][k] - uox[j][k])<1e-3) //part of missing cell = obserbed cell 
+					if(fabs_FHDI(mox[i][k] - uox[j][k])<1e-3) //part of missing cell = obserbed cell 
 
 					{
 
@@ -16836,7 +16836,7 @@ void FHDI_Extension_cpp(double** y, double** z, int** r,
 
 	//testout
 
-	Rprintf(" ========= FHDI_Extension.. has successfully finished!");
+	Rprintf(" ========= FHDI has successfully finished!\n");
 
 	
 
@@ -18028,7 +18028,7 @@ void Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, con
 
 		d_rr0[i] = d_prod; 
 
-		if(fabs(d_prod) >0.0) d_rr0[i] = 1; 
+		if(fabs_FHDI(d_prod) >0.0) d_rr0[i] = 1; 
 
 	}
 
@@ -18290,7 +18290,7 @@ void Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, con
 
 		Fill_iVector(idd, nrow_mox, 0); 
 
-		if(fabs(d_rr0[l]) > 0)
+		if(fabs_FHDI(d_rr0[l]) > 0)
 
 		{
 
@@ -18956,7 +18956,7 @@ void Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, con
 
 	//testout
 
-	Rprintf(" ========= Variance_Est_FEFI.. has successfully finished!");
+	Rprintf(" ========= Variance estimation has successfully finished!\n");
 
 	
 
@@ -19360,7 +19360,7 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 		d_rr0[i] = d_prod; 
 
-		if(fabs(d_prod) >0.0) d_rr0[i] = 1; 
+		if(fabs_FHDI(d_prod) >0.0) d_rr0[i] = 1; 
 
 	}
 
@@ -19638,7 +19638,7 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 		Fill_iVector(idd, nrow_mox, 0); 
 
-		if(fabs(d_rr0[l]) > 0)
+		if(fabs_FHDI(d_rr0[l]) > 0)
 
 		{
 
@@ -20034,7 +20034,7 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 									//for zero diagonal term: a big number 
 
-									if(fabs(d_temp_inv) <= 1e-13) 
+									if(fabs_FHDI(d_temp_inv) <= 1e-13) 
 
 									{	V_inv[i_inv1][i_inv1] = 1E15; }
 
@@ -20042,7 +20042,7 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 									//for non-zero diagonal term: simple inverse
 
-									if(fabs(d_temp_inv) > 1e-13) 
+									if(fabs_FHDI(d_temp_inv) > 1e-13) 
 
 									{V_inv[i_inv1][i_inv1] = 1.0/d_temp_inv; }
 
@@ -20122,7 +20122,7 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 							const int MM = i_size_v_elog/nmlog; 
 
-							const int ncol_imt = (int)floor(i_size_v_elog/MM);
+							const int ncol_imt = (int)floor(i_size_v_elog*1.0/(MM*1.0));
 
 							//-----------
 
@@ -20546,7 +20546,7 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 	//testout
 
-	Rprintf(" ========= Variance_Est_FHDI.. has successfully finished!");
+	Rprintf(" ========= Variance estimation has successfully finished!\n");
 
 		
 
@@ -21439,7 +21439,7 @@ void Extract_Imputed_Results(const int nrow, const int ncol, rbind_FHDI &rbind_i
 
 		
 
-		if(fabs(d_sum_wij)== 0.0) 
+		if(fabs_FHDI(d_sum_wij)== 0.0) 
 
 		{
 
@@ -21706,7 +21706,7 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 
 
 
-		if(fabs(d_sum_wij)== 0.0) 
+		if(fabs_FHDI(d_sum_wij)== 0.0) 
 
 		{
 

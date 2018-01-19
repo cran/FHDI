@@ -1,4 +1,4 @@
-fcf88df6d40757d7c62cddc776c3775e *DESCRIPTION
+b8f4027d8ee8aeaa69be882bd56f4fff *DESCRIPTION
 90c0b10e51c16026acd9e5e4c2b8d935 *NAMESPACE
 d5230d9f29790538797dccad856b58fa *R/FHDI_CellMake.R
 10fb16dd1aac143f1c033f93c87079ce *R/FHDI_CellProb.R
@@ -7,5 +7,5 @@ d5230d9f29790538797dccad856b58fa *R/FHDI_CellMake.R
 10ec35dc8ab1c70550a40bc7c60eae56 *man/FHDI_CellMake.Rd
 a6681e75027d8d830a6f2a4b4ef986fa *man/FHDI_CellProb.Rd
 eaaff2875f452244e8dd799d65e7c2d9 *man/FHDI_Driver.Rd
-d9f69df8fb0e608b542b50e2eebcaf6f *src/FHDI.cc
+e1f0af0770b58b74cc5f4b95c9c9b661 *src/FHDI.cc
 49a01e6215a54f6f2d59c5bf721e664d *src/init.cpp
