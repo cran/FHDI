@@ -19,7 +19,8 @@ The joint cell probabilities are estimated using EM by weighting method. The alg
 of the joint cell probabilities under missing at random assumption. 
 }
 \value{
-  \item{jp}{table of the joint cell probability. For cell name, see Im et al. (2017)}
+  \item{cellpr}{table of the joint cell probability. name of cell is linked to the user-defined categories in "k": e.g., name "325" denotes 3rd, 2nd, 5th categories for three variables, respectively, whereas "a1c" denotes 10th, 1st, 12th categories.}
+  \item{w}{reprint of the sampling weights "w" initially defined by the user.}
 }
 \references{
 Ibrahim, J.G. (1990). Incomplete data in generalized linear models. \emph{Journal of the American Statistical Assocation} \bold{85}, 765-769. 
@@ -67,6 +68,7 @@ daty=cbind(y1,y2,y3,y4)
 result_CM=FHDI_CellMake(daty, k=5, s_op_merge="fixed")
 datz=result_CM$cell
 result_CP=FHDI_CellProb(datz)
+names(result_CP)
 }
 \keyword{imputation}
 \keyword{missing data}

@@ -48,5 +48,7 @@ daty=cbind(y1,y2,y3,y4)
 
 result_FEFI=FHDI_Driver(daty, s_op_imputation="FEFI", k=3)
 result_FHDI=FHDI_Driver(daty, s_op_imputation="FHDI", M=5, k=3)
+names(result_FEFI)
+names(result_FHDI)
 }
 \keyword{FHDI}
