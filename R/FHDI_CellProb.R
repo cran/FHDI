@@ -1,6 +1,6 @@
 FHDI_CellProb<-function(datz, w=NULL, id=NULL)	
 {
-#Description------------------------------
+#Description------------------------------Update: April 12, 2018
 # main driver for Fully Efficient Fractional Imputation (FEFI) and 
 #                 Fractional Hot Deck Imputation (FHDI)
 # Perform Cell Prob ONLY!
@@ -55,6 +55,13 @@ if(is.null(w))   w = rep(1.0, nrow_z)
 #Jan 11, 2017
 #----------------------
 List_FHDI_CellProb <- .Call("CWrapper_CellProb", datz, nrow_z, ncol_z, w, id);
+
+#abnormal ending
+if(is.null(List_FHDI_CellProb))
+{
+	print("Error took place during FHDI_CellProb! \n"); 
+	return(NULL); 
+}
 
 
 #joint probability values

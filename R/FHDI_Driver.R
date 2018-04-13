@@ -1,7 +1,7 @@
 FHDI_Driver<-function(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_variance=1, M=5, k=5,
                       w=NULL, id=NULL, s_op_merge="fixed")
 {
-#Description------------------------------UPDATE: March 29, 2017 
+#Description------------------------------UPDATE: April 12, 2018 
 #
 # main driver for Fully Efficient Fractional Imputation (FEFI) and 
 #                 Fractional Hot Deck Imputation (FHDI)
@@ -134,6 +134,14 @@ output_FHDI <- .Call("CWrapper", daty, datr, z_UserDefined, i_option_perform,
                 nrow_y, ncol_y, k, w, M, 
                 i_option_imputation, i_option_variance, id, i_option_merge)
 
+#abnormal ending
+if(is.null(output_FHDI))
+{
+	print("Error took place during FHDI_Driver! \n"); 
+	return(NULL); 
+}
+				
+				
 #----------------------
 #put column names to output with those of daty 
 #----------------------

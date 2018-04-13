@@ -14,7 +14,7 @@ Author: Jongho Im [aut], Inho Cho [aut, cre], Jaekwang Kim [aut]
 \email{icho@iastate.edu}}
 \references{
 Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fractional hot deck imputation, \emph{Proceeding of the Survey Research Methods Section}, Americal Statistical Association, Seattle, WA. 
-Im, J., Cho, I.H. and Kim, J.K. (2017). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. Under review.
+Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. Under review.
 }
 \examples{
 ### Toy Example ### 

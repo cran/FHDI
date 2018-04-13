@@ -2256,6 +2256,13 @@ void RPrint(double* d_debug, const int n) ;
 
 void RPrint(int* i_debug, const int n) ;
 
+//------------------------------- 
+
+// Rprint: print out integer matrix on R console
+
+//-------------------------------
+
+void RPrint(int*& i_debug, const int nrow, const int ncol) ;
 
 
 //------------------------------- 
@@ -3029,6 +3036,8 @@ void RPrint(double** d_debug, const int nrow, const int ncol, std::ofstream &Tes
 			Rprintf("%g ",d_debug[i][j] );
 
 		} 
+		
+		Rprintf(" - nextRow - \n"); 
 
 		 
 
@@ -3068,7 +3077,7 @@ void RPrint(double** d_debug, const int nrow, const int ncol)
 
 		} 
 
-		Rprintf("- nextRow -"); 
+		Rprintf("- nextRow - \n"); 
 
 	} 
 
@@ -3098,7 +3107,7 @@ void RPrint(double* d_debug, const int n)
 
 	for (int i=0; i<n; i++) { Rprintf("%g ",d_debug[i]); Rprintf("      ");} 
 
-	
+	Rprintf(" - nextRow - \n"); 
 
 	R_FlushConsole(); 
 
@@ -3124,6 +3133,7 @@ void RPrint(int* i_debug, const int n)
 
 	for (int i=0; i<n; i++) { Rprintf("%d ",i_debug[i]); Rprintf("      ");} 
 
+	Rprintf(" - nextRow - \n"); 
 	
 
 	R_FlushConsole(); 
@@ -3136,6 +3146,35 @@ void RPrint(int* i_debug, const int n)
 
 }
 
+//------------------------------- 
+
+// Rprint: print out integer matrix on R console
+
+//-------------------------------
+
+void RPrint(int** i_debug, const int nrow, const int ncol) 
+
+{ 
+
+	if(nrow<=0) {Rprintf("Error! nrow<=0! in printing i_debug[][]");  return;}
+
+	for (int i=0; i<nrow; i++) 
+	{
+		for (int j=0; j<ncol; j++) { Rprintf("%d ",i_debug[i][j]); Rprintf("      ");} 
+		Rprintf(" - nextRow - \n"); 
+	}
+
+	
+
+	R_FlushConsole(); 
+
+	R_ProcessEvents(); 
+
+ 
+
+	return; 
+
+}
 
 
 //------------------------------- 
@@ -3156,7 +3195,7 @@ void RPrint(std::vector<int> i_debug)
 
 	for (int i=0; i<n; i++) { Rprintf("%d ",i_debug[i]); Rprintf("      ");} 
 
-	
+	Rprintf(" - nextRow - \n"); 
 
 	R_FlushConsole(); 
 
@@ -3186,7 +3225,7 @@ void RPrint(std::vector<double> d_debug)
 
 	for (int i=0; i<n; i++) { Rprintf("%g ",d_debug[i]); Rprintf("      ");} 
 
-	
+	Rprintf(" - nextRow - \n"); 
 
 	R_FlushConsole(); 
 
@@ -7196,7 +7235,488 @@ namespace FHDI
 
 {
 
-void categorize_cpp(double** x, const int nrow, const int ncol, double* k, double** z)
+bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, double** z)
+
+//Description=========================================
+
+// categorize the data matrix x 
+
+// according to the given number of categories stored in k(ncol)
+
+//
+
+// [Algorithm I] for continuous column (or variable):  
+//
+// perc: percentiles used to get quantiles, determined by k
+
+// quan: quantiles if k=4, we quan=(Q1,Q2,Q3) have Q1(=1/4), Q2 (=Median) and Q3(=3/4)
+
+// [Algorithm II] for categorical column (or variable):
+
+// if a column consists of all integer values, automatically changed to categorical variable
+// and also adjust the k[] 
+
+// Note: as of Dec 2016, NA values (missing data) is marked by a long number at the parent "r" code
+
+//                       the long number is 1234567899
+
+// original R code: Dr. Im, J. and Dr. Kim, J. 
+
+// c++ code: 		Dr. Cho, I. 
+
+// All rights reserved
+
+// 
+
+// updated: April 9, 2018
+
+//----------------------------------------------------
+
+//IN	: double x(nrow, ncol) 	= {y1, y2, ... } total data containing missing values
+
+//INOUT	: double k(ncol)		= a vector of categories of each column of xalloc
+
+//OUT   : double z(nrow, ncol)  = catorized matrix corresponding to original matrix x
+
+//                                initialized with 0.0 
+
+//====================================================
+
+{
+	//---------------------------------------
+	//Automatically Identify Categorical Columns (Variables)
+	//---------------------------------------
+	//---------------------------------------
+	//global storage for Categorical variable
+	//original list of category values
+	//Note: assuming the largest category is 35 as of April 9, 2018
+	//---------------------------------------
+	int** i_category_list_original = New_iMatrix(ncol, 35);
+	Fill_iMatrix(i_category_list_original, ncol, 35, 0);
+
+	//Index of each column. 0: continuous; [1, 35]: categorical 
+	int* i_k_categorical = new int[ncol]; 
+	for (int i = 0; i < ncol; i++) i_k_categorical[i] = 0;
+
+	//----------------------
+	//Loop for each column
+	//----------------------
+	double* d_x_one_column = new double[nrow]; //one column of [x]
+	for (int i_col = 0; i_col < ncol; i_col++)
+	{
+		int i_integer_in_row = 0; //total integer counts of current column 
+		bool b_categorical = 0; 
+
+		//----
+		//get this column
+		//----
+		for (int i = 0; i < nrow; i++) d_x_one_column[i] = x[i][i_col];
+
+		//----
+		//total observed cells in this column
+		//----
+		int i_total_observed_cells_this_column = 0; 
+		for(int i=0; i<nrow; i++)
+		{
+			//only for the meaningful cell value of current column
+			if(fabs_FHDI(d_x_one_column[i] - 1234567899) > 1e-5) 
+			{
+				i_total_observed_cells_this_column++; 
+			}
+		}		
+		
+		//----
+		//check all values in this column are integer
+		//----
+		for (int i_row = 0; i_row < nrow; i_row++)
+		{
+			double d_x_one = d_x_one_column[i_row];
+			double d_round = (double)round(d_x_one);
+
+			//when current cell value is integer & observed cell only  
+			if (fabs_FHDI(d_x_one - d_round) < 1E-10 &&
+			    fabs_FHDI(d_x_one - 1234567899) > 1e-5)
+			{
+				i_integer_in_row++; 
+			}
+		}
+
+		//---------
+		//when all values are integer
+		//---------
+		if (i_integer_in_row == i_total_observed_cells_this_column)
+		{
+			b_categorical = 1; //this column may be categorical
+		}
+
+		//testout
+		//cout << "i_col:" << i_col << " i_integer_in_row:" << i_integer_in_row << " b_categorical:" << b_categorical << endl;
+
+		//--------
+		//find how many categories are
+		//--------
+		if (b_categorical) //when this column is categorical
+		{
+			std::vector<double> v_table_value; 
+			std::vector<int> v_table_count; 
+			table_cpp(d_x_one_column, nrow,
+				      v_table_value, v_table_count);
+
+			int n_size_v_table = v_table_value.size(); //how many different categories
+			
+			//---
+			//exception consideration when the missing cell is counted 
+			//as a category in the table
+			//---
+			bool b_missing_cell_included = 0; 
+			if(n_size_v_table>1)
+			{   //when the last category turns out to be the NA
+				for(int j=0; j<n_size_v_table; j++)
+				{
+					if(fabs_FHDI(v_table_value[j] - 1234567899) < 1e-5) 
+					{
+						b_missing_cell_included = 1; 
+					}
+				}
+			}
+			if(b_missing_cell_included) n_size_v_table = n_size_v_table - 1;  
+			
+			//if the categories are less than 35 ---------
+			if (n_size_v_table >= 1 && n_size_v_table < 36)
+			{
+				i_k_categorical[i_col] = n_size_v_table; //how many categories 
+			}
+			//if the categories are larger than 35 ---------
+			//considered as continuous as of April 9th, 2018
+			if (n_size_v_table > 35)
+			{
+				i_k_categorical[i_col] = 0; //0 means continuous 
+				n_size_v_table = 0; //reset to zero 
+			}
+
+			//testout<<
+			/*
+			cout << "n_size_v_table :" << n_size_v_table << endl;
+			cout << "v_table_value[] :" <<  endl;
+			for (int i = 0; i < n_size_v_table; i++) cout << v_table_value[i] << " ";
+			cout << endl;
+			cout << "v_table_count[] :" << endl;
+			for (int i = 0; i < n_size_v_table; i++) cout << v_table_count[i] << " ";
+			cout << endl;
+			*/
+
+			//-------------
+			//store the current column's original category values 
+			//which may be not consecutive 
+			//-------------
+			if (i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] < 36)
+			{
+				for (int j = 0; j < n_size_v_table; j++)
+				{
+					i_category_list_original[i_col][j] = static_cast<int>(v_table_value[j]); 
+				}
+			}
+			//clear vector container
+			v_table_value.clear(); 
+			v_table_count.clear(); 
+
+		}
+
+	}
+
+	//delete local array
+	delete[] d_x_one_column;
+
+	//testout
+	//RPrint("  i_k_categorical[]: ");
+	//RPrint(i_k_categorical, ncol); 
+	//RPrint("  i_category_list_original[][]: ");
+	//RPrint(i_category_list_original, ncol, 10); 
+	
+	/*
+	cout << "column,   i_k_categorical[]" << endl;
+	for (int i = 0; i < ncol; i++)
+	{
+		cout << i + 1 << "  ,  " << i_k_categorical[i] << endl;
+	}
+	cout << endl;
+	
+	//testout
+	cout << "column, i_category_list_original[i_col][1:35]" << endl;
+	for(int i = 0; i < ncol; i++)
+	{
+		cout << i + 1<<"  :";
+		for (int j = 0; j < 10; j++) cout << i_category_list_original[i][j] << "  ";
+		cout << endl;
+	}
+	cout << endl;
+	*/
+	
+	
+	//-------------------------
+	//Override original k[] when there are categorical columns
+	//-------------------------
+	for(int i_col=0; i_col<ncol; i_col++)
+	{ 
+		if(i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] <36)
+		{
+			k[i_col] = static_cast<double>(i_k_categorical[i_col]); 
+			RPrint("Note: Some categorical columns are automatically identified, and {k} may be replaced! \n");  
+		}
+	}
+	
+
+	double* x_one_column      = new double[nrow]; Fill_dVector(x_one_column, nrow, 0.0);
+
+	double* x_one_column_temp = new double[nrow]; Fill_dVector(x_one_column_temp, nrow, 0.0);
+
+	
+	
+
+	for(int i_col=0; i_col<ncol; i_col++)
+	{
+
+		for(int i=0; i<nrow; i++) x_one_column[i] = x[i][i_col]; //get one column
+
+		
+		
+		//------------------------------
+		//Algorithm II: Categorical Variable (column)
+		//------------------------------
+		if(i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] <36) //if this column is categorical
+		{
+			for(int i=0; i<nrow; i++)
+			{
+				bool b_update_z = 1; 
+				
+				//only for the meaningful cell value of current column
+				if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) 
+				{
+					for(int i_m=0; i_m < i_k_categorical[i_col]; i_m++) // as of April 2018, maximum categories = 35
+					{
+						if(fabs_FHDI(x_one_column[i] - i_category_list_original[i_col][i_m]) < 1e-5) 
+						{
+							if(b_update_z) z[i][i_col] =  (i_m + 1)*1.0; //Actual Category Number. Stored as double 
+							b_update_z = 0; //move to next row 
+							
+							//testout
+							//RPrint(" x_one_column[i]:"); RPrint(x_one_column[i]); 
+							//RPrint(" i_category_list_original[i_col][i_m]:"); 
+							//RPrint(i_category_list_original[i_col][i_m]); 
+						}
+					}
+				}
+			}
+		}			
+		
+		//------------------------------
+		//Algorithm I: Continuous Variable (column)
+		//------------------------------
+		if(i_k_categorical[i_col] == 0 ) //if this column is Continuous
+		{
+
+			//----------------
+
+			// omit Not Available (NA) values in each column of x
+
+			//----------------
+
+			int i_temp = 0; 
+
+			for(int i=0; i<nrow; i++) 
+
+			{
+
+				if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) 
+
+				//if(   !std::isnan(x_one_column[i])   ) //non-NA value only	
+
+				{	
+
+					x_one_column_temp[i_temp] = x_one_column[i];
+
+					i_temp++;
+
+				}
+
+			}
+
+			
+
+			//-----------------
+
+			//make percentile except for 1.0
+
+			//-----------------
+
+			int k_one_column = (int)k[i_col];
+
+			if(fabs_FHDI(k_one_column)<=1.0) 
+
+			{RPrint("Error! in categorize_cpp, k_one_column is <=1.0! \n"); return 0;} //error check
+
+			double* perc = new double[k_one_column-1]; Fill_dVector(perc, (k_one_column-1), 0.0);
+
+
+
+			for(int i=0; i<(k_one_column-1); i++)
+
+			{
+
+				perc[i] = (i+1)*(1.0/k_one_column);
+
+			}
+
+			
+
+			//------------------
+
+			//quantile generation
+
+			//the same as Type 7 (default in R)
+
+			//------------------
+
+			int n_observed = i_temp; //actual size of non-NA data in current column of x
+
+			if(n_observed <= nrow)
+
+			//{ std::sort(&x_one_column_temp[0], &x_one_column_temp[n_observed]); }
+
+			{ std::sort(x_one_column_temp, x_one_column_temp+n_observed); }	
+
+											//Note: sort happens in [begin, end)
+
+											//Note: use <algorithm> of c++ library. formation: sort(*begin, *end)
+
+			if(n_observed > nrow)  //error case 
+
+			{ Rprintf("Error! n_observed > nrow in categorize()"); return 0; }
+
+					
+
+			
+
+			
+
+			//Note: the last quantile (i.e. 100%) is not included, and thus (k_one_column-1) is used
+
+			double* x_quantile = new double[k_one_column-1]; Fill_dVector(x_quantile, (k_one_column-1), 0.0);
+
+			
+
+			for(int i=0; i<(k_one_column-1); i++)
+
+			{
+
+				double d_h = (n_observed-1)*perc[i] ; //+1 is removed for c++ code 
+
+				x_quantile[i] = x_one_column_temp[int(floor(d_h))] 
+
+								+  (d_h-floor(d_h))*(  x_one_column_temp[int(floor(d_h)+1)]
+
+													 - x_one_column_temp[int(floor(d_h))]   );
+
+			}
+
+			
+
+			//---------------
+
+			//assign z with category values
+
+			// Note: categories = {1, 2, ...} 
+
+			//---------------
+
+			for(int i=0; i<nrow; i++)
+
+			{
+
+				if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) //non-NA value only
+
+				//if(   !std::isnan(x_one_column[i])   ) //non-NA value only
+
+				{
+
+					//---------
+
+					//default category of non-NA unit is 1 as of 0124_2017
+
+					//---------
+
+					z[i][i_col] = 1; //default 
+
+					
+
+					//----------
+
+					//consider each quantile
+
+					//----------
+
+					if(x_one_column[i] < x_quantile[0]){ z[i][i_col] = 1;} //1st category
+
+					if(x_one_column[i] > x_quantile[k_one_column-2]){ z[i][i_col] = k_one_column;} //last category
+
+
+
+					for(int j=1; j<(k_one_column-1); j++)
+
+					{
+
+						if(x_quantile[j-1] < x_one_column[i] && x_one_column[i] <= x_quantile[j])
+
+						{
+
+							z[i][i_col] = j+1 ; //(j+1)th quantile. Note: j =[0,k_one_column) 
+
+							break; 
+
+						}
+
+					}
+
+				}
+			}
+
+			
+
+			//--------------
+
+			//local Deallocation
+
+			//--------------
+
+			delete[] perc; 
+
+			delete[] x_quantile;	
+		} //end of continuous variable (column)			
+
+	}
+
+
+
+	//--------------------
+
+	//Deallocation
+
+	//--------------------
+	Del_iMatrix(i_category_list_original, ncol, 35);
+	
+	delete[] i_k_categorical; 
+
+	delete[] x_one_column;      
+
+	delete[] x_one_column_temp; 
+
+
+
+	return 1;
+
+}
+
+void categorize_cpp_beforeApril9_2018(double** x, const int nrow, const int ncol, double* k, double** z)
 
 //Description=========================================
 
@@ -7460,6 +7980,509 @@ void categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 
 
+//=========================================================
+
+//=========================================================
+
+//=========================================================
+
+//=========================================================
+
+//=========================================================
+
+bool categorize_cpp(double* x, const int nrow,  double &k, double* z)
+
+//Description=========================================
+
+// categorize a data ARRAY x 
+
+// according to the given number of category stored in k
+
+//
+
+// Algorithm:  
+
+// perc: percentiles used to get quantiles, determined by k
+
+// quan: quantiles if k=4, we quan=(Q1,Q2,Q3) have Q1(=1/4), Q2 (=Median) and Q3(=3/4)
+
+// 
+
+// Note: as of Oct 2016, NA values (missing data) is marked by 1234567899 at the parent "r" code
+
+//
+
+// original R code: Dr. Im, J. and Dr. Kim, J. 
+
+// c++ code: 		Dr. Cho, I. 
+
+// All rights reserved
+
+// 
+
+// updated: Oct 6, 2016
+
+//----------------------------------------------------
+
+//IN	: double x(nrow) 	= a column data containing missing values
+
+//INOUT	: double k   		= a number of category of the column. May be automatically changed for categorical variable
+
+//OUT   : double z(nrow)    = catorized array corresponding to original array x
+
+//                                initialized with 0.0 
+
+//====================================================
+
+{
+	
+	//testout
+	//RPrint("previoius k :"); RPrint(k); 
+	
+	//---------------------------------------
+	//Automatically Identify Categorical Columns (Variables)
+	//---------------------------------------
+	//---------------------------------------
+	//global storage for Categorical variable
+	//original list of category values
+	//Note: assuming the largest category is 35 as of April 9, 2018
+	//---------------------------------------
+	//const int ncol = 1; //for this function only 
+	//int** i_category_list_original = New_iMatrix(ncol, 35);
+	//Fill_iMatrix(i_category_list_original, ncol, 35, 0);
+	int* i_category_list_original = new int[35];
+	Fill_iVector(i_category_list_original, 35, 0);
+
+	//Index of each column. 0: continuous; [1, 35]: categorical 
+	//int* i_k_categorical = new int[ncol]; 
+	//for (int i = 0; i < ncol; i++) i_k_categorical[i] = 0;
+	int i_k_categorical = 0; 
+
+	//----------------------
+	//Loop for each column
+	//----------------------
+	double* d_x_one_column = new double[nrow]; //one column of [x]
+	//for (int i_col = 0; i_col < ncol; i_col++)
+	//{
+		int i_integer_in_row = 0; //total integer counts of current column 
+		bool b_categorical = 0; 
+
+		//----
+		//get this column
+		//----
+		//for (int i = 0; i < nrow; i++) d_x_one_column[i] = x[i][i_col];
+		for (int i = 0; i < nrow; i++) d_x_one_column[i] = x[i]; //for this function only 
+
+		//----
+		//total observed cells in this column
+		//----
+		int i_total_observed_cells_this_column = 0; 
+		for(int i=0; i<nrow; i++)
+		{
+			//only for the meaningful cell value of current column
+			if(fabs_FHDI(d_x_one_column[i] - 1234567899) > 1e-5) 
+			{
+				i_total_observed_cells_this_column++; 
+			}
+		}		
+		
+		//----
+		//check all values in this column are integer
+		//----
+		for (int i_row = 0; i_row < nrow; i_row++)
+		{
+			double d_x_one = d_x_one_column[i_row];
+			double d_round = (double)round(d_x_one);
+
+			//when current cell value is integer & observed cell only 
+			if (fabs_FHDI(d_x_one - d_round) < 1E-10 &&
+			    fabs_FHDI(d_x_one - 1234567899) > 1e-5)
+			{
+				i_integer_in_row++; 
+			}
+		}
+
+		//---------
+		//when all values are integer
+		//---------
+		if (i_integer_in_row == i_total_observed_cells_this_column)
+		{
+			b_categorical = 1; //this column may be categorical
+		}
+
+		//testout
+		//cout << "i_col:" << i_col << " i_integer_in_row:" << i_integer_in_row << " b_categorical:" << b_categorical << endl;
+
+		//--------
+		//find how many categories are
+		//--------
+		if (b_categorical) //when this column is categorical
+		{
+			std::vector<double> v_table_value; 
+			std::vector<int> v_table_count; 
+			table_cpp(d_x_one_column, nrow,
+				      v_table_value, v_table_count);
+
+			int n_size_v_table = v_table_value.size(); //how many different categories
+			
+			//---
+			//exception consideration when the missing cell is counted 
+			//as a category in the table
+			//---
+			bool b_missing_cell_included = 0; 
+			if(n_size_v_table>1)
+			{   //when the last category turns out to be the NA
+				for(int j=0; j<n_size_v_table; j++)
+				{
+					if(fabs_FHDI(v_table_value[j] - 1234567899) < 1e-5) 
+					{
+						b_missing_cell_included = 1; 
+					}
+				}
+			}
+			if(b_missing_cell_included) n_size_v_table = n_size_v_table - 1;  
+			
+			//if the categories are less than 35 ---------
+			if (n_size_v_table > 0 && n_size_v_table < 36)
+			{
+				//i_k_categorical[i_col] = n_size_v_table; //how many categories 
+				i_k_categorical = n_size_v_table; //how many categories 
+			}
+			//if the categories are larger than 35 ---------
+			//considered as continuous as of April 9th, 2018
+			if (n_size_v_table > 35)
+			{
+				//i_k_categorical[i_col] = 0; //0 means continuous 
+				i_k_categorical = 0; //0 means continuous 
+				n_size_v_table = 0; //reset to zero 
+			}
+
+			//testout<<
+			/*
+			cout << "n_size_v_table :" << n_size_v_table << endl;
+			cout << "v_table_value[] :" <<  endl;
+			for (int i = 0; i < n_size_v_table; i++) cout << v_table_value[i] << " ";
+			cout << endl;
+			cout << "v_table_count[] :" << endl;
+			for (int i = 0; i < n_size_v_table; i++) cout << v_table_count[i] << " ";
+			cout << endl;
+			*/
+
+			//-------------
+			//store the current column's original category values 
+			//which may be not consecutive 
+			//-------------
+			//if (i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] < 36)
+			if (i_k_categorical >= 1 && i_k_categorical < 36)	
+			{
+				for (int j = 0; j < n_size_v_table; j++)
+				{
+					//i_category_list_original[i_col][j] = static_cast<int>(v_table_value[j]); 
+					i_category_list_original[j] = static_cast<int>(v_table_value[j]); 
+					
+				}
+			}
+			//clear vector container
+			v_table_value.clear(); 
+			v_table_count.clear(); 
+
+		}
+
+	//} //loop for columns inactivated for this function only 
+
+	//delete local array
+	delete[] d_x_one_column;
+
+	//testout
+	//RPrint("i_k_categorical :"); RPrint(i_k_categorical); 
+	//RPrint("i_category_list_original []:"); RPrint(i_category_list_original, 35); 
+	
+	/*
+	cout << "column,   i_k_categorical[]" << endl;
+	for (int i = 0; i < ncol; i++)
+	{
+		cout << i + 1 << "  ,  " << i_k_categorical[i] << endl;
+	}
+	cout << endl;
+	
+	//testout
+	cout << "column, i_category_list_original[i_col][1:35]" << endl;
+	for(int i = 0; i < ncol; i++)
+	{
+		cout << i + 1<<"  :";
+		for (int j = 0; j < 10; j++) cout << i_category_list_original[i][j] << "  ";
+		cout << endl;
+	}
+	cout << endl;
+	*/
+	
+	
+	//-------------------------
+	//Override original k[] when there are categorical columns
+	//-------------------------
+	//const int i_col = 0 ;
+	//if(i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] <36)
+    if(i_k_categorical >= 1 && i_k_categorical <36)		
+	{
+		//k[i_col] = static_cast<double>(i_k_categorical[i_col]); 
+		k = static_cast<double>(i_k_categorical); 
+		Rprintf("Note! Some categorical columns are automatically identified and {k} may be replaced! \n");  
+	}
+	//below is for matrix version 
+	/*
+	for(int i_col=0; i_col<ncol; i_col++)
+	{ 
+		if(i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] <36)
+		{
+			k[i_col] = static_cast<double>(i_k_categorical[i_col]); 
+			Rprintf("Caution! some categorical columns are automatically identified and {k} may be replaced!");  
+		}
+	}
+    */	
+	
+	//testout
+	//RPrint("maybe new k :"); RPrint(k); 
+
+	
+	double* x_one_column      = new double[nrow]; Fill_dVector(x_one_column, nrow, 0.0);
+
+	double* x_one_column_temp = new double[nrow]; Fill_dVector(x_one_column_temp, nrow, 0.0);
+
+	
+
+	for(int i=0; i<nrow; i++) x_one_column[i] = x[i]; //get the one column
+
+	//testout
+	//RPrint("previous x[]:"); RPrint(x_one_column, nrow); 
+
+	
+	//------------------------------
+	//Algorithm II: Categorical Variable (column)
+	//------------------------------
+	//if(i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] <36) //if this column is categorical
+	if(i_k_categorical >= 1 && i_k_categorical <36) //if this column is categorical
+	{
+		for(int i=0; i<nrow; i++)
+		{
+			bool b_update_z = 1 ; 
+			//only for the meaningful cell value of current column
+			if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) 
+			{
+				//for(int i_m=0; i_m < i_k_categorical[i_col]; i_m++) // as of April 2018, maximum categories = 35
+				for(int i_m=0; i_m < i_k_categorical; i_m++) // as of April 2018, maximum categories = 35
+				{
+					//if(fabs_FHDI(x_one_column[i] - i_category_list_original[i_col][i_m]) <1e-5)					
+					if(fabs_FHDI(x_one_column[i] - i_category_list_original[i_m]) <1e-5)					
+					{
+						//if(b_update_z) z[i][i_col] = (i_m + 1); //Actual Category Number 
+						if(b_update_z) z[i] = static_cast<double>(i_m + 1); //Actual Category Number //for this function only
+						b_update_z = 0; //move to next row 
+					}
+				}
+			}
+		}
+	}			
+		
+	//------------------------------
+	//Algorithm I: Continuous Variable (column)
+	//------------------------------
+	//if(i_k_categorical[i_col] == 0 ) //if this column is Continuous	
+	if(i_k_categorical == 0 ) //if this column is Continuous	
+	{
+		
+		//----------------
+
+		// omit Not Available (NA) values in each column of x
+
+		//----------------
+
+		int i_temp = 0; 
+
+		for(int i=0; i<nrow; i++) 
+
+		{
+
+			if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) 
+
+			//if(  !std::isnan(x_one_column[i])  ) 	
+
+			{	
+
+				x_one_column_temp[i_temp] = x_one_column[i];
+
+				i_temp++;
+
+			}
+
+		}
+
+		
+
+		//-----------------
+
+		//make percentile except for 1.0
+
+		//-----------------
+
+		int k_one_column = (int)k;
+
+		if(fabs_FHDI(k_one_column)<=1.0) {Rprintf("Error! in categorize_cpp, k_one_column is <=1.0!"); return 0;} //error check
+
+
+
+		double* perc = new double[k_one_column-1]; Fill_dVector(perc, (k_one_column-1), 0.0);
+
+
+
+		for(int i=0; i<(k_one_column-1); i++)
+
+		{
+
+			perc[i] = (i+1)*(1.0/k_one_column);
+
+		}
+
+		
+
+		//------------------
+
+		//quantile generation
+
+		//the same as Type 7 (default in R)
+
+		//------------------
+
+		int n_observed = i_temp; //actual size of non-NA data in current column of x
+
+        if(n_observed <= nrow)
+
+		//{ std::sort(&x_one_column_temp[0], &x_one_column_temp[n_observed]); }
+
+		{ std::sort(x_one_column_temp, x_one_column_temp+n_observed); }	
+
+										//Note: sort happens in [begin, end)
+
+										//Note: use <algorithm> of c++ library. formation: sort(*begin, *end)
+
+		if(n_observed > nrow)  //error case 
+
+		{ Rprintf("Error! n_observed > nrow in categorize()"); return 0; }
+
+		//Note: the last quantile (i.e. 100%) is not included, and thus (k_one_column-1) is used
+
+		double* x_quantile = new double[k_one_column-1]; Fill_dVector(x_quantile, (k_one_column-1), 0.0);
+
+		
+
+		for(int i=0; i<(k_one_column-1); i++)
+
+		{
+
+			double d_h = (n_observed-1)*perc[i] ; //+1 is removed for c++ code 
+
+			x_quantile[i] = x_one_column_temp[int(floor(d_h))] 
+
+							+  (d_h-floor(d_h))*(  x_one_column_temp[int(floor(d_h)+1)]
+
+							                     - x_one_column_temp[int(floor(d_h))]   );
+
+		}
+
+		
+
+		//---------------
+
+		//assign z with category values
+
+		// Note: categories = {1, 2, ...} 
+
+		//---------------
+
+		for(int i=0; i<nrow; i++)
+
+		{
+			//----------
+			//Avoid error by updating NA z with non-zero value during cell collapse 
+			//----------
+			z[i] = 0 ; //for general default  
+
+			
+			if(fabs_FHDI(x_one_column[i] - 1234567899) > 1e-5) //non-NA value only
+
+			//if(   !std::isnan(x_one_column[i])   ) //non-NA value only
+
+			{
+
+
+				//default category of non-NA unit is 1 as of 0124_2017
+
+				//---------
+
+				z[i] = 1; //default 
+
+				
+
+				if(x_one_column[i] < x_quantile[0]){ z[i] = 1;} //1st category
+
+				if(x_one_column[i] > x_quantile[k_one_column-2]){ z[i] = k_one_column;} //last category
+
+
+
+				for(int j=1; j<(k_one_column-1); j++)
+
+				{
+
+					if(x_quantile[j-1] < x_one_column[i] && x_one_column[i] <= x_quantile[j])
+
+					{
+
+						z[i] = j+1 ; //(j+1)th quantile. Note: j =[0,k_one_column) 
+
+						break; 
+
+					}
+
+				}
+
+			}
+			
+		}
+
+	
+
+		//--------------
+
+		//local Deallocation
+
+		//--------------
+
+		delete[] perc; 
+
+		delete[] x_quantile;		
+	} //end of continuous variable 
+	
+	
+	//--------------------
+
+	//Deallocation
+
+	//--------------------
+	//Del_iMatrix(i_category_list_original, ncol, 35);
+	//delete[] i_k_categorical;  
+	delete[] i_category_list_original;
+	
+	delete[] x_one_column;      
+
+	delete[] x_one_column_temp; 
+
+
+
+	return 1;
+
+}
+
+
+
 
 
 //=========================================================
@@ -7472,7 +8495,7 @@ void categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 //=========================================================
 
-void categorize_cpp(double* x, const int nrow, const double k, double* z)
+void categorize_cpp_BeforeApril09_2018(double* x, const int nrow, const double k, double* z)
 
 //Description=========================================
 
@@ -7717,7 +8740,6 @@ void categorize_cpp(double* x, const int nrow, const double k, double* z)
 
 
 
-
 //Fn===========================================================================
 
 //Zmat_Extension_cpp.cc-----------------------------------------------------------------------------
@@ -7797,7 +8819,11 @@ void Zmat_Extension_cpp(double** z, const int nrow, const int ncol, std::string 
 	Trans(z, nrow, ncol, cn);
 
 
-
+	//testout
+	//RPrint("inside Zmat_Extension_cpp");
+	//RPrint("  z[][]: in Zmat_Extension_cpp \n"); RPrint(z, nrow, ncol);
+	//RPrint("  cn[]: "); RPrint(cn, nrow);
+	
 	
 
 	//--------------
@@ -8149,7 +9175,7 @@ namespace FHDI{
 
 
 
-void nDAU_cpp(double** uox, double** mox, const int nrow_uox, const int nrow_mox, const int ncol,
+bool nDAU_cpp(double** uox, double** mox, const int nrow_uox, const int nrow_mox, const int ncol,
 
               std::string cn[], int* ol, const int nrow_ol, 
 
@@ -8593,9 +9619,9 @@ void nDAU_cpp(double** uox, double** mox, const int nrow_uox, const int nrow_mox
 
 	{
 
-		Rprintf("No possible donors with current k. Retry with (k-1)");
+		Rprintf("No possible donors with current k. Retry with reduced k \n");
 
-		return;
+		return 0;
 
 	}
 
@@ -8691,7 +9717,7 @@ void nDAU_cpp(double** uox, double** mox, const int nrow_uox, const int nrow_mox
 
 	//delete[] tnU;
 
-    return;
+    return 1;
 
 }
 
@@ -9844,7 +10870,7 @@ namespace FHDI{
 
 
 
-void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double* d_k, 
+bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double* d_k, 
 
 							 double** z, 
 
@@ -9912,7 +10938,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 {
 
-	const int n_max_iteration = nrow; //maximum number of iterations 
+	const int n_max_iteration = nrow*2; //maximum number of iterations 
 
 	//const int n_max_iteration = 2;  //temporary
 
@@ -9924,18 +10950,31 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 	//-------------------------------------
 
-	categorize_cpp(x, nrow, ncol, d_k, z);
+	bool b_success_categorize = categorize_cpp(x, nrow, ncol, d_k, z);
 
-	
+	if(!b_success_categorize) { return 0;}
 
 	//testout
 
-	//RPrint("d_k: "); RPrint(d_k,  ncol);
+	//RPrint("d_k: \n"); RPrint(d_k,  ncol);
 
-	//RPrint("z: "); RPrint(z, nrow, ncol);
+	//RPrint("z: \n"); RPrint(z, nrow, ncol);
+
+
+	//----------
+	//clear category matrix for possible garbage
+	//Note: z has only positive integer as category #
+	//----------
+	/*for(int i=0; i<nrow; i++)
+	{
+		for(int j=0; j<ncol; j++)
+		{
+			if(fabs_FHDI(z[i][j] < 1e-3)) z[i][j] = 0.0; 
+		}
+	}
+	*/
 
 	
-
 	//-------------------------------------
 
 	//make a copy of z
@@ -9946,9 +10985,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 	Copy_dMatrix(z, nrow, ncol, zbase);
 
-	
-
-	
+		
 
 	//-------------------------------------
 
@@ -9980,7 +11017,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		{
 
-			if(fabs_FHDI(z[i_row][i_col]) < 1e-15) //count only  "0"
+			if(fabs_FHDI(z[i_row][i_col]) < 1e-5) //count only  "0"
 
 			{ i_temp++; }
 
@@ -10094,6 +11131,19 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		if(i_loop == -5) b_DEBUG_Zmat = true;
 
+
+		//----------
+		//clear category matrix for possible garbage
+		//Note: z has only positive integer as category #
+		//----------
+		/*for(int i=0; i<nrow; i++)
+		{
+			for(int j=0; j<ncol; j++)
+			{
+				if(fabs_FHDI(z[i][j] < 1e-3)) z[i][j] = 0.0; 
+			}
+		}
+		*/
 		
 
 		//-----------
@@ -10124,8 +11174,21 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		if(i_count_ml <= 0 || i_count_ol <= 0)
 
-		{ Rprintf("ERROR! i_count_ml or _ol is zero!"); return;}
+		{ Rprintf("ERROR! i_count_ml or _ol is zero!"); return 0;}
 
+
+		//----------
+		//clear category matrix for possible garbage
+		//Note: z has only positive integer as category #
+		//----------
+		/*for(int i=0; i<nrow; i++)
+		{
+			for(int j=0; j<ncol; j++)
+			{
+				if(fabs_FHDI(z[i][j] < 1e-3)) z[i][j] = 0.0; 
+			}
+		}
+		*/
 
 
 	
@@ -10156,7 +11219,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		
 
-		nDAU_cpp(uox, mox, i_count_uox, i_count_mox, ncol,
+		bool b_success_nDAU = nDAU_cpp(uox, mox, i_count_uox, i_count_mox, ncol,
 
 				 cn, ol, i_count_ol, 
 
@@ -10166,6 +11229,12 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		//RPrint("nDAU_... has been done");
 
+		if(!b_success_nDAU)
+		{			
+			Rprintf("Error! nDAU Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+			
+			return 0; //abnormal ending 								
+		}
 		
 
 		//================================
@@ -10190,7 +11259,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			//testout
 
-			Rprintf(" Special case for small donors=======!!!!!");
+			Rprintf(" Special case for small donors!  \n");
 
 			//-----
 
@@ -10216,7 +11285,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			int* i_orm = new int[n_orm]; 
 
-			for(int j=0; j<n_orm; j++) i_orm[j] = i_orn[v_maxk[j]-1]; //Note: actual loc
+			for(int j=0; j<n_orm; j++) i_orm[j] = i_orn[v_maxk[j]-1]; //Note: actual loc of column
 
 			
 
@@ -10250,10 +11319,25 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			for(int i=0; i<nrow; i++) d_x_temp[i] = x[i][i_mc-1]; //Note: actual loc in i_mc
 
-			categorize_cpp(d_x_temp, nrow, d_k[i_mc -1], d_z_temp); 
+			double d_k_one_dummy = d_k[i_mc -1];
+			
+			//b_success_categorize = categorize_cpp(d_x_temp, nrow, d_k[i_mc -1], d_z_temp); 
+			
+			b_success_categorize = categorize_cpp(d_x_temp, nrow, d_k_one_dummy, d_z_temp); 
 
-		
+			if(!b_success_categorize) {return 0; }
 
+			d_k[i_mc -1] = d_k_one_dummy ; //this k value may have been updated for automatic categorical var.
+			
+			//----------
+			//clear category matrix for possible garbage
+			//Note: d_z_temp has only positive integer as category #
+			//----------
+			for(int i=0; i<nrow; i++)
+			{ if(fabs_FHDI(d_z_temp[i] < 1e-3)) d_z_temp[i] = 0.0; }
+			
+			
+			
 			//-----
 
 			//update zbase's one column with the reduced category
@@ -10262,7 +11346,23 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			for(int i=0; i<nrow; i++) zbase[i][i_mc-1] = d_z_temp[i]; //Note: actual loc in i_mc
 
-			d_k[i_mc-1] = d_k[i_mc-1] - 1; //reduce the previous category number 
+			//testout
+			//RPrint("In special case, i_mc : "); RPrint(i_mc); 
+			//RPrint("d_z_temp[] : "); RPrint(d_z_temp, nrow); 
+			
+			//-----
+			//check too small category number error (April 2018)
+			//-----
+			if( fabs_FHDI(d_k[i_mc-1] - 1) < 1.0)
+			{
+				{Rprintf("Error! There is not enough observed units or categories. Change k or break down category; it may help  \n "); return 0;}
+			}
+			
+			//-----
+			//reduce the previous category number
+			//for the ease of category condensation
+			//-----
+			d_k[i_mc-1] = d_k[i_mc-1] - 1;  
 
 			
 
@@ -10278,17 +11378,31 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			if(min_k_new < 2) 
 
-			{Rprintf("There is not enough observed units"); break;}
+			{Rprintf("There is not enough observed units in the original data. Thus, a cell-collapse has been done   \n"); break;}
 
 			//MUST ACTIVATE BREAK after adding a LOOP !!!!!
 
+			
+			//----------
+			//clear category matrix for possible garbage
+			//Note: zbase has only positive integer as category #
+			//----------
+			for(int i=0; i<nrow; i++)
+			{
+				for(int j=0; j<ncol; j++)
+				{
+					if(fabs_FHDI(zbase[i][j] < 1e-3)) zbase[i][j] = 0.0; 
+				}
+			}
 
+			
 
 			//-----
 
 			//update with new reduced data
 
 			//-----
+			
 
 			Copy_dMatrix(zbase, nrow, ncol, z);
 
@@ -10318,6 +11432,17 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			v_nD = std::vector<int>(); 
 
+			//----------
+			//clear category matrix for possible garbage
+			//Note: z has only positive integer as category #
+			//----------
+			/*for(int i=0; i<nrow; i++)
+			{
+				for(int j=0; j<ncol; j++)
+				{
+					if(fabs_FHDI(z[i][j] < 1e-3)) z[i][j] = 0.0; 
+				}
+			}*/
 			
 
 			Zmat_Extension_cpp(z, nrow, ncol, cn, 
@@ -10330,7 +11455,14 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		
 
-			if(i_count_ml <= 0 || i_count_ol <= 0){ Rprintf("ERROR! i_count_ml or _ol is zero!"); return;}
+			if(i_count_ml <= 0 || i_count_ol <= 0)
+			{ 
+				Rprintf("ERROR! i_count_ml or _ol is zero!   \n");
+
+				Rprintf("Change k, further break down categorical variables, or check data quality \n");		
+				
+				return 0;
+			}
 
 			
 
@@ -10360,12 +11492,18 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			
 
-			nDAU_cpp(uox, mox, i_count_uox, i_count_mox, ncol,
+			b_success_nDAU =  nDAU_cpp(uox, mox, i_count_uox, i_count_mox, ncol,
 
 					 cn, ol, i_count_ol, 
 
 					 v_nD, List_nU, tnU, b_DEBUG_nDAU); 			
 
+			if(!b_success_nDAU)
+			{			
+				Rprintf("Error! nDAU Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+				
+				return 0; //abnormal ending 								
+			}
 			
 
 			//-----
@@ -10429,6 +11567,17 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 		if(i_loop ==-3) b_DEBUG_Merge = true; 
 
 		
+		//----------
+		//clear category matrix for possible garbage
+		//Note: z has only positive integer as category #
+		//----------
+		/*for(int i=0; i<nrow; i++)
+		{
+			for(int j=0; j<ncol; j++)
+			{
+				if(fabs_FHDI(z[i][j] < 1e-3)) z[i][j] = 0.0; 
+			}
+		}*/
 
 		if(v_nD[i_reci] < 2) //if donors are less than 2, do MERGE
 
@@ -10466,9 +11615,13 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		if(i_loop == n_max_iteration-1) 
 
-		{ Rprintf(" reached n_max_iteration :");
+		{ Rprintf(" reached n_max_iteration after step ");
 
-		  Rprintf("%d ", n_max_iteration);
+			Rprintf("%d ", n_max_iteration);
+			
+			Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
+			
+			return 0; 
 
 		}
 
@@ -10480,6 +11633,25 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 	
 
+
+	//----------
+	//clear uox and mox matrix for possible garbage
+	//Note: Must have only positive integer as category #
+	//----------
+	for(int i=0; i<i_count_uox; i++)
+	{
+		for(int j=0; j<ncol; j++)
+		{
+			if(fabs_FHDI(uox[i][j] < 1e-3)) uox[i][j] = 0.0; 
+		}
+	}
+	for(int i=0; i<i_count_mox; i++)
+	{
+		for(int j=0; j<ncol; j++)
+		{
+			if(fabs_FHDI(mox[i][j] < 1e-3)) mox[i][j] = 0.0; 
+		}
+	}
 
 
 
@@ -10562,7 +11734,7 @@ void Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 	
 
-	return;
+	return 1;
 
 }
 
@@ -10582,7 +11754,7 @@ namespace FHDI
 
 {
 
-void AGMAT_Extension_cpp(double** mox, const int nrow_mox, 
+bool AGMAT_Extension_cpp(double** mox, const int nrow_mox, 
 
 						 double** uox, const int nrow_uox, 
 
@@ -10934,7 +12106,7 @@ void AGMAT_Extension_cpp(double** mox, const int nrow_mox,
 
 			if(i_size_loc_srst_nl == 0) //error case
 
-			{Rprintf("Error! there is no matched cell!"); return;}
+			{Rprintf("Error! there is no matched cell! \n"); return 0;}
 
 			
 
@@ -11116,7 +12288,7 @@ void AGMAT_Extension_cpp(double** mox, const int nrow_mox,
 
 	
 
-	return;
+	return 1;
 
 }
 
@@ -11646,7 +12818,7 @@ void Cal_W_Extension_cpp(double** mox, const int nrow_mox,
 
 			if(i_size_loc_srst_ncol1 == 0) //error case
 
-			{Rprintf("Error! there is no matched cell!"); return;}
+			{Rprintf("Error! there is no matched cell! \n"); return;}
 
 			
 
@@ -11910,7 +13082,7 @@ namespace FHDI{
 
 
 
-void Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
+bool Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 							 std::vector<double> &jp_prob_return,
 
@@ -12020,9 +13192,9 @@ void Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 	const int i_size_ml = (int)ml.size(); 
 
-	if(i_size_ol ==0) {Rprintf("Error! no observed unit in Cell_Prov.."); return; }
+	if(i_size_ol ==0) {Rprintf("Error! no observed unit in Cell_Prob. \n"); return 0; }
 
-	if(i_size_ml ==0) {Rprintf("Error! no missing  unit in Cell_Prov.."); return; }
+	if(i_size_ml ==0) {Rprintf("Error! no missing  unit in Cell_Prob. \n"); return 0; }
 
 
 
@@ -12466,7 +13638,7 @@ void Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 	rbind_FHDI agmat(ncol); //Note: without the first column of id
 
-	AGMAT_Extension_cpp(mox, i_count_mox, 
+	bool b_success_AGMAT = AGMAT_Extension_cpp(mox, i_count_mox, 
 
 						uox, i_count_uox, 
 
@@ -12480,6 +13652,13 @@ void Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 						agmat); 
 
+	if(!b_success_AGMAT)
+	{			
+		Rprintf("Error! AGMAT Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+		
+		return 0; //abnormal ending 								
+	}
+						
 	const int n_row_agmat = agmat.size_row(); //get the number of rows 
 
 	
@@ -12742,8 +13921,8 @@ void Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 		{
 
-			Rprintf("CAUTION!! max iteration reached in Cell_Prob..()");
-
+			Rprintf("CAUTION!! max iteration reached in Cell_Prob. \n");
+			return 0;
 		}
 
 		
@@ -12826,7 +14005,7 @@ void Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 	
 
-	return;
+	return 1;
 
 	
 
@@ -15218,7 +16397,7 @@ void yorder(double** y, const int nrow, const int ncol,
 
 			
 
-void FHDI_Extension_cpp(double** y, double** z, int** r, 
+bool FHDI_Extension_cpp(double** y, double** z, int** r, 
 
 						const int nrow, const int ncol, 
 
@@ -15438,9 +16617,9 @@ void FHDI_Extension_cpp(double** y, double** z, int** r,
 
 	const int i_size_ml = (int)ml.size(); 
 
-	if(i_size_ol ==0) {Rprintf("Error! no observed unit in FHDI_Extension.."); return; }
+	if(i_size_ol ==0) {Rprintf("Error! no observed unit in FHDI_Extension. \n"); return 0; }
 
-	if(i_size_ml ==0) {Rprintf("Error! no missing  unit in FHDI_Extension.."); return; }
+	if(i_size_ml ==0) {Rprintf("Error! no missing  unit in FHDI_Extension. \n"); return 0; }
 
 
 
@@ -16110,7 +17289,7 @@ void FHDI_Extension_cpp(double** y, double** z, int** r,
 
 			if(i_size_loc_srst_nl == 0) //error case
 
-			{Rprintf("Error! there is no matched cell!"); return;}
+			{Rprintf("Error! there is no matched cell! \n"); return 0;}
 
 			
 
@@ -16836,7 +18015,7 @@ void FHDI_Extension_cpp(double** y, double** z, int** r,
 
 	//testout
 
-	Rprintf(" ========= FHDI has successfully finished!\n");
+	Rprintf(" ========= FHDI has successfully finished! \n");
 
 	
 
@@ -16902,7 +18081,7 @@ void FHDI_Extension_cpp(double** y, double** z, int** r,
 
 	
 
-	return;
+	return 1;
 
 
 
@@ -17406,7 +18585,7 @@ void RepWeight(const int n, double** d_rw)
 
 
 
-void Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int*  id, 
+bool Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int*  id, 
 
                
 
@@ -17650,7 +18829,7 @@ void Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int
 
 		
 
-		Cell_Prob_Extension_cpp(d_cx, nrow, ncol,
+		bool b_success_CellProb = Cell_Prob_Extension_cpp(d_cx, nrow, ncol,
 
 							    jp_prob_return,
 
@@ -17658,8 +18837,13 @@ void Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int
 
 							    w_UserDefined, id);		
 
-								
-
+		if(!b_success_CellProb)
+		{			
+			Rprintf("Error! Cell Prob Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+			
+			return 0; //abnormal ending 								
+		}
+		
 		//---
 
 		//prep return
@@ -17690,7 +18874,7 @@ void Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int
 
 	
 
-	return;				   
+	return 1;				   
 
 }
 
@@ -17698,7 +18882,7 @@ void Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int
 
 
 
-void Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, const int ncol, 
+bool Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, const int ncol, 
 
 	double** d_rw, double* w, int* id, 
 
@@ -17986,7 +19170,7 @@ void Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, con
 
 	
 
-    Rep_CellP(d_cx, nrow, ncol, d_rw, id, 
+    bool b_success_Rep_CellP = Rep_CellP(d_cx, nrow, ncol, d_rw, id, 
 
 			  List_rst_prob,
 
@@ -17994,6 +19178,12 @@ void Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, con
 
 			  s_ncx);
 
+	if(!b_success_Rep_CellP)
+	{			
+		Rprintf("Error! Rep_CellP Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+		
+		return 0; //abnormal ending 								
+	}
 	
 
 
@@ -18998,7 +20188,7 @@ void Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, con
 
 	
 
-	return;
+	return 1;
 
 }
 
@@ -19038,7 +20228,7 @@ namespace FHDI
 
 
 
-void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, const int ncol, 
+bool Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, const int ncol, 
 
 	double** d_rw, double* w, int* id, 
 
@@ -19322,13 +20512,21 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 	
 
-    Rep_CellP(d_cx, nrow, ncol, d_rw, id, 
+    bool b_success_Rep_CellP = Rep_CellP(d_cx, nrow, ncol, d_rw, id, 
 
 			  List_rst_prob,
 
 			  List_rst_name,
 
 			  s_ncx);	
+
+	if(!b_success_Rep_CellP)
+	{			
+		Rprintf("Error! Rep_CellP Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+		
+		return 0; //abnormal ending 								
+	}
+			  
 
 	//--------------------
 
@@ -20310,7 +21508,7 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 							//-------------
 
-							if(MM == 1) {Rprintf("Error! MM is 1 in Var FHDI"); return;}
+							if(MM == 1) {Rprintf("Error! MM is 1 in Var FHDI \n"); return 0;}
 
 							//-----------
 
@@ -20584,7 +21782,7 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 	
 
-	return;
+	return 1;
 
 }
 
@@ -20610,7 +21808,7 @@ void Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 
 
-void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k, 
+bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original, 
 
                    double* d_w, int* M_donor,
 
@@ -20696,7 +21894,7 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 
 //IN    : int    r(nrow_x, ncol_x) = index for missing (0) or observed (1)
 
-//IN	: double k(ncol_x)	= number of total categories per column of x
+//IN	: double k_original(ncol_x)	= number of total categories per column of x
 
 //IN	: double d_w(nrow_x) 	= weight of row (default = 1.0)
 
@@ -20775,7 +21973,11 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 	const int i_merge = *i_option_merge; 
 
 	
-
+	//------
+	//copy the original k vector since it may be updated for categorical variables
+	//------
+	double* k = new double[ncol]; 
+	for(int i=0; i<ncol; i++) k[i] = k_original[i]; 
 
 
 	//----------------------------
@@ -20818,12 +22020,18 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 
 	
 
-		FHDI::Cell_Prob_Extension_cpp(x_raw, nrow, ncol, 
+		bool b_success_CellProb = FHDI::Cell_Prob_Extension_cpp(x_raw, nrow, ncol, 
 
 		                          jp_prob_return_CellProb, jp_name_return_CellProb, 
 
 	                              d_w, id);
 
+		if(!b_success_CellProb)
+		{			
+			Rprintf("Error! Cell Prob Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+			
+			return 0; //abnormal ending 								
+		}
 
 
 		//=========================
@@ -20836,7 +22044,7 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 
 		
 
-		return; 		
+		return 1; 		
 
 	}
 
@@ -20887,9 +22095,17 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 	//April 4, 2017 =======================
 	if(i_option_perform != 4) 
 	{
-		FHDI::Cell_Make_Extension_cpp(x_raw, nrow, ncol, k, z, 
+		bool b_success_CM = FHDI::Cell_Make_Extension_cpp(x_raw, nrow, ncol, k, z, 
 								  rbind_uox_CellMake, rbind_mox_CellMake, 
 								  i_merge);   
+		if(b_success_CM == 0) 
+		{
+			Rprintf("ERROR! Cell Make failed! ");
+			Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
+			
+			return 0; //abnormal ending 
+		}
+		
 	}
 
 	
@@ -20947,7 +22163,7 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 
 		
 
-		return; 
+		return 1; 
 
 	}
 
@@ -20971,11 +22187,18 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 
 	
 
-	FHDI::Cell_Prob_Extension_cpp(z, nrow, ncol, jp_prob_return, jp_name_return, 
+	bool b_success_CellProb = FHDI::Cell_Prob_Extension_cpp(z, nrow, ncol, jp_prob_return, jp_name_return, 
 
 	                              d_w, id);
 
+	if(!b_success_CellProb)
+	{			
+		Rprintf("Error! Cell Prob Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+		
+		return 0; //abnormal ending 								
+	}
 	
+
 
 	//=====================================
 
@@ -21043,7 +22266,7 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 
 	{
 
-		FHDI::FHDI_Extension_cpp(x_raw, z, r_raw, 
+		bool b_success_FHDI = FHDI::FHDI_Extension_cpp(x_raw, z, r_raw, 
 
 						     nrow, ncol, 
 
@@ -21062,6 +22285,12 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 				rbind_uox, rbind_mox, 
 
 				List_ord,  List_ocsg);
+				
+		if(!b_success_FHDI)
+		{
+			Rprintf(" FEFI failed! Change k, break down categories, or check data quality. It may help. \n");
+			return 0; 
+		}
 
 	}
 
@@ -21073,7 +22302,7 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 
 		s_M ="FHDI";
 
-		FHDI::FHDI_Extension_cpp(x_raw, z, r_raw, 
+		bool b_success_FHDI = FHDI::FHDI_Extension_cpp(x_raw, z, r_raw, 
 
 						     nrow, ncol, 
 
@@ -21093,7 +22322,11 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 
 				List_ord,  List_ocsg);
 
-
+		if(!b_success_FHDI)
+		{
+			Rprintf(" FHDI failed! Change k, break down categories, or check data quality. It may help. \n");
+			return 0; 
+		}
 
 	}	
 
@@ -21287,7 +22520,7 @@ void Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k,
 
 	
 
-	return ; //test return of double* 
+	return 1; //test return of double* 
 
 
 
@@ -21875,7 +23108,7 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 
 //----------------------------------------------------------------------------
 
-void Rfn_test_call(double* x, int* r, int * nrow_x, int * ncol_x, 
+bool Rfn_test_call(double* x, int* r, int * nrow_x, int * ncol_x, 
 
                    double* k, double* d, int * M, 
 
@@ -21923,7 +23156,7 @@ void Rfn_test_call(double* x, int* r, int * nrow_x, int * ncol_x,
 
 
 
-	Rfn_test(x, r, nrow_x, ncol_x, k, d, M, 
+	bool b_success_Rfn = Rfn_test(x, r, nrow_x, ncol_x, k, d, M, 
 
 	         i_option_imputation, i_option_variance, 
 
@@ -21950,8 +23183,9 @@ void Rfn_test_call(double* x, int* r, int * nrow_x, int * ncol_x,
 			 i_option_merge); 
 
 	
-
-	return ;
+    if(b_success_Rfn == 1) return 1; 
+	if(b_success_Rfn == 0) return 0;
+	return 0;
 
 
 
@@ -22239,7 +23473,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 	if(i_option_perform[0] == 4){ i_op_p_temp = 4;} 
 
-	Rfn_test_call(x, r, nrow_x, ncol_x, k, d, M, 
+	bool b_success_Rfn_Call = Rfn_test_call(x, r, nrow_x, ncol_x, k, d, M, 
 
 	              i_option_imputation, i_option_variance, id, z_UserDefined,
 
@@ -22261,7 +23495,13 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 	
 
-
+	if(!b_success_Rfn_Call) 
+	{
+		Rprintf("ERROR! Some function of FHDI failed! ");
+		Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
+		
+		return(R_NilValue); //abnormal ending 
+	}
 
 	//testout
 
@@ -22931,7 +24171,7 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 //----------------------------------------------------------------------------
 
-//- CWrapper 
+//- CWrapper_CellMake 
 
 //  to perform 
 
@@ -23125,7 +24365,7 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 
 
-	Rfn_test_call(x, r, nrow_x, ncol_x, k, d, M, 
+	bool b_success_Rfn_Call = Rfn_test_call(x, r, nrow_x, ncol_x, k, d, M, 
 
 	              i_option_imputation, i_option_variance, id, z_UserDefined,
 
@@ -23149,7 +24389,13 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	delete[] z_UserDefined;
 
-	
+	if(!b_success_Rfn_Call) 
+	{
+		Rprintf("ERROR! Some function of FHDI failed! ");
+		Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
+		
+		return(R_NilValue); //abnormal ending 
+	}
 
 	//testout
 
@@ -23591,7 +24837,7 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	
 
-	Rfn_test_call(x, r, nrow_x, ncol_x, k, d, M, 
+	bool b_success_Rfn_Call = Rfn_test_call(x, r, nrow_x, ncol_x, k, d, M, 
 
 	              i_option_imputation, i_option_variance, id, z_UserDefined,
 
@@ -23615,6 +24861,13 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	delete[] z_UserDefined;
 
+	if(!b_success_Rfn_Call) 
+	{
+		Rprintf("ERROR! Some function of FHDI failed! ");
+		Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
+		
+		return(R_NilValue); //abnormal ending 
+	}
 	
 
 	//-----------

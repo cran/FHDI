@@ -1,7 +1,7 @@
 FHDI_CellMake<-function(daty, datr=NULL, k=5,
                         w=NULL, id=NULL, s_op_merge="fixed")	
 {
-#Description------------------------------update: March 29, 2017
+#Description------------------------------update: April 12, 2018
 # main driver for Fully Efficient Fractional Imputation (FEFI) and 
 #                 Fractional Hot Deck Imputation (FHDI)
 # Perform (1) Cell Make ONLY!
@@ -115,6 +115,14 @@ for(i in 1:ncol_y){
 output_FHDI_CellMake <- .Call("CWrapper_CellMake", daty, datr, nrow_y, ncol_y, k, w, M, 
                 i_option_imputation, i_option_variance, id, i_option_merge)						 
 
+				
+#abnormal ending
+if(is.null(output_FHDI_CellMake))
+{
+	print("Error took place during FHDI_CellMake! \n"); 
+	return(NULL); 
+}
+ 
 #-------------------
 #reset to NA in raw data matrix
 #-------------------
