@@ -59,7 +59,7 @@ List_FHDI_CellProb <- .Call("CWrapper_CellProb", datz, nrow_z, ncol_z, w, id);
 #abnormal ending
 if(is.null(List_FHDI_CellProb))
 {
-	print("Error took place during FHDI_CellProb! \n"); 
+	print("Error took place during FHDI_CellProb! "); 
 	return(NULL); 
 }
 

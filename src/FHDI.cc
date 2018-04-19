@@ -9430,6 +9430,9 @@ bool nDAU_cpp(double** uox, double** mox, const int nrow_uox, const int nrow_mox
 			Trans1(d_rcn0_temp, nxl, s_rcn0); //condense one row  
 
 			
+			//deallocate used array or matrix (2018_0416)
+			delete[] d_rcn0_temp;
+			
 
 			
 
@@ -10500,7 +10503,8 @@ void Merge_Extension_cpp(const int i_reci, double** uox, const int nrow_uox,
 
 		}
 
-		
+		//deallocate used array or matrix (2018_0416)
+		delete [] i_ns; 
 
 		//------
 
@@ -11231,7 +11235,7 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		if(!b_success_nDAU)
 		{			
-			Rprintf("Error! nDAU Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+			Rprintf("Error! nDAU Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
 			
 			return 0; //abnormal ending 								
 		}
@@ -11500,7 +11504,7 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			if(!b_success_nDAU)
 			{			
-				Rprintf("Error! nDAU Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+				Rprintf("Error! nDAU Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
 				
 				return 0; //abnormal ending 								
 			}
@@ -11619,7 +11623,7 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			Rprintf("%d ", n_max_iteration);
 			
-			Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
+			Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
 			
 			return 0; 
 
@@ -12308,7 +12312,7 @@ namespace FHDI
 
 {
 
-void Cal_W_Extension_cpp(double** mox, const int nrow_mox, 
+bool Cal_W_Extension_cpp(double** mox, const int nrow_mox, 
 
 						 double** uox, const int nrow_uox, 
 
@@ -12818,7 +12822,19 @@ void Cal_W_Extension_cpp(double** mox, const int nrow_mox,
 
 			if(i_size_loc_srst_ncol1 == 0) //error case
 
-			{Rprintf("Error! there is no matched cell! \n"); return;}
+			{
+				Rprintf("Error! there is no matched cell! \n"); 
+				
+				//deallocation before early return
+				delete[] i_temp_x; 
+				delete[] zid;
+				delete[] i_srst;
+				delete[] i_srst1;
+				delete[] w_srst_ncol;
+				delete[] jp_zi; 
+				
+				return 0;
+			}
 
 			
 
@@ -13060,7 +13076,7 @@ void Cal_W_Extension_cpp(double** mox, const int nrow_mox,
 
 	
 
-	return;
+	return 1;
 
 }
 
@@ -13654,8 +13670,21 @@ bool Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 	if(!b_success_AGMAT)
 	{			
-		Rprintf("Error! AGMAT Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
-		
+		Rprintf("Error! AGMAT Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+		//deallocation before early return
+		delete[] w_ml; 
+		Del_dMatrix(d_ox, i_size_ol, ncol);
+		Del_dMatrix(d_mx, i_size_ml, ncol);			
+		delete[] cn; 
+		delete[] cn0;
+		delete[] s_ocn; 
+		delete[] s_mcn; 
+		delete[] s_ocn_temp; 
+		delete[] s_mcn_temp; 
+		Del_dMatrix(uox, nrow, ncol);	
+		Del_dMatrix(mox, nrow, ncol);		
+
 		return 0; //abnormal ending 								
 	}
 						
@@ -13821,7 +13850,7 @@ bool Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 		w20.clear();  //re-initialize 
 
-		Cal_W_Extension_cpp(mox, i_count_mox, 
+		bool b_success_Cal_W = Cal_W_Extension_cpp(mox, i_count_mox, 
 
 						uox, i_count_uox, 
 
@@ -13839,6 +13868,30 @@ bool Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 						w20);
 
+		if(!b_success_Cal_W)
+		{
+
+			Rprintf("Error! Cal_W has failed! \n");
+			
+			//deallocation before early return
+			delete[] w_ml; 
+			Del_dMatrix(d_ox, i_size_ol, ncol);
+			Del_dMatrix(d_mx, i_size_ml, ncol);			
+			delete[] cn; 
+			delete[] cn0;
+			delete[] s_ocn; 
+			delete[] s_mcn; 
+			delete[] s_ocn_temp; 
+			delete[] s_mcn_temp; 
+			Del_dMatrix(uox, nrow, ncol);	
+			Del_dMatrix(mox, nrow, ncol);		
+			//up to here, memory allocated before AGMAT...			
+			delete[] d_fmat1; 
+			delete[] s_fcd;
+			delete[] w1;
+			
+			return 0;
+		}
 		
 
 		//-----------
@@ -13922,6 +13975,26 @@ bool Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 		{
 
 			Rprintf("CAUTION!! max iteration reached in Cell_Prob. \n");
+			
+			//deallocation before early return
+			delete[] w_ml; 
+			Del_dMatrix(d_ox, i_size_ol, ncol);
+			Del_dMatrix(d_mx, i_size_ml, ncol);			
+			delete[] cn; 
+			delete[] cn0;
+			delete[] s_ocn; 
+			delete[] s_mcn; 
+			delete[] s_ocn_temp; 
+			delete[] s_mcn_temp; 
+			Del_dMatrix(uox, nrow, ncol);	
+			Del_dMatrix(mox, nrow, ncol);		
+			//up to here, memory allocated before AGMAT...			
+			delete[] d_fmat1; 
+			delete[] s_fcd;
+			delete[] w1;
+			//below is for local 
+			delete[] w12; 
+			
 			return 0;
 		}
 
@@ -13973,26 +14046,12 @@ bool Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 	//-------------
 
-	//delete[] w;
-
 	delete[] w_ml; 
-
-	delete[] w1;
-
-	//delete[] id; 
-
-	delete[] d_fmat1; 
 
 	Del_dMatrix(d_ox, i_size_ol, ncol);
 
 	Del_dMatrix(d_mx, i_size_ml, ncol);
-
-	Del_dMatrix(mox, nrow, ncol);
-
-	Del_dMatrix(uox, nrow, ncol);	
-
 	
-
 	delete[] cn; 
 
 	delete[] cn0;
@@ -14001,8 +14060,21 @@ bool Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 
 	delete[] s_mcn; 
 
+	delete[] s_ocn_temp; 
+
+	delete[] s_mcn_temp; 
+
+	Del_dMatrix(uox, nrow, ncol);	
+
+	Del_dMatrix(mox, nrow, ncol);
+	
+	//up to here, memory allocated before AGMAT...
+	
+	delete[] d_fmat1; 
+
 	delete[] s_fcd;
 
+	delete[] w1;
 	
 
 	return 1;
@@ -18839,7 +18911,7 @@ bool Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int
 
 		if(!b_success_CellProb)
 		{			
-			Rprintf("Error! Cell Prob Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+			Rprintf("Error! Cell Prob Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
 			
 			return 0; //abnormal ending 								
 		}
@@ -19180,7 +19252,7 @@ bool Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, con
 
 	if(!b_success_Rep_CellP)
 	{			
-		Rprintf("Error! Rep_CellP Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+		Rprintf("Error! Rep_CellP Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
 		
 		return 0; //abnormal ending 								
 	}
@@ -20522,7 +20594,7 @@ bool Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 	if(!b_success_Rep_CellP)
 	{			
-		Rprintf("Error! Rep_CellP Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+		Rprintf("Error! Rep_CellP Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
 		
 		return 0; //abnormal ending 								
 	}
@@ -22028,7 +22100,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 		if(!b_success_CellProb)
 		{			
-			Rprintf("Error! Cell Prob Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+			Rprintf("Error! Cell Prob Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
 			
 			return 0; //abnormal ending 								
 		}
@@ -22101,7 +22173,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 		if(b_success_CM == 0) 
 		{
 			Rprintf("ERROR! Cell Make failed! ");
-			Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
+			Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
 			
 			return 0; //abnormal ending 
 		}
@@ -22193,7 +22265,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	if(!b_success_CellProb)
 	{			
-		Rprintf("Error! Cell Prob Failed! Change k, check data quality, futher break down categorical variables, or so. It may help \n");
+		Rprintf("Error! Cell Prob Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
 		
 		return 0; //abnormal ending 								
 	}
@@ -23399,9 +23471,19 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 	//M
 
-	if(M[0]<1) {FHDI::RPrint("Error! M is less than 1 "); return(R_NilValue);}
+	if(M[0]<1) 
+	{
+		FHDI::RPrint("Error! M is less than 1 "); 
+		UNPROTECT(13); 
+		return(R_NilValue);
+	}
 
-	if(M[0]>nrow_x[0]) {FHDI::RPrint("Error! M is larger than total rows of data "); return(R_NilValue);}
+	if(M[0]>nrow_x[0]) 
+	{
+		FHDI::RPrint("Error! M is larger than total rows of data "); 
+		UNPROTECT(13); 
+		return(R_NilValue);
+	}
 
 	//k
 
@@ -23409,9 +23491,19 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 	{
 
-		if(k[i] < 1){FHDI::RPrint("Error! some k is less than 1 "); return(R_NilValue);}
+		if(k[i] < 1)
+		{
+			FHDI::RPrint("Error! some k is less than 1 "); 
+			UNPROTECT(13); 
+			return(R_NilValue);
+		}
 
-		if(k[i] > 35){FHDI::RPrint("Error! some k is larger than 35 "); return(R_NilValue);}
+		if(k[i] > 35)
+		{
+			FHDI::RPrint("Error! some k is larger than 35 "); 
+			UNPROTECT(13); 
+			return(R_NilValue);
+		}
 
 	}
 
@@ -23498,8 +23590,9 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 	if(!b_success_Rfn_Call) 
 	{
 		Rprintf("ERROR! Some function of FHDI failed! ");
-		Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
+		Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
 		
+		UNPROTECT(13); 
 		return(R_NilValue); //abnormal ending 
 	}
 
@@ -24392,8 +24485,8 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 	if(!b_success_Rfn_Call) 
 	{
 		Rprintf("ERROR! Some function of FHDI failed! ");
-		Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
-		
+		Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
+		UNPROTECT(10+1); 
 		return(R_NilValue); //abnormal ending 
 	}
 
@@ -24773,9 +24866,11 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	//for this Cell Prob Only option, other variables are nullified 
 
-	int    *r = new int[1]; 			//pointer to an integer vector r[n_total_x] that contains indices of 0 and 1
-
-	double *k = new double[1];			//pointer to a double value 
+	//int    *r = new int[1]; 			//pointer to an integer vector r[n_total_x] that contains indices of 0 and 1
+	int    *r = new int[ncol_x[0]*nrow_x[0]]; //may be needed for heap overflow
+	
+	//double *k = new double[1];			//pointer to a double value 
+	double *k = new double[ncol_x[0]];		//since k may be updated later for categorical variable 
 
 	int    *M = new int[1]; 		//pointer to integer number of donors 
 
@@ -24858,14 +24953,29 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 				  3, i_option_merge); //3: perform only Cell Prob; x has category values   
 
 
+	//----
+	//deallocation
+	//----
+	delete[] r;
 
+	delete[] k;
+
+	delete[] M;
+
+	delete[] i_option_imputation;
+
+	delete[] i_option_variance;
+
+	delete[] i_option_merge;
+	
 	delete[] z_UserDefined;
 
 	if(!b_success_Rfn_Call) 
 	{
 		Rprintf("ERROR! Some function of FHDI failed! ");
-		Rprintf(" Change k, check data quality, futher break down categorical variables, or so. It may help ");
+		Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
 		
+		UNPROTECT(5);
 		return(R_NilValue); //abnormal ending 
 	}
 	

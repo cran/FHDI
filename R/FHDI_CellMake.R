@@ -119,7 +119,7 @@ output_FHDI_CellMake <- .Call("CWrapper_CellMake", daty, datr, nrow_y, ncol_y, k
 #abnormal ending
 if(is.null(output_FHDI_CellMake))
 {
-	print("Error took place during FHDI_CellMake! \n"); 
+	print("Error took place during FHDI_CellMake! "); 
 	return(NULL); 
 }
  

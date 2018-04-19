@@ -137,7 +137,7 @@ output_FHDI <- .Call("CWrapper", daty, datr, z_UserDefined, i_option_perform,
 #abnormal ending
 if(is.null(output_FHDI))
 {
-	print("Error took place during FHDI_Driver! \n"); 
+	print("Error took place during FHDI_Driver!"); 
 	return(NULL); 
 }
 				
