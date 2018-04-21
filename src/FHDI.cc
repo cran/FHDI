@@ -22661,7 +22661,12 @@ void Extract_Imputed_Results(const int nrow, const int ncol, rbind_FHDI &rbind_i
 	Fill_dVector(final_full_data, nrow*ncol, 0.0); 
 
 	
-
+	int ID = 0; 
+	double wi = 0.0;
+	double wij =0.0; 
+	double d_temp = 0.0; 
+	double d_sum_wij = 0.0; 
+	
 	//--------
 
 	//main loop for all rows of original data matrix
@@ -22678,23 +22683,27 @@ void Extract_Imputed_Results(const int nrow, const int ncol, rbind_FHDI &rbind_i
 
 		//-----
 
-		double d_sum_wij = 0.0; 
+		d_sum_wij = 0.0;
+		//double d_sum_wij = 0.0; 
 
 		Fill_dVector(yi, ncol, 0.0); //initialize ith row data vector 
 
 		for(int j=0; j<nrow; j++) 
 
 		{
-
-			int ID = (int)rbind_ipmat(i_loc, 0) - 1 ; //1st col means ID; "-1" for actual location  
+			d_temp = rbind_ipmat(i_loc, 0); 
+			ID = static_cast<int>(d_temp) - 1 ; //1st col means ID; "-1" for actual location  
+			//below is disabled on April 21, 2018 to avoid AddressSanitizer UseAfterScope error
+			//int ID = (int)rbind_ipmat(i_loc, 0) - 1 ; //1st col means ID; "-1" for actual location  
 
 			if(ID == i) //as long as the same ID 
 
 			{
 
-				double wi = rbind_ipmat(i_loc, 2); 
-
-				double wij= rbind_ipmat(i_loc, 3);
+				wi = rbind_ipmat(i_loc, 2); 
+				//double wi = rbind_ipmat(i_loc, 2); 
+				wij= rbind_ipmat(i_loc, 3);
+				//double wij= rbind_ipmat(i_loc, 3);
 
 				
 
@@ -22751,6 +22760,9 @@ void Extract_Imputed_Results(const int nrow, const int ncol, rbind_FHDI &rbind_i
 			Rprintf("ERROR! zero sum of fractional weight at the row: "); 
 			Rprintf("%d ", i);
 
+			//early deallocation 
+			delete[] yi; 
+			
 			return;
 
 		}
@@ -22770,8 +22782,10 @@ void Extract_Imputed_Results(const int nrow, const int ncol, rbind_FHDI &rbind_i
 			//for(int j=0; j<nrow; j++)
 
 			//{
-
-				double d_temp = yi[i_var]/d_sum_wij; 
+				
+				d_temp = 0.0; 
+				d_temp = yi[i_var]/d_sum_wij; 
+				//double d_temp = yi[i_var]/d_sum_wij; 
 
 				
 
@@ -22897,7 +22911,14 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 
 	Fill_dMatrix(y_bar_i_k, nrow, ncol, 0.0);
 
-
+	//----------
+	//global temporary variable declaration
+	//----------
+	double d_sum_wij = 0.0; 
+	int ID =0; 
+	double wi = 0.0; 
+	double wij = 0.0; 
+	double d_temp = 0.0; 
 
 	for(int k=0; k<nrow; k++) //Jackknife replicates 
 
@@ -22911,7 +22932,8 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 
 		i_loc = 0; 
 
-		double d_sum_wij = 0.0; 
+		d_sum_wij = 0.0;
+		//double d_sum_wij = 0.0; 
 
 		Fill_dVector(yi, ncol, 0.0); //initialize vector for column-wise means of all variables  
 
@@ -22928,8 +22950,10 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 			for(int j=0; j<nrow; j++) 
 
 			{
+				d_temp = rbind_ipmat(i_loc, 0);
+				ID = static_cast<int>(d_temp) - 1 ; //1st col means ID; "-1" for actual location  
 
-				int ID = (int)rbind_ipmat(i_loc, 0) - 1 ; //1st col means ID; "-1" for actual location  
+				//int ID = (int)rbind_ipmat(i_loc, 0) - 1 ; //1st col means ID; "-1" for actual location  
 
 				
 
@@ -22942,8 +22966,8 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 				if(ID == i) //as long as the same ID 
 
 				{
-
-					double wi = rbind_ipmat(i_loc, 2); 
+					wi = rbind_ipmat(i_loc, 2);
+					//double wi = rbind_ipmat(i_loc, 2); 
 
 					//double wij= rbind_ipmat(i_loc, 3); //used in mean calculation
 
@@ -22954,8 +22978,10 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 					//NOTE: use the replicated fractional weight in lieu of ipmat
 
 					//-------
+					
+					wij = rbind_vrst(i_loc, k); //k means current Jackknifed column
 
-					double wij = rbind_vrst(i_loc, k); //k means current Jackknifed column
+					//double wij = rbind_vrst(i_loc, k); //k means current Jackknifed column
 
 					
 
@@ -23018,6 +23044,10 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 			Rprintf("ERROR! zero sum of fractional weight at Jackknifed row :");
 			Rprintf("%d ", k);
 
+			//early deallocation 
+			delete[] yi; 
+			Del_dMatrix(y_bar_i_k, nrow, ncol);
+			
 			return;
 
 		}
@@ -23036,9 +23066,9 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 
 		{
 
-
-
-			double d_temp = yi[i_var]/d_sum_wij; 
+			d_temp = 0.0; 
+			d_temp = yi[i_var]/d_sum_wij; 
+			//double d_temp = yi[i_var]/d_sum_wij; 
 
 				
 
@@ -23076,7 +23106,7 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 
 	{
 
-		double d_temp =0.0; 
+		d_temp =0.0; 
 
 		for(int k=0; k<nrow; k++)
 
@@ -23101,8 +23131,6 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 	for(int i_var=0; i_var< ncol; i_var++) //size of columns of ipmat matrix of C++
 
 	{
-
-		double d_temp = 0; 
 
 		d_temp = 0.0; 
 
@@ -23607,7 +23635,8 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 	//FEFI: copy the calculated matrix
 
 	//----------
-
+	double d_temp = 0.0; 
+	
 	if(i_option_imputation[0] == 1) //FEFI
 
 	{
@@ -23642,7 +23671,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 			{
 
-				double d_temp = 0.0; 
+				d_temp = 0.0; 
 
 				d_temp = rbind_ipmat_FEFI_return(j,i); //from ipmat of C++
 
@@ -23768,7 +23797,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 				{
 
-					double d_temp = 0.0; 
+					d_temp = 0.0; 
 
 					d_temp = rbind_vrst_FEFI_return(j,i); //from vrst of C++
 
@@ -23848,7 +23877,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 			for(int i_var=0; i_var< ncol_x[0]; i_var++) { //size of columns of ipmat matrix of C++
 
-				double d_temp = 0.0; 
+				d_temp = 0.0; 
 
 				for(int i=0; i<nrow_x[0]; i++) d_temp += d_Final_Full_Data[i_var*nrow_x[0] + i] ;  //note: i=current row
 
@@ -23960,7 +23989,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 			{
 
-				double d_temp = 0.0; 
+				d_temp = 0.0; 
 
 				d_temp = rbind_ipmat_FHDI_return(j,i); //from ipmat of C++
 
@@ -24080,7 +24109,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 				{
 
-					double d_temp = 0.0; 
+					d_temp = 0.0; 
 
 					d_temp = rbind_vrst_FHDI_return(j,i); //from vrst of C++
 
@@ -24160,7 +24189,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 			for(int i_var=0; i_var< ncol_x[0]; i_var++) { //size of columns of ipmat matrix of C++
 
-				double d_temp = 0.0; 
+				d_temp = 0.0; 
 
 				for(int i=0; i<nrow_x[0]; i++) d_temp += d_Final_Full_Data[i_var*nrow_x[0] + i] ;  //note: i=current row
 
@@ -24515,6 +24544,7 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 	//copy ID, WGT, x of C++ into the return storage
 
 	//----
+	double d_temp = 0.0; 
 
 	for(int i=0; i< ncol_x[0]+2; i++) //size of columns 
 
@@ -24524,7 +24554,7 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 		{
 
-			double d_temp = 0.0; 
+			d_temp = 0.0; 
 
 			if(i==0) //ID column
 
@@ -24592,7 +24622,7 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 		{
 
-			double d_temp = 0.0; 
+			d_temp = 0.0; 
 
 
 
@@ -24656,7 +24686,7 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 		{
 
-				double d_temp = 0.0; 
+				d_temp = 0.0; 
 
 				d_temp = rbind_uox_return(j,i); //from uox of C++
 
@@ -24686,7 +24716,7 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 		{
 
-				double d_temp = 0.0; 
+				d_temp = 0.0; 
 
 				d_temp = rbind_mox_return(j,i); //from mox of C++
 
