@@ -1,5 +1,5 @@
 FHDI_CellMake<-function(daty, datr=NULL, k=5,
-                        w=NULL, id=NULL, s_op_merge="fixed")	
+                        w=NULL, id=NULL, s_op_merge="fixed", categorical=NULL)	
 {
 #Description------------------------------update: April 12, 2018
 # main driver for Fully Efficient Fractional Imputation (FEFI) and 
@@ -16,6 +16,11 @@ FHDI_CellMake<-function(daty, datr=NULL, k=5,
 #                         if a vector of size nrow, use it as it is 
 #IN   : string  s_op_merge = rand (default = fixed)
 #               if requested, do random donor selection in Merge algorithm of Cell Make 
+#IN   : int    categorical	= a index vector with size of ncol(daty)
+#                             when a column has 1, the variable is non-collapsible categorical 
+#							  when a column has 0, the variable is collapsible categorical or continuous
+#                             the default is all 0
+#
 #OUT  : List of 
 #   	[[1]] = ID, WGT, original data matrix 	(nrow, 2+ncol)
 #		[[2]] = categorized matrix 				(nrow, ncol)
@@ -94,6 +99,43 @@ if(length(k)==1) k = rep(k, ncol_y)
 if(is.null(id))  id = 1:nrow_y
 if(is.null(w))   w = rep(1.0, nrow_y)
 
+#-----------
+#non-collapsible categorical variable consideration
+#-----------
+NonCollapsible_categorical = rep(0, ncol_y); #default 
+if(is.null(categorical)) NonCollapsible_categorical = rep(0, ncol_y)
+if(!is.null(categorical))
+{
+	#size check
+	if(length(categorical) != ncol_y)#incorrect size
+	{
+		print("Error! check the size of categorical[], the index vector for non-collapsible variables!")
+		return(NULL); 
+	}
+	#value check
+	if(length(categorical) == ncol_y) #correct size 
+	{
+		n_categorical_zero = 0; 
+		n_categorical_one  = 0; 
+		n_categorical_wrong = 0; 
+		for(i in 1:ncol_y)
+		{
+			if(categorical[i] == 0) n_categorical_zero = n_categorical_zero + 1; 
+			if(categorical[i] == 1) n_categorical_one  = n_categorical_one  + 1;
+			if(categorical[i] !=0 && categorical[i] != 1) n_categorical_wrong = n_categorical_wrong + 1;
+		}
+		if(n_categorical_wrong >= 1)
+		{
+			print("Error! check values of categorical[]; must be either 0 or 1 !")
+			return(NULL); 		
+		}
+	}
+	
+	#only when correct definition of categorical[]
+	for(i in 1:ncol_y) NonCollapsible_categorical[i] = categorical[i]; 
+}
+
+
 #-------------------
 #to avoid NA argument error in external C++ function
 #-------------------
@@ -113,7 +155,9 @@ for(i in 1:ncol_y){
 #----------------------
 						 
 output_FHDI_CellMake <- .Call("CWrapper_CellMake", daty, datr, nrow_y, ncol_y, k, w, M, 
-                i_option_imputation, i_option_variance, id, i_option_merge)						 
+                i_option_imputation, i_option_variance, id, 
+				NonCollapsible_categorical,
+				i_option_merge)						 
 
 				
 #abnormal ending

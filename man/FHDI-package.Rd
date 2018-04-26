@@ -6,7 +6,7 @@
 \description{Perform fractional hot deck imputation 
 Perform fully efficient fractional imputation}
 \details{
-FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_variance=0, M = 5, k = 5, w = NULL, id = NULL, s_op_merge="fixed");
+FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_variance=0, M = 5, k = 5, w = NULL, id = NULL, s_op_merge="fixed", categorical=NULL);
 }
 \seealso{FHDI_CellMake and FHDI_CellProb}
 \author{

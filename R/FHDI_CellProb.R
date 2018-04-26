@@ -46,15 +46,20 @@ if(length(w) > 1 && length(w) != nrow_z)
 if(is.null(id))  id = 1:nrow_z
 if(is.null(w))   w = rep(1.0, nrow_z)
 
+#-----------
+#non-collapsible categorical variable consideration
+#-----------
+NonCollapsible_categorical = rep(0, ncol_z); #default 
 
- #testout
+#testout
 #print("Cell_Prob Only started")
 
 #----------------------
 #call FHDI_test as the separate function
 #Jan 11, 2017
 #----------------------
-List_FHDI_CellProb <- .Call("CWrapper_CellProb", datz, nrow_z, ncol_z, w, id);
+List_FHDI_CellProb <- .Call("CWrapper_CellProb", datz, nrow_z, ncol_z, w, id,
+							NonCollapsible_categorical);
 
 #abnormal ending
 if(is.null(List_FHDI_CellProb))

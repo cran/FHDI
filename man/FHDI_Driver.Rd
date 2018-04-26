@@ -8,7 +8,7 @@ Fully efficient fractional imputation (FEFI) or fractional hot deck imputation (
 \usage{
 FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI",
  i_op_variance=1, M=5, k=5, w=NULL, id=NULL,
- s_op_merge="fixed")
+ s_op_merge="fixed", categorical=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -22,6 +22,7 @@ FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI",
   \item{w}{samping weight for each row of daty. Default = 1.0 if NULL. When a scalar value is given, all rows will have the same weight, while when a vector is given, i.e. w(nrow_y), each row may have a different sampling weight.}
   \item{id}{index for each row. Default = 1:nrow_y if NULL.}
   \item{s_op_merge}{option for random cell make. Default = "fixed" using the same seed number; "rand" using a purely random seed number.}
+  \item{categorical}{(FHDI Version >1.3) index vector indicating non-collapsible categorical variables. Default = zero vector of size ncol_y. For instance, when categorical=c(1,0), the first variable (i.e., 1st column) is considered strictly non-collapsible categorical, and thus no automatic cell-collapse will take place while the second variable (i.e., 2nd column) is considered as continuous or collapsible categorical variable.}
 }
 \details{
 In the FEFI method, all possible donors are assigned to each missing unit with the FEFI fractional weights. In the FHDI method, 
@@ -43,7 +44,7 @@ to compute the variance estimate of the estimators.
 }
 \references{
 Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fractional hot deck imputation, \emph{Proceeding of the Survey Research Methods Section}, Americal Statistical Association, Seattle, WA. 
-Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. Under review.
+Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. Invited for revision.
 }
 \author{
 Dr. Im, Jongho

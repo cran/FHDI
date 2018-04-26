@@ -4724,7 +4724,8 @@ public:
 	//      below operation overload of () is necessary to access the private _v_block 
 
 	//======================
-
+    //below appears to cause gcc-ASAN error. inactivated on April 23, 2018
+	/*
 	double & operator() (int i, int j) //ith list, jth entity (like c++,i.e. from 0)
 
 	{
@@ -4773,7 +4774,8 @@ public:
 
 		return d_element;
 
-	}       
+	} 
+    */	
 
 
 
@@ -5760,7 +5762,8 @@ public:
 	//      below operation overload of () is necessary to access the private _v_block 
 
 	//======================
-
+	//below appears to cause gcc-ASAN error. inactivated on April 23, 2018
+	/*
 	std::string & operator() (int i, int j) //ith list, jth entity (like c++,i.e. from 0)
 
 	{
@@ -5809,7 +5812,8 @@ public:
 
 		return s_element;
 
-	}       
+	} 
+    */	
 
 
 
@@ -6636,7 +6640,8 @@ public:
 	//      below operation overload of () is necessary to access the private _v_block 
 
 	//======================
-
+    //below appears to cause gcc-ASAN error. inactivated on April 23, 2018
+	/*
 	double & operator() (int i, int j) //ith row, jth col (like c++,i.e. from 0)
 
 	{
@@ -6684,7 +6689,7 @@ public:
 		return d_element;
 
 	}       
-
+    */
 
 
     //========================
@@ -7235,7 +7240,8 @@ namespace FHDI
 
 {
 
-bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, double** z)
+bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, double** z, 
+					int* NonCollapsible_categorical)
 
 //Description=========================================
 
@@ -7280,6 +7286,7 @@ bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 //                                initialized with 0.0 
 
+//IN    : int NonCollapsible_categorical[ncol] = index vector of 0: collapsible; 1: Non-Collapsible
 //====================================================
 
 {
@@ -7458,11 +7465,26 @@ bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 	//-------------------------
 	for(int i_col=0; i_col<ncol; i_col++)
 	{ 
-		if(i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] <36)
+		//-----------------------
+		//When this column is NON-collapsible
+		//----------------------
+		if(NonCollapsible_categorical[i_col] == 1)
 		{
-			k[i_col] = static_cast<double>(i_k_categorical[i_col]); 
-			RPrint("Note: Some categorical columns are automatically identified, and {k} may be replaced! \n");  
+			if(i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] <36)
+			{
+				k[i_col] = static_cast<double>(i_k_categorical[i_col]); 
+				RPrint("Note: Non-collapsible categorical variables are identified, and their {k} may be replaced with actual total categories \n");  
+			}
 		}
+		//-----------------------
+		//When this column is COLLAPSIBLE
+		//----------------------
+		if(NonCollapsible_categorical[i_col] == 0)
+		{
+			i_k_categorical[i_col] = 0; //nullify the categorical type 
+										//and do not touch user-defined k[]
+		}
+		
 	}
 	
 
@@ -7990,7 +8012,8 @@ void categorize_cpp_beforeApril9_2018(double** x, const int nrow, const int ncol
 
 //=========================================================
 
-bool categorize_cpp(double* x, const int nrow,  double &k, double* z)
+bool categorize_cpp(double* x, const int nrow,  double &k, double* z, 
+					const int NonCollapsible_categorical_1)
 
 //Description=========================================
 
@@ -8032,6 +8055,7 @@ bool categorize_cpp(double* x, const int nrow,  double &k, double* z)
 
 //                                initialized with 0.0 
 
+//IN    : int NonCollapsible_categorical_1 = 0: when this column is collapsible; 1: Non-collapsible 
 //====================================================
 
 {
@@ -8222,12 +8246,30 @@ bool categorize_cpp(double* x, const int nrow,  double &k, double* z)
 	//-------------------------
 	//const int i_col = 0 ;
 	//if(i_k_categorical[i_col] >= 1 && i_k_categorical[i_col] <36)
-    if(i_k_categorical >= 1 && i_k_categorical <36)		
+	
+	//-------
+	//when this column is NON-collapsible
+	//-------
+	if(NonCollapsible_categorical_1	== 1)
 	{
-		//k[i_col] = static_cast<double>(i_k_categorical[i_col]); 
-		k = static_cast<double>(i_k_categorical); 
-		Rprintf("Note! Some categorical columns are automatically identified and {k} may be replaced! \n");  
+		if(i_k_categorical >= 1 && i_k_categorical <36)		
+		{
+			//k[i_col] = static_cast<double>(i_k_categorical[i_col]); 
+			k = static_cast<double>(i_k_categorical); 
+			//Rprintf("Note! Some categorical columns are automatically identified and {k} may be replaced! \n");  
+		}
 	}
+	//-------
+	//when this column is Collapsible
+	//-------	
+	if(NonCollapsible_categorical_1	== 0)
+	{
+		i_k_categorical = 0; //nullify the categorical type
+							 //and do not touch user-defined k
+	}
+	
+	
+	
 	//below is for matrix version 
 	/*
 	for(int i_col=0; i_col<ncol; i_col++)
@@ -10876,6 +10918,8 @@ namespace FHDI{
 
 bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double* d_k, 
 
+							 int* NonCollapsible_categorical,
+							 
 							 double** z, 
 
 						 	rbind_FHDI &rbind_uox_CellMake, 
@@ -10922,6 +10966,13 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 //IN	: double d_k(ncol)		= a vector of categories of each column of xalloc
 
+//IN    : int NonCollapsible_categorical(nrol) = {0,0, .., 1,.. 0} 
+//				index for non-collapsible categorical variables. 
+//				when at least one column has "1" skip cell-collapse procedure
+//				this may casue a potential error of lack of enough donor! 
+//				(2018, 04 21) 
+//											  
+
 //OUT   : double z(nrow, ncol)  = catorized matrix corresponding to original matrix x
 
 //                                initialized with 0.0 
@@ -10946,6 +10997,29 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 	//const int n_max_iteration = 2;  //temporary
 
+	//-------------------------------------
+	//Determine if there is Non-Collapsible Categorical variable
+	//-------------------------------------
+	double* d_k_Collapsible = new double[ncol]; //k for collapsible variables only 
+	Copy_dVector(d_k, ncol, d_k_Collapsible); 
+	
+	int i_NonCollapsible_categ_total = 0; 
+	for(int i=0; i<ncol; i++)
+	{
+		i_NonCollapsible_categ_total += NonCollapsible_categorical[i];
+		
+		if(NonCollapsible_categorical[i] == 0) d_k_Collapsible[i] = d_k[i]; //use user-defined k 
+		if(NonCollapsible_categorical[i] == 1) d_k_Collapsible[i] = 1; //will be overwritten by actual total categories
+	}
+
+	//testout
+	/*RPrint("initial d_k[]"); RPrint(d_k, ncol); 
+	RPrint("\n"); 
+	RPrint("d_k_Collapsible[]"); RPrint(d_k_Collapsible, ncol); 
+	RPrint("\n"); 
+	RPrint("NonCollapsible_categorical[]"); RPrint(NonCollapsible_categorical, ncol); 
+	RPrint("\n"); 
+	*/
 	
 
 	//-------------------------------------
@@ -10953,12 +11027,23 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 	//Categorize raw data
 
 	//-------------------------------------
+	//Note: when there is non-collapsible variable, 
+	//      its associated d_k
+	//      is replaced with actual total categories 
+	bool b_success_categorize = categorize_cpp(x, nrow, ncol, d_k, z, 
+											   NonCollapsible_categorical);
 
-	bool b_success_categorize = categorize_cpp(x, nrow, ncol, d_k, z);
 
-	if(!b_success_categorize) { return 0;}
+	if(!b_success_categorize) 
+	{
+		//early deallocation 
+		delete[] d_k_Collapsible; 
+		
+		return 0;
+	}
 
 	//testout
+//   	RPrint("After initial categorize()  \n"); 
 
 	//RPrint("d_k: \n"); RPrint(d_k,  ncol);
 
@@ -11178,7 +11263,24 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		if(i_count_ml <= 0 || i_count_ol <= 0)
 
-		{ Rprintf("ERROR! i_count_ml or _ol is zero!"); return 0;}
+		{ 
+			Rprintf("ERROR! i_count_ml or _ol is zero! Change k, check data quality, further break down categorical variables, or so. It may help \n"); 
+
+			//early deallocaiton -----------------
+			delete[] d_k_Collapsible; 
+			delete[] cn; 
+			delete[] ml;
+			delete[] ol;
+			delete[] tnU;
+			Del_dMatrix(zbase, nrow, ncol);
+			Del_dMatrix(uox, nrow, ncol);
+			Del_dMatrix(mox, nrow, ncol);
+			delete[] i_orn;
+			delete[] i_orn_temp;
+			delete[] i_orn_temp2;
+			
+			return 0;
+		}
 
 
 		//----------
@@ -11236,11 +11338,46 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 		if(!b_success_nDAU)
 		{			
 			Rprintf("Error! nDAU Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+			//early deallocaiton -----------------
+			delete[] d_k_Collapsible; 
+			delete[] cn; 
+			delete[] ml;
+			delete[] ol;
+			delete[] tnU;
+			Del_dMatrix(zbase, nrow, ncol);
+			Del_dMatrix(uox, nrow, ncol);
+			Del_dMatrix(mox, nrow, ncol);
+			delete[] i_orn;
+			delete[] i_orn_temp;
+			delete[] i_orn_temp2;
 			
 			return 0; //abnormal ending 								
 		}
-		
 
+
+		//================================
+		//When there are at least one Non-Collapsible Categorical Variable exists
+		//Skip Cell-Collapse procedure 
+		//as of 2018, 04 21
+		//INACTIVATED 2018, 04 25
+		//================================
+		/*
+		if(i_NonCollapsible_categ_total >= 1)
+		{
+			Rprintf("There is at least one Non-Collapsible categorical variable! \n");
+			Rprintf("So, the automatic cell-collapse won't take place. \n");
+			Rprintf("This may affect the following FHDI/FEFI imputation's convergence. \n");
+			Rprintf("If converged imputation is of top interest, (categorical=NULL) may help. \n");
+			break;
+			
+		}
+		*/
+
+		
+		
+		
+		
 		//================================
 
 		//Check whether there exist enough fully observed units for current 
@@ -11262,7 +11399,6 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 		{
 
 			//testout
-
 			Rprintf(" Special case for small donors!  \n");
 
 			//-----
@@ -11273,12 +11409,53 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			//double max_k = 0.0; for(int i=0; i<ncol; i++) {if(max_k <k[i]) max_k = k[i];}
 
-			double max_k = max_FHDI(d_k, ncol);
-
+			//double max_k = max_FHDI(d_k, ncol);
+			double max_k = 0.0;
+			double max_k_Collapsible = 0.0; //max of k among only collapsible variables
+			//-------------------
+			//when all variables are collapsible 
+			//-------------------
+			if(i_NonCollapsible_categ_total == 0)
+			{
+				max_k = max_FHDI(d_k, ncol);
+			}
+			//---------
+			//when there is non-collapsible categorical variable
+			//---------
+			if(i_NonCollapsible_categ_total >= 1)
+			{
+				max_k_Collapsible = max_FHDI(d_k_Collapsible, ncol);
+			}
+			
+			//testout
+			/*RPrint("within Special case \n"); 
+			RPrint("i_NonCollapsible_categ_total: "); RPrint(i_NonCollapsible_categ_total); 
+			RPrint("max_k: "); RPrint(max_k); 
+			RPrint("d_k[]: "); RPrint(d_k, ncol); 
+			RPrint("max_k_Collapsible: "); RPrint(max_k_Collapsible); 
+			RPrint("d_k_Collapsible[]: "); RPrint(d_k_Collapsible, ncol); 
+			*/
+			
 			std::vector<int> v_maxk; 
 
-			which(d_k, ncol, max_k, v_maxk); //ACTUAL locations of columns that have the max category k
+			//which(d_k, ncol, max_k, v_maxk); //ACTUAL locations of columns that have the max category k
 
+			//-------------------
+			//when all variables are collapsible 
+			//-------------------
+			if(i_NonCollapsible_categ_total == 0)
+			{
+				which(d_k, ncol, max_k, v_maxk); //ACTUAL locations of columns that have the max category k
+			}
+			//---------
+			//when there is non-collapsible categorical variable
+			//---------
+			if(i_NonCollapsible_categ_total >= 1)
+			{
+				which(d_k_Collapsible, ncol, max_k_Collapsible, v_maxk); //ACTUAL locations of columns that have the max category k
+			}
+
+			
 			//-----
 
 			//get some of orn of which location is the same as the maxk 
@@ -11310,6 +11487,8 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 			int i_mc = v_orm[0]; //the first cell that has the min orn
 
 			
+			//testout
+			//RPrint("i_mc: "); RPrint(i_mc); 
 
 			//------
 
@@ -11327,12 +11506,43 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 			
 			//b_success_categorize = categorize_cpp(d_x_temp, nrow, d_k[i_mc -1], d_z_temp); 
 			
-			b_success_categorize = categorize_cpp(d_x_temp, nrow, d_k_one_dummy, d_z_temp); 
+			int NonCollapsible_categorical_1 = NonCollapsible_categorical[i_mc-1];
+			b_success_categorize = categorize_cpp(d_x_temp, nrow, d_k_one_dummy, d_z_temp,
+			                                      NonCollapsible_categorical_1); 
 
-			if(!b_success_categorize) {return 0; }
+			//testout
+			//RPrint("within Special case, after single column categorize() \n"); 
+			//RPrint("NonCollapsible_categorical_1: "); RPrint(NonCollapsible_categorical_1); 
+			//RPrint("d_k_one_dummy: "); RPrint(d_k_one_dummy); 
+												  
+			if(!b_success_categorize) 
+			{
+				//early deallocaiton -----------------
+				delete[] d_k_Collapsible; 
+				delete[] cn; 
+				delete[] ml;
+				delete[] ol;
+				delete[] tnU;
+				Del_dMatrix(zbase, nrow, ncol);
+				Del_dMatrix(uox, nrow, ncol);
+				Del_dMatrix(mox, nrow, ncol);
+				delete[] i_orn;
+				delete[] i_orn_temp;
+				delete[] i_orn_temp2;
+				
+				delete[] i_orm; 
+				delete[] d_x_temp; 
+				delete[] d_z_temp;
+				
+				return 0; 
+			}
 
-			d_k[i_mc -1] = d_k_one_dummy ; //this k value may have been updated for automatic categorical var.
-			
+			//if this column is collapsible 
+			if(NonCollapsible_categorical[i_mc-1] == 0)
+			{
+				d_k[i_mc -1] = d_k_one_dummy ; //this k value may have been updated for automatic categorical var.
+				d_k_Collapsible[i_mc-1] = d_k_one_dummy; 
+			}
 			//----------
 			//clear category matrix for possible garbage
 			//Note: d_z_temp has only positive integer as category #
@@ -11347,8 +11557,11 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 			//update zbase's one column with the reduced category
 
 			//-----
-
-			for(int i=0; i<nrow; i++) zbase[i][i_mc-1] = d_z_temp[i]; //Note: actual loc in i_mc
+			//if this column is collapsible 
+			if(NonCollapsible_categorical[i_mc-1] == 0)
+			{
+				for(int i=0; i<nrow; i++) zbase[i][i_mc-1] = d_z_temp[i]; //Note: actual loc in i_mc
+			}
 
 			//testout
 			//RPrint("In special case, i_mc : "); RPrint(i_mc); 
@@ -11357,16 +11570,28 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 			//-----
 			//check too small category number error (April 2018)
 			//-----
-			if( fabs_FHDI(d_k[i_mc-1] - 1) < 1.0)
-			{
-				{Rprintf("Error! There is not enough observed units or categories. Change k or break down category; it may help  \n "); return 0;}
+			//if this column is collapsible 
+			if(NonCollapsible_categorical[i_mc-1] == 0)
+			{			
+				if( fabs_FHDI(d_k[i_mc-1] - 1) < 1.0)
+				{
+					{
+						Rprintf("Error! There is not enough observed units or categories. Change k or break down category; it may help  \n "); 
+						return 0;
+					}
+				}
 			}
 			
 			//-----
 			//reduce the previous category number
 			//for the ease of category condensation
 			//-----
-			d_k[i_mc-1] = d_k[i_mc-1] - 1;  
+			//if this column is collapsible 
+			if(NonCollapsible_categorical[i_mc-1] == 0)
+			{			
+				d_k[i_mc-1] = d_k[i_mc-1] - 1;  
+				d_k_Collapsible[i_mc-1] = d_k_Collapsible[i_mc-1] - 1; 
+			}
 
 			
 
@@ -11382,7 +11607,8 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			if(min_k_new < 2) 
 
-			{Rprintf("There is not enough observed units in the original data. Thus, a cell-collapse has been done   \n"); break;}
+			{Rprintf("There is not enough observed units in the original data. Thus, automatic cell-collapse has been done!   \n"); 
+			 break;}
 
 			//MUST ACTIVATE BREAK after adding a LOOP !!!!!
 
@@ -11464,6 +11690,23 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 				Rprintf("ERROR! i_count_ml or _ol is zero!   \n");
 
 				Rprintf("Change k, further break down categorical variables, or check data quality \n");		
+
+				//early deallocaiton -----------------
+				delete[] d_k_Collapsible; 
+				delete[] cn; 
+				delete[] ml;
+				delete[] ol;
+				delete[] tnU;
+				Del_dMatrix(zbase, nrow, ncol);
+				Del_dMatrix(uox, nrow, ncol);
+				Del_dMatrix(mox, nrow, ncol);
+				delete[] i_orn;
+				delete[] i_orn_temp;
+				delete[] i_orn_temp2;
+				
+				delete[] i_orm; 
+				delete[] d_x_temp; 
+				delete[] d_z_temp;
 				
 				return 0;
 			}
@@ -11505,6 +11748,23 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 			if(!b_success_nDAU)
 			{			
 				Rprintf("Error! nDAU Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+				//early deallocaiton -----------------
+				delete[] d_k_Collapsible; 
+				delete[] cn; 
+				delete[] ml;
+				delete[] ol;
+				delete[] tnU;
+				Del_dMatrix(zbase, nrow, ncol);
+				Del_dMatrix(uox, nrow, ncol);
+				Del_dMatrix(mox, nrow, ncol);
+				delete[] i_orn;
+				delete[] i_orn_temp;
+				delete[] i_orn_temp2;
+				
+				delete[] i_orm; 
+				delete[] d_x_temp; 
+				delete[] d_z_temp;
 				
 				return 0; //abnormal ending 								
 			}
@@ -11526,7 +11786,7 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			delete[] d_z_temp; 
 
-		}
+		} //end of Special case of too small donors 
 
 
 
@@ -11582,7 +11842,18 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 				if(fabs_FHDI(z[i][j] < 1e-3)) z[i][j] = 0.0; 
 			}
 		}*/
-
+		//------------------
+		//when there is at least one non-collapsible categorical variable
+		//skip the merge procedure 
+		//2018, 0426
+		//------------------
+		if(i_NonCollapsible_categ_total>=1 && v_nD[i_reci] < 2)
+		{
+			RPrint("The current data set does not have enough donors while there is at least one non-collapsible categorical variable! \n");
+			RPrint("Thus, auto merging procedure won't take place! \n"); 
+			break; 
+		}
+		
 		if(v_nD[i_reci] < 2) //if donors are less than 2, do MERGE
 
 		{
@@ -11624,7 +11895,21 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 			Rprintf("%d ", n_max_iteration);
 			
 			Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
-			
+
+			//early deallocaiton -----------------
+			delete[] d_k_Collapsible; 
+			delete[] cn; 
+			delete[] ml;
+			delete[] ol;
+			delete[] tnU;
+			Del_dMatrix(zbase, nrow, ncol);
+			Del_dMatrix(uox, nrow, ncol);
+			Del_dMatrix(mox, nrow, ncol);
+			delete[] i_orn;
+			delete[] i_orn_temp;
+			delete[] i_orn_temp2;
+				
+
 			return 0; 
 
 		}
@@ -11711,7 +11996,8 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 	//Deallocation
 
 	//-------------------------------------
-
+	delete[] d_k_Collapsible; 
+	
 	delete[] cn; 
 
 	delete[] i_orn;
@@ -21887,6 +22173,8 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 				   int*i_option_imputation, int* i_option_variance, 
 
 				   int* id, double* z_UserDefined, 
+				   
+				   int* NonCollapsible_categorical, 
 
 				   rbind_FHDI &rbind_ipmat_FEFI,
 
@@ -22167,7 +22455,9 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 	//April 4, 2017 =======================
 	if(i_option_perform != 4) 
 	{
-		bool b_success_CM = FHDI::Cell_Make_Extension_cpp(x_raw, nrow, ncol, k, z, 
+		bool b_success_CM = FHDI::Cell_Make_Extension_cpp(x_raw, nrow, ncol, k, 
+									NonCollapsible_categorical,
+									z, 
 								  rbind_uox_CellMake, rbind_mox_CellMake, 
 								  i_merge);   
 		if(b_success_CM == 0) 
@@ -22691,8 +22981,8 @@ void Extract_Imputed_Results(const int nrow, const int ncol, rbind_FHDI &rbind_i
 		for(int j=0; j<nrow; j++) 
 
 		{
-			d_temp = rbind_ipmat(i_loc, 0); 
-			ID = static_cast<int>(d_temp) - 1 ; //1st col means ID; "-1" for actual location  
+			double d_temp1 = rbind_ipmat(i_loc, 0); 
+			ID = static_cast<int>(d_temp1) - 1 ; //1st col means ID; "-1" for actual location  
 			//below is disabled on April 21, 2018 to avoid AddressSanitizer UseAfterScope error
 			//int ID = (int)rbind_ipmat(i_loc, 0) - 1 ; //1st col means ID; "-1" for actual location  
 
@@ -22950,8 +23240,8 @@ void Extract_Variance_Results(const int nrow, const int ncol,
 			for(int j=0; j<nrow; j++) 
 
 			{
-				d_temp = rbind_ipmat(i_loc, 0);
-				ID = static_cast<int>(d_temp) - 1 ; //1st col means ID; "-1" for actual location  
+				double d_temp1 = rbind_ipmat(i_loc, 0);
+				ID = static_cast<int>(d_temp1) - 1 ; //1st col means ID; "-1" for actual location  
 
 				//int ID = (int)rbind_ipmat(i_loc, 0) - 1 ; //1st col means ID; "-1" for actual location  
 
@@ -23216,6 +23506,8 @@ bool Rfn_test_call(double* x, int* r, int * nrow_x, int * ncol_x,
 
 				   int * id, double* z_UserDefined,
 
+				   int * NonCollapsible_categorical, 
+				   
 				   rbind_FHDI &rbind_ipmat_FEFI_return,
 
 				   rbind_FHDI &rbind_Resp_FEFI_return, 
@@ -23261,6 +23553,8 @@ bool Rfn_test_call(double* x, int* r, int * nrow_x, int * ncol_x,
 	         i_option_imputation, i_option_variance, 
 
 			 id, z_UserDefined,
+			 
+			 NonCollapsible_categorical,
 
 			 rbind_ipmat_FEFI_return, rbind_Resp_FEFI_return, rbind_irmat_FEFI_return,
 
@@ -23311,7 +23605,13 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 			  SEXP i_option_imputation_R, SEXP i_option_variance_R, 
 
-			  SEXP id_R, SEXP i_option_merge_R)
+			  SEXP id_R, 
+			  
+			  SEXP NonCollapsible_categorical_R,
+			  
+			  SEXP i_option_merge_R )
+			  
+
 
 //Description -------------------------------------------
 
@@ -23372,6 +23672,12 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 //                                      1: perform variance estimation using Jackknife method
 
 //IN   : int    id_R[nrow_x_R] = id numbers of all data 
+
+//IN   : int    NonCollapsible_categorical_R[ncol_x_R] = id of strictly non-collapsible categorical variable
+
+//				(0: continuous or collapsible categorical;   1:non-collapsible categorical )
+
+//
 
 //IN   : int    i_option_merge = random donor selection in Merge algorithm in Cell Make
 
@@ -23467,6 +23773,13 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 	int    *id = INTEGER(id_R); 	//pointer to integer number of id of data
 
+	//-----------
+	//additional +1 as of 2018, 0421
+	//0: continuous or collapsible categorical;   1: Non-collapsible categorical
+	//-----------
+	NonCollapsible_categorical_R = PROTECT(Rf_coerceVector(NonCollapsible_categorical_R, INTSXP)); 
+
+	int    *NonCollapsible_categorical = INTEGER(NonCollapsible_categorical_R); 	
 	
 
 	i_option_imputation_R = PROTECT(Rf_coerceVector(i_option_imputation_R, INTSXP)); 
@@ -23486,6 +23799,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 	
 
 	//UP TO here 13 "protect" as of Feb 2017
+	//+1    for NonCollapsible_categorical_R as of April 21, 2018
 
 	
 
@@ -23502,14 +23816,18 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 	if(M[0]<1) 
 	{
 		FHDI::RPrint("Error! M is less than 1 "); 
-		UNPROTECT(13); 
+		//UNPROTECT(13); 	//prior to 2018, 0421
+		UNPROTECT(13+1); 	//2018, 0421 
+		
 		return(R_NilValue);
 	}
 
 	if(M[0]>nrow_x[0]) 
 	{
 		FHDI::RPrint("Error! M is larger than total rows of data "); 
-		UNPROTECT(13); 
+		//UNPROTECT(13); 	//prior to 2018, 0421
+		UNPROTECT(13+1); 	//2018, 0421
+		
 		return(R_NilValue);
 	}
 
@@ -23522,14 +23840,16 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 		if(k[i] < 1)
 		{
 			FHDI::RPrint("Error! some k is less than 1 "); 
-			UNPROTECT(13); 
+			//UNPROTECT(13); 	//prior to 2018, 0421
+			UNPROTECT(13+1); 	//2018, 0421
 			return(R_NilValue);
 		}
 
 		if(k[i] > 35)
 		{
 			FHDI::RPrint("Error! some k is larger than 35 "); 
-			UNPROTECT(13); 
+			//UNPROTECT(13); 	//prior to 2018, 0421
+			UNPROTECT(13+1); 	//2018, 0421
 			return(R_NilValue);
 		}
 
@@ -23596,6 +23916,8 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 	bool b_success_Rfn_Call = Rfn_test_call(x, r, nrow_x, ncol_x, k, d, M, 
 
 	              i_option_imputation, i_option_variance, id, z_UserDefined,
+				  
+				  NonCollapsible_categorical, 
 
 				  rbind_ipmat_FEFI_return, rbind_Resp_FEFI_return, rbind_irmat_FEFI_return,
 
@@ -23620,7 +23942,8 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 		Rprintf("ERROR! Some function of FHDI failed! ");
 		Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
 		
-		UNPROTECT(13); 
+		//UNPROTECT(13); //prior to 2018, 0421 
+		UNPROTECT(13+1); //2018, 0421 
 		return(R_NilValue); //abnormal ending 
 	}
 
@@ -23753,7 +24076,8 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 			//----
 
-			UNPROTECT(13+3);
+			//UNPROTECT(13+3);	//prior to 2018, 0421
+			UNPROTECT(13+1+3);	// 2018, 0421
 
 			
 
@@ -23931,7 +24255,9 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 			//----
 
-			UNPROTECT(13+5);			
+			//UNPROTECT(13+5);	//prior to 2018, 0421
+			UNPROTECT(13+1+5);	//2018, 0421
+			
 
 
 
@@ -24063,8 +24389,8 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 			//----
 
-			UNPROTECT(13+3);			
-
+			//UNPROTECT(13+3);	//prior to 2018, 0421		
+			UNPROTECT(13+1+3);	//2018, 0421
 
 
 			return list_return; 
@@ -24241,7 +24567,8 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 			//----
 
-			UNPROTECT(13+5);			
+			//UNPROTECT(13+5);	//prior to 2018, 0421		
+			UNPROTECT(13+1+5);	//2018, 0421
 
 			
 
@@ -24259,8 +24586,9 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 	//----
 
-	UNPROTECT(13);
-
+	//UNPROTECT(13);	//prior to 2018, 0421
+	UNPROTECT(13+1);	//2018, 0421
+	
 	return(R_NilValue); 
 
 }
@@ -24287,7 +24615,11 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 			  SEXP i_option_imputation_R, SEXP i_option_variance_R, 
 
-			  SEXP id_R, SEXP i_option_merge_R)
+			  SEXP id_R, 
+			  
+			  SEXP NonCollapsible_categorical_R,
+			  
+			  SEXP i_option_merge_R)
 
 //Description -------------------------------------------
 
@@ -24340,6 +24672,12 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 //                                      1: perform variance estimation using Jackknife method
 
 //IN   : int    id_R[nrow_x_R] = id numbers of all data 
+
+//IN   : int    NonCollapsible_categorical_R[ncol_x_R] = id of strictly non-collapsible categorical variable
+
+//				(0: continuous or collapsible categorical;   1:non-collapsible categorical )
+
+//
 
 //IN   : int    i_option_merge = random donor selection in Merge algorithm in Cell Make
 
@@ -24413,6 +24751,13 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	int    *id = INTEGER(id_R); 	//pointer to integer number of id of data
 
+	//+1-----------
+	//additional +1 as of 2018, 0421
+	//0: continuous or collapsible categorical;   1: Non-collapsible categorical
+	//-----------
+	NonCollapsible_categorical_R = PROTECT(Rf_coerceVector(NonCollapsible_categorical_R, INTSXP)); 
+
+	int    *NonCollapsible_categorical = INTEGER(NonCollapsible_categorical_R); 	
 	
 
 	//options
@@ -24490,6 +24835,8 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 	bool b_success_Rfn_Call = Rfn_test_call(x, r, nrow_x, ncol_x, k, d, M, 
 
 	              i_option_imputation, i_option_variance, id, z_UserDefined,
+				  
+				  NonCollapsible_categorical, 
 
 				  rbind_ipmat_FEFI_return, rbind_Resp_FEFI_return, rbind_irmat_FEFI_return,
 
@@ -24515,7 +24862,9 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 	{
 		Rprintf("ERROR! Some function of FHDI failed! ");
 		Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
-		UNPROTECT(10+1); 
+		
+		UNPROTECT(10+1+1); //2018 0421
+		//UNPROTECT(10+1); //prior to 2018 0421
 		return(R_NilValue); //abnormal ending 
 	}
 
@@ -24766,7 +25115,8 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 			
 
-	UNPROTECT(15+1);
+	UNPROTECT(15+1+1); //2018 0421
+	//UNPROTECT(15+1); //prior to 2018 0421
 
 	
 
@@ -24796,7 +25146,9 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
                        SEXP d_R,  
 
-			           SEXP id_R)
+			           SEXP id_R,
+					   
+					   SEXP NonCollapsible_categorical_R)
 
 //Description -------------------------------------------
 
@@ -24841,6 +25193,12 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 //IN   : double d_R[nrow_x_R] = (sampling) "w" weights for units
 
 //IN   : int    id_R[nrow_x_R] = id numbers of all data 
+
+//IN   : int    NonCollapsible_categorical_R[ncol_x_R] = id of strictly non-collapsible categorical variable
+
+//				(0: continuous or collapsible categorical;   1:non-collapsible categorical )
+
+//
 
 //OUT:  LIST of 
 
@@ -24892,6 +25250,13 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	int    *id = INTEGER(id_R); 	//pointer to integer number of id of data
 
+	//+1-----------
+	//additional +1 as of 2018, 0421
+	//0: continuous or collapsible categorical;   1: Non-collapsible categorical
+	//-----------
+	NonCollapsible_categorical_R = PROTECT(Rf_coerceVector(NonCollapsible_categorical_R, INTSXP)); 
+
+	int    *NonCollapsible_categorical = INTEGER(NonCollapsible_categorical_R); 	
 
 
 	//for this Cell Prob Only option, other variables are nullified 
@@ -24965,6 +25330,8 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 	bool b_success_Rfn_Call = Rfn_test_call(x, r, nrow_x, ncol_x, k, d, M, 
 
 	              i_option_imputation, i_option_variance, id, z_UserDefined,
+				  
+				  NonCollapsible_categorical, 
 
 				  rbind_ipmat_FEFI_return, rbind_Resp_FEFI_return, rbind_irmat_FEFI_return,
 
@@ -25005,7 +25372,8 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 		Rprintf("ERROR! Some function of FHDI failed! ");
 		Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
 		
-		UNPROTECT(5);
+		UNPROTECT(5+1); //2018 0421
+		//UNPROTECT(5); //prior to 2018 0421
 		return(R_NilValue); //abnormal ending 
 	}
 	
@@ -25096,7 +25464,8 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	
 
-	UNPROTECT(8);
+	UNPROTECT(8+1); //2018 0421
+	//UNPROTECT(8); //prior to 2018 0421
 
 	
 

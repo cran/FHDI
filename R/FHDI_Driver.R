@@ -1,5 +1,5 @@
 FHDI_Driver<-function(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_variance=1, M=5, k=5,
-                      w=NULL, id=NULL, s_op_merge="fixed")
+                      w=NULL, id=NULL, s_op_merge="fixed", categorical=NULL)
 {
 #Description------------------------------UPDATE: April 12, 2018 
 #
@@ -22,6 +22,11 @@ FHDI_Driver<-function(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_v
 #                         if a vector of size nrow, use it as it is 
 #IN   : string  s_op_merge = rand (default = fixed)
 #               if requested, do random donor selection in Merge algorithm of Cell Make 
+#
+#IN   : int    categorical	= a index vector with size of ncol(daty)
+#                             when a column has 1, the variable is non-collapsible categorical 
+#							  when a column has 0, the variable is collapsible categorical or continuous
+#                             the default is all 0
 #OUT  : List of 
 #       rbind_ipmat(4+ncol) // ID, FID, WGT, FWGT, Imputed Variables
 #       cured data matrix(nrow, ncol)
@@ -111,6 +116,42 @@ if(length(k)==1) k = rep(k, ncol_y)
 if(is.null(id))  id = 1:nrow_y
 if(is.null(w))   w = rep(1.0, nrow_y)
 
+#-----------
+#non-collapsible categorical variable consideration
+#-----------
+NonCollapsible_categorical = rep(0, ncol_y); #default 
+if(is.null(categorical)) NonCollapsible_categorical = rep(0, ncol_y)
+if(!is.null(categorical))
+{
+	#size check
+	if(length(categorical) != ncol_y)#incorrect size
+	{
+		print("Error! check the size of categorical[], the index vector for non-collapsible variables!")
+		return(NULL); 
+	}
+	#value check
+	if(length(categorical) == ncol_y) #correct size 
+	{
+		n_categorical_zero = 0; 
+		n_categorical_one  = 0; 
+		n_categorical_wrong = 0; 
+		for(i in 1:ncol_y)
+		{
+			if(categorical[i] == 0) n_categorical_zero = n_categorical_zero + 1; 
+			if(categorical[i] == 1) n_categorical_one  = n_categorical_one  + 1;
+			if(categorical[i] !=0 && categorical[i] != 1) n_categorical_wrong = n_categorical_wrong + 1;
+		}
+		if(n_categorical_wrong >= 1)
+		{
+			print("Error! check values of categorical[]; must be either 0 or 1 !")
+			return(NULL); 		
+		}
+	}
+	
+	#only when correct definition of categorical[]
+	for(i in 1:ncol_y) NonCollapsible_categorical[i] = categorical[i]; 
+}
+  
 #-------------------
 #to avoid NA argument error in external C++ function
 #-------------------
@@ -132,7 +173,9 @@ for(i in 1:ncol_y){
 #                         id);
 output_FHDI <- .Call("CWrapper", daty, datr, z_UserDefined, i_option_perform,
                 nrow_y, ncol_y, k, w, M, 
-                i_option_imputation, i_option_variance, id, i_option_merge)
+                i_option_imputation, i_option_variance, id, 
+				NonCollapsible_categorical, 
+				i_option_merge)
 
 #abnormal ending
 if(is.null(output_FHDI))
