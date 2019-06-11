@@ -10,8 +10,8 @@ FHDI_CellMake(daty, datr=NULL, k=5, w=NULL, id=NULL, s_op_merge="fixed", categor
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{daty}{raw data matrix (nrow_y, ncol_y) containing missing values.}
-  \item{datr}{response indicator matrix with the same dimensions as daty. Each response is recorded with 0 for missing value and 1 for observed value. If NULL, automatically filled with 1 or 0 according to daty} 
+  \item{daty}{raw data matrix (nrow_y, ncol_y) containing missing values. Each row must have at least one observed value, and no completely missing (blank) rows are allowed.}
+  \item{datr}{response indicator matrix with the same dimensions as daty. Each response is recorded with 0 for missing value and 1 for observed value. If NULL, automatically filled with 1 or 0 according to daty.} 
   \item{k}{the number of total categories per variable. Default = 5. The maximum is 35 since 9 integers (1-9) and 26 alphabet letters (a-z) are used. When a scalar value is given, all variables will have the same number of categories, while when a vector is given, i.e. k(ncol_y), each variable may have different number of categories.}
   \item{w}{samping weight for each row of daty. Default = 1.0 if NULL. When a scalar value is given, all rows will have the same weight, while when a vector is given, i.e. w(nrow_y), each row may have a different sampling weight.}
   \item{id}{index for each row. Default = 1:nrow_y if NULL.}
@@ -34,8 +34,8 @@ The donors have the same cell values with the observed parts of the missing unit
   \item{s_op_merge}{reprint of the option "s_op_merge" initially defined by the user.}  
 }
 \references{
+Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. 10(1), pp. 140-154; 
 Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fractional hot deck imputation, \emph{Proceeding of the Survey Research Methods Section}, Americal Statistical Association, Seattle, WA. 
-Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation.  \emph{The R Journal}. Under review.
 }
 \author{
 Dr. Im, Jong Ho

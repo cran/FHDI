@@ -23,9 +23,9 @@ of the joint cell probabilities under missing at random assumption.
   \item{w}{reprint of the sampling weights "w" initially defined by the user.}
 }
 \references{
+Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. 10(1), pp. 140-154; 
+Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fractional hot deck imputation, \emph{Proceeding of the Survey Research Methods Section}, Americal Statistical Association, Seattle, WA.;  
 Ibrahim, J.G. (1990). Incomplete data in generalized linear models. \emph{Journal of the American Statistical Assocation} \bold{85}, 765-769. 
-Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fractional hot deck imputation, \emph{Proceeding of the Survey Research Methods Section}, Americal Statistical Association, Seattle, WA. 
-Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. Under review.
 }
 \author{
 Dr. Im, Jongho

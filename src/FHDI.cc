@@ -4649,6 +4649,44 @@ void cumsum_FHDI(double* d_original, const int n, double* d_return)
 
 }
 
+//-----------------------------------------------------
+//-----------------------------------------------------
+//for replacing unneccessarily large matrix d_rw[][]
+//Jan 18, 2019
+//----------------------------------------------------- 
+class RepWeight_FHDI{
+	
+public:
+	int size_row() const {return _size_row;}
+	
+	//----------
+	//(i,j) operator overloading
+	//----------
+	double operator() (int i, int j) const
+	{
+		double d_element = 1.0*_size_row/(_size_row - 1.0); //n/(n-1)
+		
+		
+		if(i == j) {d_element = 0.0;} //zero diagonal
+		
+		//exceptions
+		if(i<0 || i >= _size_row || j<0 || j >= _size_row)
+		{ d_element = 0.0;}
+	
+		return d_element; 
+	}
+public: 
+	RepWeight_FHDI(int n): _size_row(n) { } ; //constructor
+	~RepWeight_FHDI() { } ; //desctructor
+	
+private:
+	int _size_row; 
+	
+private:
+	RepWeight_FHDI(const RepWeight_FHDI &); 
+	const RepWeight_FHDI & operator = (const RepWeight_FHDI &) ; 
+	
+};
 
 
 } //end of namespce 
@@ -7282,7 +7320,7 @@ bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 //INOUT	: double k(ncol)		= a vector of categories of each column of xalloc
 
-//OUT   : double z(nrow, ncol)  = catorized matrix corresponding to original matrix x
+//OUT   : double z(nrow, ncol)  = categorized matrix corresponding to original matrix x
 
 //                                initialized with 0.0 
 
@@ -7575,7 +7613,7 @@ bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 			if(fabs_FHDI(k_one_column)<=1.0) 
 
-			{RPrint("Error! in categorize_cpp, k_one_column is <=1.0! \n"); return 0;} //error check
+			{RPrint("Error! in categorize_cpp, k_one_column is <=1.0!   "); return 0;} //error check
 
 			double* perc = new double[k_one_column-1]; Fill_dVector(perc, (k_one_column-1), 0.0);
 
@@ -7613,7 +7651,7 @@ bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 
 			if(n_observed > nrow)  //error case 
 
-			{ Rprintf("Error! n_observed > nrow in categorize()"); return 0; }
+			{ Rprintf("Error! n_observed > nrow in categorize()   "); return 0; }
 
 					
 
@@ -7718,6 +7756,26 @@ bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 	}
 
 
+	//--------------------
+	//Error check 
+	//for All Zero Row 
+	//2019, 06 10
+	//--------------------
+	for(int i_row=0; i_row<nrow; i_row++)
+	{
+		double d_sum_temp = 0.0; 
+		 
+		for(int i_col=0; i_col<ncol; i_col++)	
+		{
+			d_sum_temp += z[i_row][i_col]; 
+		}
+		
+		if(fabs_FHDI(d_sum_temp) < 1E-15)
+		{
+			Rprintf("Error! The given data set has row(s) having all missing cells!   "); 
+			return 0;
+		}
+	}
 
 	//--------------------
 
@@ -18943,7 +19001,8 @@ void RepWeight(const int n, double** d_rw)
 
 
 
-bool Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int*  id, 
+bool Rep_CellP(double** d_cx, const int nrow, const int ncol, 
+               FHDI::RepWeight_FHDI &d_rw, int*  id, 
 
                
 
@@ -19183,7 +19242,7 @@ bool Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int
 
 		//for(int j=0; j<nrow; j++) w_UserDefined.push_back(d_rw[j][i_loc]) ; 
 
-		for(int j=0; j<nrow; j++) w_UserDefined[j] = d_rw[j][i_loc];
+		for(int j=0; j<nrow; j++) w_UserDefined[j] = d_rw(j, i_loc); //previous: d_rw[j][i_loc];
 
 		
 
@@ -19242,7 +19301,7 @@ bool Rep_CellP(double** d_cx, const int nrow, const int ncol, double** d_rw, int
 
 bool Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, const int ncol, 
 
-	double** d_rw, double* w, int* id, 
+	FHDI::RepWeight_FHDI &d_rw, double* w, int* id, 
 
 	rbind_FHDI  &rbind_ipmat_FEFI,
 
@@ -19762,7 +19821,7 @@ bool Variance_Est_FEFI_Extension_cpp(double** y, double** z, const int nrow, con
 
 		//-------
 
-		for(int i=0; i<nrow; i++) rw0[i] = d_rw[i][l]; //l_th column 
+		for(int i=0; i<nrow; i++) rw0[i] = d_rw(i, l);  //previous: d_rw[i][l]; //l_th column 
 
 		int i_sum =0; 
 
@@ -20588,7 +20647,7 @@ namespace FHDI
 
 bool Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, const int ncol, 
 
-	double** d_rw, double* w, int* id, 
+	FHDI::RepWeight_FHDI &d_rw, double* w, int* id, 
 
 	rbind_FHDI  &rbind_ipmat_FEFI,
 
@@ -21122,7 +21181,7 @@ bool Variance_Est_FHDI_Extension_cpp(double** y, double** z, const int nrow, con
 
 		//-------
 
-		for(int i=0; i<nrow; i++) rw0[i] = d_rw[i][l]; //l_th column 
+		for(int i=0; i<nrow; i++) rw0[i] = d_rw(i, l);   //previous:  d_rw[i][l]; //l_th column 
 
 		int i_sum =0; 
 
@@ -22700,9 +22759,9 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	//---------
 
-	double** d_rw = New_dMatrix(nrow, nrow); 
-
-	FHDI::RepWeight(nrow, d_rw);
+	//double** d_rw = New_dMatrix(nrow, nrow); //replaced with compact version for large matrix 
+    //FHDI::RepWeight(nrow, d_rw);
+	FHDI::RepWeight_FHDI d_rw(nrow); //new compact version 2019, 06 10
 
 
 
@@ -22878,7 +22937,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	Del_iMatrix(r_raw, nrow, ncol);
 
-	Del_dMatrix(d_rw, nrow, nrow); 
+	//Del_dMatrix(d_rw, nrow, nrow); //replaced with a compact version
 
 	
 

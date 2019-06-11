@@ -274,5 +274,6 @@ FHDI_Error_Check <- function(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w,
 	{print("ERROR! imputation method is different from FEFI or FHDI"); 
 	 return(NULL); }
 	 
+	
 	return(1); 
 }

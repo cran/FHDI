@@ -12,7 +12,7 @@ FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI",
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{daty}{raw data matrix (nrow_y, ncol_y) containing missing values.}
+  \item{daty}{raw data matrix (nrow_y, ncol_y) containing missing values. Each row must have at least one observed value, and no completely missing (blank) rows are allowed.}
   \item{datr}{response indicator matrix with the same dimensions as daty. Each response is recorded with 0 for missing value and 1 for observed value. If NULL, automatically filled with 1 or 0 according to daty.} 
   \item{datz}{imputation cell matrix. If daty is a set of continuous data, datz can be obtained using \code{\link{FHDI_CellMake}.}}
   \item{s_op_imputation}{"FEFI" for fully efficient fractional imputation or "FHDI" for fractional hot deck imputation.}
@@ -43,8 +43,8 @@ to compute the variance estimate of the estimators.
   \item{i_op_merge}{reprint of the option "i_op_merge" initially defined by the user.}  
 }
 \references{
+Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. 10(1), pp. 140-154; 
 Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fractional hot deck imputation, \emph{Proceeding of the Survey Research Methods Section}, Americal Statistical Association, Seattle, WA. 
-Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. Invited for revision.
 }
 \author{
 Dr. Im, Jongho
