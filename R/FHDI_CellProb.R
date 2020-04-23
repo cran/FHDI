@@ -51,6 +51,9 @@ if(is.null(w))   w = rep(1.0, nrow_z)
 #-----------
 NonCollapsible_categorical = rep(0, ncol_z); #default 
 
+i_option_SIS = 0; #default
+s_option_SIS = 3; #default
+
 #testout
 #print("Cell_Prob Only started")
 
@@ -59,7 +62,7 @@ NonCollapsible_categorical = rep(0, ncol_z); #default
 #Jan 11, 2017
 #----------------------
 List_FHDI_CellProb <- .Call("CWrapper_CellProb", datz, nrow_z, ncol_z, w, id,
-							NonCollapsible_categorical);
+							NonCollapsible_categorical, i_option_SIS, s_option_SIS);
 
 #abnormal ending
 if(is.null(List_FHDI_CellProb))

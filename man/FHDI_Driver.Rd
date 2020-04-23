@@ -6,7 +6,8 @@
 Fully efficient fractional imputation (FEFI) or fractional hot deck imputation (FHDI) is implemented to fill in missing values in a incomplete data.
 }
 \usage{
-FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI",
+FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", 
+ i_op_SIS=0, s_op_SIS = "global",
  i_op_variance=1, M=5, k=5, w=NULL, id=NULL,
  s_op_merge="fixed", categorical=NULL)
 }
@@ -16,6 +17,8 @@ FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI",
   \item{datr}{response indicator matrix with the same dimensions as daty. Each response is recorded with 0 for missing value and 1 for observed value. If NULL, automatically filled with 1 or 0 according to daty.} 
   \item{datz}{imputation cell matrix. If daty is a set of continuous data, datz can be obtained using \code{\link{FHDI_CellMake}.}}
   \item{s_op_imputation}{"FEFI" for fully efficient fractional imputation or "FHDI" for fractional hot deck imputation.}
+  \item{i_op_SIS}{(FHDI Version >= 1.4) the desired number of reduced variables after the sure independence screening per each missing pattern. Default = 0 means no variable reduction and uses all variables. Range must be <= ncol_y.}
+  \item{s_op_SIS}{(FHDI Version >= 1.4) "intersection" for sure independence screening with an intersection of simple correlation, "union" for sure independence screening with a union of simple correlation, or default = "global" for sure independence screening with a global ranking of simple correlation.}
   \item{i_op_variance}{1: perform Jackknife variance estimation; 0: no variance estimation.}
   \item{M}{the number of donors for FHDI with default 5.}
   \item{k}{the number of total categories per variable. Default = 5. The maximum is 35 since 9 integers (1-9) and 26 alphabet letters (a-z) are used. When a scalar value is given, all variables will have the same number of categories, while when a vector is given, i.e. k(ncol_y), each variable may have different number of categories.}
@@ -32,6 +35,7 @@ fractional weights in general.
 The jackknife replicated weights are produced as the default output. The replicated weights are presented by the
 product of replicated sampling weights and replicated fractional weights. Thus, the replicated weights can be directly used
 to compute the variance estimate of the estimators.
+From versrion >= 1.4, the sure independence screening method (Fan and Lv 2008) has been incorporated to perform variable reduction for each missing pattern, which is useful for high dimensional (i.e. big-p) data sets.
 }
 \value{
   \item{fimp.data}{imputation results with fractional weights in a form of matrix consisting of ID, donor id (FID), weight (WGT), fractional weight (FWGT), and fractionally imputed data.}
@@ -41,22 +45,25 @@ to compute the variance estimate of the estimators.
   \item{M}{reprint of the number of donors M for FHDI defined by the user.}
   \item{s_op_imputation}{reprint of the option "s_op_imputation" initially defined by the user.}  
   \item{i_op_merge}{reprint of the option "i_op_merge" initially defined by the user.}  
+  \item{i_op_SIS}{reprint of the option "i_op_SIS" initially defined by the user.}
+  \item{s_op_SIS}{reprint of the option "s_op_SIS" initially defined by the user.}
 }
 \references{
 Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. 10(1), pp. 140-154; 
 Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fractional hot deck imputation, \emph{Proceeding of the Survey Research Methods Section}, Americal Statistical Association, Seattle, WA. 
 }
 \author{
-Dr. Im, Jongho
-\email{jonghoim@iastate.edu}
-Dr. Cho, Inho
+Dr. Cho, In Ho (maintainer)
 \email{icho@iastate.edu}
-Dr. Kim, Jaekwang
+Dr. Kim, Jae Kwang
 \email{jkim@iastate.edu}
+Dr. Im, Jong Ho
+\email{ijh38@yonsei.ac.kr}
+Yicheng Yang, Graduate Research Assistant
 }
 \examples{
 ### Toy Example ### 
-# y : trivariate variables
+# y : multi-variate vector
 # r : indicator corresponding to missingness in y
 
 set.seed(1345) 
@@ -85,8 +92,12 @@ y4[r4==0]=NA
 daty=cbind(y1,y2,y3,y4)
 result_FEFI=FHDI_Driver(daty, s_op_imputation="FEFI", k=3)
 result_FHDI=FHDI_Driver(daty, s_op_imputation="FHDI", M=5, k=3)
+FEFI_SIS=FHDI_Driver(daty, i_op_SIS=2, s_op_SIS="intersection", k=3)
+
 names(result_FEFI)
 names(result_FHDI)
+names(FEFI_SIS)
+
 }
 \keyword{imputation}
 \keyword{missing data}

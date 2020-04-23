@@ -1,7 +1,7 @@
 FHDI_CellMake<-function(daty, datr=NULL, k=5,
-                        w=NULL, id=NULL, s_op_merge="fixed", categorical=NULL)	
+                        w=NULL, id=NULL, i_op_SIS = 0, s_op_SIS = "global", s_op_merge="fixed", categorical=NULL)	
 {
-#Description------------------------------update: April 12, 2018
+#Description------------------------------update: March 3, 2020 
 # main driver for Fully Efficient Fractional Imputation (FEFI) and 
 #                 Fractional Hot Deck Imputation (FHDI)
 # Perform (1) Cell Make ONLY!
@@ -20,9 +20,10 @@ FHDI_CellMake<-function(daty, datr=NULL, k=5,
 #                             when a column has 1, the variable is non-collapsible categorical 
 #							  when a column has 0, the variable is collapsible categorical or continuous
 #                             the default is all 0
-#
+#IN   : int     i_op_SIS  = 0; #0: perform FHDI without variable selection; !0: perform FHDI with user-defined
+#                                  number of selected variables. Default = 0 
 #OUT  : List of 
-#   	[[1]] = ID, WGT, original data matrix 	(nrow, 2+ncol)
+#   [[1]] = ID, WGT, original data matrix 	(nrow, 2+ncol)
 #		[[2]] = categorized matrix 				(nrow, ncol)
 #		[[3]] = uox, the observed patterns 		(.., ncol)
 #		[[4]] = mox, the missing patterns		(.., ncol)
@@ -77,6 +78,12 @@ i_option_merge = 0; #random merge algorithm. Default = 0
 if(s_op_merge == "rand") {i_option_merge = 1; set.seed(NULL);} 
 if(s_op_merge == "fixed"){i_option_merge = 0; set.seed(123);}
 
+i_option_SIS = i_op_SIS; #0: no variable selection; !0: perform variable selection
+
+if(s_op_SIS == "intersection") {s_option_SIS = 1;} #perform SIS with intersection
+if(s_op_SIS == "union") {s_option_SIS = 2;} #perform SIS with union
+if(s_op_SIS == "global") {s_option_SIS = 3;} #perform SIS with global ranking
+
 #-----------
 #below is dummy value. Not used for CellMake function separately. 
 #-----------
@@ -89,7 +96,7 @@ s_op_imputation = "FEFI"
 #Error check
 #---------
 if(is.null(FHDI_Error_Check(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w, 
-                            s_op_imputation)))
+                            s_op_imputation, i_op_SIS, s_op_SIS)))
 {return(NULL);}
 
 #------------
@@ -156,7 +163,7 @@ for(i in 1:ncol_y){
 						 
 output_FHDI_CellMake <- .Call("CWrapper_CellMake", daty, datr, nrow_y, ncol_y, k, w, M, 
                 i_option_imputation, i_option_variance, id, 
-				NonCollapsible_categorical,
+				NonCollapsible_categorical, i_option_SIS, s_option_SIS,
 				i_option_merge)						 
 
 				
@@ -197,7 +204,17 @@ colnames(output_FHDI_CellMake[[3]])<-column_name_of_y
 colnames(output_FHDI_CellMake[[4]])<-column_name_of_y
 
 final=list(data=output_FHDI_CellMake[[1]],cell=output_FHDI_CellMake[[2]],cell.resp=output_FHDI_CellMake[[3]],
-      cell.non.resp=output_FHDI_CellMake[[4]],w=w,s_op_merge="fixed")
+      cell.non.resp=output_FHDI_CellMake[[4]],w=w,s_op_merge=s_op_merge,i_op_SIS =i_op_SIS, s_op_SIS =s_op_SIS)
+
+if(i_option_SIS !=0) {
+  column_name_of_codes = vector();
+  for(i in 1:i_option_SIS){
+    column_name_of_codes[i] = colnames(daty)[i]
+  }
+  colnames(output_FHDI_CellMake[[5]])<-column_name_of_codes
+  final = c(final,list(cell.selected=output_FHDI_CellMake[[5]]))
+}
+
 class(final)=append(class(final),"CellMake")
 return(final);
 }

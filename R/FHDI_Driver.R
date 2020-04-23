@@ -1,7 +1,7 @@
-FHDI_Driver<-function(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_variance=1, M=5, k=5,
+FHDI_Driver<-function(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_SIS = 0, s_op_SIS = "global",i_op_variance=1, M=5, k=5,
                       w=NULL, id=NULL, s_op_merge="fixed", categorical=NULL)
 {
-#Description------------------------------UPDATE: April 12, 2018 
+#Description------------------------------UPDATE: March 3, 2020 
 #
 # main driver for Fully Efficient Fractional Imputation (FEFI) and 
 #                 Fractional Hot Deck Imputation (FHDI)
@@ -27,6 +27,11 @@ FHDI_Driver<-function(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_v
 #                             when a column has 1, the variable is non-collapsible categorical 
 #							  when a column has 0, the variable is collapsible categorical or continuous
 #                             the default is all 0
+#
+#IN   : int     i_op_SIS  = 0; #0: perform FHDI without variable selection; !0: perform FHDI with user-defined
+#                                  number of selected variables. Default = 0   
+#IN   : string  s_op_SIS  = 3: #1: SIS with intersection; 2: SIS with intersection 3: SIS with global ranking
+#
 #OUT  : List of 
 #       rbind_ipmat(4+ncol) // ID, FID, WGT, FWGT, Imputed Variables
 #       cured data matrix(nrow, ncol)
@@ -100,11 +105,18 @@ i_option_merge = 0; #random merge algorithm. Default = 0
 if(s_op_merge == "rand") {i_option_merge = 1; set.seed(NULL);} 
 if(s_op_merge == "fixed"){i_option_merge = 0; set.seed(123);}
 
+i_option_SIS = i_op_SIS; #0: no variable selection; !0: perform variable selection
+
+if(s_op_SIS == "intersection") {s_option_SIS = 1;} #perform SIS with intersection
+if(s_op_SIS == "union") {s_option_SIS = 2;} #perform SIS with union
+if(s_op_SIS == "global") {s_option_SIS = 3;} #perform SIS with global ranking
+
+
 #---------
 #Error check
 #---------
 if(is.null(FHDI_Error_Check(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w, 
-                            s_op_imputation)))
+                            s_op_imputation, i_op_SIS, s_op_SIS)))
 {return(NULL);}
 
 
@@ -174,7 +186,7 @@ for(i in 1:ncol_y){
 output_FHDI <- .Call("CWrapper", daty, datr, z_UserDefined, i_option_perform,
                 nrow_y, ncol_y, k, w, M, 
                 i_option_imputation, i_option_variance, id, 
-				NonCollapsible_categorical, 
+				NonCollapsible_categorical, i_option_SIS, s_option_SIS,
 				i_option_merge)
 
 #abnormal ending
@@ -200,9 +212,12 @@ colnames(output_FHDI[[1]])<-c("ID", "FID", "WT", "FWT", column_name_of_y)
 
 #S3 class
 final=list(fimp.data=output_FHDI[[1]],simp.data=output_FHDI[[2]])
+
 if(i_op_variance!=0)  final=c(final,list(imp.mean=output_FHDI[[3]],rep.weight=output_FHDI[[4]]))
-final=c(final,list(M=M,s_op_imputation=s_op_imputation,i_option_merge=i_option_merge))
+
+final=c(final,list(M=M,s_op_imputation=s_op_imputation,s_op_merge=s_op_merge, i_op_SIS =i_op_SIS, s_op_SIS =s_op_SIS))
 class(final)=append(class(final),"Driver")
+
 return(final)
 }
 
@@ -227,7 +242,7 @@ return(final)
 #==========================================================
 
 FHDI_Error_Check <- function(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w, 
-                             s_op_imputation)
+                             s_op_imputation, i_op_SIS, s_op_SIS)
 {
 	#---------
 	#Error check
@@ -274,6 +289,21 @@ FHDI_Error_Check <- function(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w,
 	{print("ERROR! imputation method is different from FEFI or FHDI"); 
 	 return(NULL); }
 	 
+  if(i_op_SIS > ncol_y)
+  {print("ERROR! i_op_SIS is out of the allowed range [0,number of variables]");
+    return(NULL); }
+  
+  if(i_op_SIS < 0)
+  {print("ERROR! i_op_SIS is out of the allowed range [0,number of variables]");
+    return(NULL);}
+  
+  if(i_op_SIS%%1 !=0)
+  {print("ERROR! i_op_SIS is not an integer in the allowed range [0,number of variables]");
+    return(NULL);}
+  
+  if(s_op_SIS != "intersection" && s_op_SIS != "union" && s_op_SIS != "global")
+  {print("ERROR! sure independence screening method is different from intersection, union, or global");
+    return(NULL);}
 	
 	return(1); 
 }

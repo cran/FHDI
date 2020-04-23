@@ -6,11 +6,13 @@
 \description{Perform fractional hot deck imputation 
 Perform fully efficient fractional imputation}
 \details{
-FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_variance=0, M = 5, k = 5, w = NULL, id = NULL, s_op_merge="fixed", categorical=NULL);
+FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_SIS=0, 
+     s_op_SIS = "global", i_op_variance=0, M = 5, k = 5, w = NULL, id = NULL, 
+	 s_op_merge="fixed", categorical=NULL)
 }
 \seealso{FHDI_CellMake and FHDI_CellProb}
 \author{
-Author: Jongho Im [aut], Inho Cho [aut, cre], Jaekwang Kim [aut]
+Author: Inho Cho [aut, cre], Jaekwang Kim [aut], Jongho Im [aut], Yicheng Yang [aut]
 \email{icho@iastate.edu}}
 \references{
 Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. 10(1), pp. 140-154; 
@@ -18,7 +20,7 @@ Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fracti
 }
 \examples{
 ### Toy Example ### 
-# y : trivariate variables
+# y : multi-variate vector
 # r : indicator corresponding to missingness in y
 
 set.seed(1345) 
@@ -48,7 +50,10 @@ daty=cbind(y1,y2,y3,y4)
 
 result_FEFI=FHDI_Driver(daty, s_op_imputation="FEFI", k=3)
 result_FHDI=FHDI_Driver(daty, s_op_imputation="FHDI", M=5, k=3)
+FEFI_SIS=FHDI_Driver(daty, i_op_SIS=2, s_op_SIS="intersection", k=3)
+
 names(result_FEFI)
 names(result_FHDI)
+names(FEFI_SIS)
 }
 \keyword{FHDI}

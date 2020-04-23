@@ -17,7 +17,7 @@ FHDI_CellProb(datz, w=NULL, id=NULL)
 \details{
 The joint cell probabilities are estimated using EM by weighting method. The algorithm computes the maximum likelihood estimates
 of the joint cell probabilities under missing at random assumption. 
-}
+Note that the variable reduction (ver. >= 1.4) with sure independence screening method is not applicable to separate CellProb task.}
 \value{
   \item{cellpr}{table of the joint cell probability. name of cell is linked to the user-defined categories in "k": e.g., name "325" denotes 3rd, 2nd, 5th categories for three variables, respectively, whereas "a1c" denotes 10th, 1st, 12th categories.}
   \item{w}{reprint of the sampling weights "w" initially defined by the user.}
@@ -28,12 +28,13 @@ Im, J., Kim, J.K. and Fuller, W.A. (2015). Two-phase sampling approach to fracti
 Ibrahim, J.G. (1990). Incomplete data in generalized linear models. \emph{Journal of the American Statistical Assocation} \bold{85}, 765-769. 
 }
 \author{
-Dr. Im, Jongho
-\email{jonghoim@iastate.edu}
-Dr. Cho, Inho
+Dr. Cho, In Ho (maintainer)
 \email{icho@iastate.edu}
-Dr. Kim, Jaekwang
+Dr. Kim, Jae Kwang
 \email{jkim@iastate.edu}
+Dr. Im, Jong Ho
+\email{ijh38@yonsei.ac.kr}
+Yicheng Yang, Graduate Research Assistant
 }
 \examples{
 ### Toy Example ### 
