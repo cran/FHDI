@@ -1,7 +1,7 @@
-FHDI_Driver<-function(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_SIS = 0, s_op_SIS = "global",i_op_variance=1, M=5, k=5,
-                      w=NULL, id=NULL, s_op_merge="fixed", categorical=NULL)
+FHDI_Driver<-function(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_SIS = 0, s_op_SIS = "global", s_op_cellmake = "knn", top_corr_var = 100,
+                      i_op_variance=1, M=5, k=5, w=NULL, id=NULL, s_op_merge="fixed", categorical=NULL)
 {
-#Description------------------------------UPDATE: March 3, 2020 
+#Description------------------------------UPDATE: Aug 18, 2020 
 #
 # main driver for Fully Efficient Fractional Imputation (FEFI) and 
 #                 Fractional Hot Deck Imputation (FHDI)
@@ -25,13 +25,16 @@ FHDI_Driver<-function(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_S
 #
 #IN   : int    categorical	= a index vector with size of ncol(daty)
 #                             when a column has 1, the variable is non-collapsible categorical 
-#							  when a column has 0, the variable is collapsible categorical or continuous
+#							 when a column has 0, the variable is collapsible categorical or continuous
 #                             the default is all 0
 #
 #IN   : int     i_op_SIS  = 0; #0: perform FHDI without variable selection; !0: perform FHDI with user-defined
 #                                  number of selected variables. Default = 0   
-#IN   : string  s_op_SIS  = 3: #1: SIS with intersection; 2: SIS with intersection 3: SIS with global ranking
-#
+#IN   : string  s_op_SIS  = 3; #1: SIS with intersection; 2: SIS with intersection 3: SIS with global ranking
+#IN   : int     s_op_cellmake = 1; #1: perform cell construction with merging; 2: perform cell construction
+#                                      with k-nearest-neighbor
+#IN   : int     top_corr_var = the number of top ranks of variables based on correlation. Default = 100
+#  
 #OUT  : List of 
 #       rbind_ipmat(4+ncol) // ID, FID, WGT, FWGT, Imputed Variables
 #       cured data matrix(nrow, ncol)
@@ -62,7 +65,7 @@ if(!is.null(datr))
 	if(nrow(datr) != nrow(daty) || ncol(datr) != ncol(daty)) 
 	{
 		print("Error! datr has different dimensions from daty! so user-defined datr cannot be used"); 
-		return; 
+	  return(NULL); 
 	}
 }
 #-----
@@ -111,12 +114,15 @@ if(s_op_SIS == "intersection") {s_option_SIS = 1;} #perform SIS with intersectio
 if(s_op_SIS == "union") {s_option_SIS = 2;} #perform SIS with union
 if(s_op_SIS == "global") {s_option_SIS = 3;} #perform SIS with global ranking
 
+if(s_op_cellmake == "merging"){s_option_cellmake = 1;} #1: cell make with merging;
+if(s_op_cellmake == "knn"){s_option_cellmake = 2;} #2: cell make with KNN
 
+top_corr = top_corr_var; # Default = 100
 #---------
 #Error check
 #---------
 if(is.null(FHDI_Error_Check(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w, 
-                            s_op_imputation, i_op_SIS, s_op_SIS)))
+                            s_op_imputation, i_op_SIS, s_op_SIS, s_op_cellmake, top_corr_var)))
 {return(NULL);}
 
 
@@ -186,8 +192,8 @@ for(i in 1:ncol_y){
 output_FHDI <- .Call("CWrapper", daty, datr, z_UserDefined, i_option_perform,
                 nrow_y, ncol_y, k, w, M, 
                 i_option_imputation, i_option_variance, id, 
-				NonCollapsible_categorical, i_option_SIS, s_option_SIS,
-				i_option_merge)
+			          NonCollapsible_categorical, i_option_SIS, s_option_SIS,
+				        i_option_merge, s_option_cellmake, top_corr)
 
 #abnormal ending
 if(is.null(output_FHDI))
@@ -215,7 +221,8 @@ final=list(fimp.data=output_FHDI[[1]],simp.data=output_FHDI[[2]])
 
 if(i_op_variance!=0)  final=c(final,list(imp.mean=output_FHDI[[3]],rep.weight=output_FHDI[[4]]))
 
-final=c(final,list(M=M,s_op_imputation=s_op_imputation,s_op_merge=s_op_merge, i_op_SIS =i_op_SIS, s_op_SIS =s_op_SIS))
+final=c(final,list(M=M,s_op_imputation=s_op_imputation,s_op_merge=s_op_merge, i_op_SIS =i_op_SIS, s_op_SIS =s_op_SIS, 
+                   s_op_cellmake = s_op_cellmake, top_corr_var = top_corr_var))
 class(final)=append(class(final),"Driver")
 
 return(final)
@@ -242,7 +249,7 @@ return(final)
 #==========================================================
 
 FHDI_Error_Check <- function(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w, 
-                             s_op_imputation, i_op_SIS, s_op_SIS)
+                             s_op_imputation, i_op_SIS, s_op_SIS, s_op_cellmake, top_corr_var)
 {
 	#---------
 	#Error check
@@ -286,7 +293,7 @@ FHDI_Error_Check <- function(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w,
 	 return(NULL); }
 
 	if(s_op_imputation != "FEFI" && s_op_imputation != "FHDI")
-	{print("ERROR! imputation method is different from FEFI or FHDI"); 
+	{print("ERROR! imputation method is different from FEFI and FHDI"); 
 	 return(NULL); }
 	 
   if(i_op_SIS > ncol_y)
@@ -302,8 +309,21 @@ FHDI_Error_Check <- function(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w,
     return(NULL);}
   
   if(s_op_SIS != "intersection" && s_op_SIS != "union" && s_op_SIS != "global")
-  {print("ERROR! sure independence screening method is different from intersection, union, or global");
+  {print("ERROR! sure independence screening method is different from intersection, union, and global");
     return(NULL);}
+  
+  if(s_op_cellmake != "merging" && s_op_cellmake != "knn"){
+    print("ERROR! method of cell construction is different from merging and knn");
+    return(NULL);}
+  
+  if(top_corr_var <= 0){
+    print("ERROR! top_corr_var must be positive");
+    return(NULL);}
+  
+  if(top_corr_var%%1 !=0){
+    print("ERROR! top_corr_var is not an integer");
+    return(NULL);}
+  
 	
 	return(1); 
 }

@@ -1,14 +1,14 @@
 \name{FHDI_Driver}
 \alias{FHDI_Driver}
-\title{Fractional Hot Deck Imputation}
+\title{Main Driver of Fractional Hot Deck Imputation}
 
 \description{
-Fully efficient fractional imputation (FEFI) or fractional hot deck imputation (FHDI) is implemented to fill in missing values in a incomplete data.
+Fully efficient fractional imputation (FEFI) or fractional hot deck imputation (FHDI) is implemented to fill in missing values in incomplete data. This package is partially supported by the NSF grant CSSI 1931380.
 }
 \usage{
 FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", 
- i_op_SIS=0, s_op_SIS = "global",
- i_op_variance=1, M=5, k=5, w=NULL, id=NULL,
+ i_op_SIS=0, s_op_SIS="global", s_op_cellmake="knn", top_corr_var=100, 
+ i_op_variance=1, M=5, k=5, w=NULL, id=NULL, 
  s_op_merge="fixed", categorical=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -19,26 +19,29 @@ FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI",
   \item{s_op_imputation}{"FEFI" for fully efficient fractional imputation or "FHDI" for fractional hot deck imputation.}
   \item{i_op_SIS}{(FHDI Version >= 1.4) the desired number of reduced variables after the sure independence screening per each missing pattern. Default = 0 means no variable reduction and uses all variables. Range must be <= ncol_y.}
   \item{s_op_SIS}{(FHDI Version >= 1.4) "intersection" for sure independence screening with an intersection of simple correlation, "union" for sure independence screening with a union of simple correlation, or default = "global" for sure independence screening with a global ranking of simple correlation.}
+  \item{s_op_cellmake}{(FHDI Version >= 1.4) option for different methods of cell construction with deficient donors. "merging" for adopting cell collapsing and merging or default = "knn" for adopting the k-nearest neighbors in terms of the Euclidean distance.}
+  \item{top_corr_var}{(FHDI Version >= 1.4) the number of top-ranking variables based on simple correlation with default 100.}
   \item{i_op_variance}{1: perform Jackknife variance estimation; 0: no variance estimation.}
   \item{M}{the number of donors for FHDI with default 5.}
-  \item{k}{the number of total categories per variable. Default = 5. The maximum is 35 since 9 integers (1-9) and 26 alphabet letters (a-z) are used. When a scalar value is given, all variables will have the same number of categories, while when a vector is given, i.e. k(ncol_y), each variable may have different number of categories.}
-  \item{w}{samping weight for each row of daty. Default = 1.0 if NULL. When a scalar value is given, all rows will have the same weight, while when a vector is given, i.e. w(nrow_y), each row may have a different sampling weight.}
+  \item{k}{the number of total categories per variable. Default = 5. The maximum is 35 since 9 integers (1-9) and 26 alphabet letters (a-z) are used. When a scalar value is given, all variables will have the same number of categories, while when a vector is given, i.e., k(ncol_y), each variable may have a different number of categories.}
+  \item{w}{sampling weight for each row of daty. Default = 1.0 if NULL. When a scalar value is given, all rows will have the same weight, while when a vector is given, i.e., w(nrow_y), each row may have a different sampling weight.}
   \item{id}{index for each row. Default = 1:nrow_y if NULL.}
   \item{s_op_merge}{option for random cell make. Default = "fixed" using the same seed number; "rand" using a purely random seed number.}
-  \item{categorical}{(FHDI Version >1.3) index vector indicating non-collapsible categorical variables. Default = zero vector of size ncol_y. For instance, when categorical=c(1,0), the first variable (i.e., 1st column) is considered strictly non-collapsible categorical, and thus no automatic cell-collapse will take place while the second variable (i.e., 2nd column) is considered as continuous or collapsible categorical variable.}
+  \item{categorical}{(FHDI Version >1.3) index vector indicating non-collapsible categorical variables. Default = zero vector of size ncol_y. For instance, when categorical=c(1,0), the first variable (i.e., 1st column) is considered strictly to be non-collapsible and categorical, thus no automatic cell-collapse will take place while the second variable (i.e., 2nd column) is considered as a continuous or collapsible categorical variable.}
 }
 \details{
 In the FEFI method, all possible donors are assigned to each missing unit with the FEFI fractional weights. In the FHDI method, 
-M (>1) donors are selected with the probability proportional to the FEFI fractional weights. Thus, the imputed values have equal
+M (>1) donors are selected with the probability proportional to the FEFI fractional weights. Thus, the imputed values have equal 
 fractional weights in general.
 
-The jackknife replicated weights are produced as the default output. The replicated weights are presented by the
-product of replicated sampling weights and replicated fractional weights. Thus, the replicated weights can be directly used
-to compute the variance estimate of the estimators.
-From versrion >= 1.4, the sure independence screening method (Fan and Lv 2008) has been incorporated to perform variable reduction for each missing pattern, which is useful for high dimensional (i.e. big-p) data sets.
+The jackknife replicated weights are produced as the default output. The replicated weights are presented by the 
+product of replicated sampling weights and replicated fractional weights. Thus, the replicated weights can be directly used 
+to compute the variance estimate of the estimators. 
+From version >= 1.4, the sure independence screening method (Fan and Lv 2008) has been incorporated to perform variable reduction for each missing pattern, which is useful for high dimensional (i.e., big-p) datasets. 
+Besides, we provide an alternative method using k-nearest neighbors to speed up the convergence of cell construction with deficient donors, which is useful for big-p datasets.
 }
 \value{
-  \item{fimp.data}{imputation results with fractional weights in a form of matrix consisting of ID, donor id (FID), weight (WGT), fractional weight (FWGT), and fractionally imputed data.}
+  \item{fimp.data}{imputation results with fractional weights in the form of a matrix consisting of ID, donor id (FID), weight (WGT), fractional weight (FWGT), and fractionally imputed data.}
   \item{simp.data}{imputed data in the format of single imputation. The same shape as daty.}
   \item{imp.mean}{the mean estimates of each variable (first row) and the estimated standard error of each variable (second row). If input argument "i_op_variance=0" then this output is not produced.}
   \item{rep.weight}{replication fractional weights for variance estimation. If input argument "i_op_variance=0" then this output is not produced.}
@@ -47,6 +50,8 @@ From versrion >= 1.4, the sure independence screening method (Fan and Lv 2008) h
   \item{i_op_merge}{reprint of the option "i_op_merge" initially defined by the user.}  
   \item{i_op_SIS}{reprint of the option "i_op_SIS" initially defined by the user.}
   \item{s_op_SIS}{reprint of the option "s_op_SIS" initially defined by the user.}
+  \item{s_op_cellmake}{reprint of the option "s_op_cellmake" initially defined by the user.}
+  \item{top_corr_var}{reprint of the option "top_corr_var" initially defined by the user.}
 }
 \references{
 Im, J., Cho, I.H. and Kim, J.K. (2018). FHDI: An \bold{R} Package for Fractional Hot-Deck Imputation. \emph{The R Journal}. 10(1), pp. 140-154; 
@@ -90,12 +95,15 @@ y3[r3==0]=NA
 y4[r4==0]=NA
 
 daty=cbind(y1,y2,y3,y4)
+
 result_FEFI=FHDI_Driver(daty, s_op_imputation="FEFI", k=3)
 result_FHDI=FHDI_Driver(daty, s_op_imputation="FHDI", M=5, k=3)
+result_FHDI_merging=FHDI_Driver(daty, s_op_imputation="FHDI", s_op_cellmake="merging", M=5, k=3)
 FEFI_SIS=FHDI_Driver(daty, i_op_SIS=2, s_op_SIS="intersection", k=3)
 
 names(result_FEFI)
 names(result_FHDI)
+names(result_FHDI_merging)
 names(FEFI_SIS)
 
 }

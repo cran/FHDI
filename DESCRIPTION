@@ -1,6 +1,6 @@
 Package: FHDI
-Version: 1.4.0
-Date: 2020-04-02
+Version: 1.4.1
+Date: 2020-08-21
 Title: Fractional Hot Deck and Fully Efficient Fractional Imputation
 Authors@R: c(person("Inho","Cho", role=c("aut","cre"), email="icho@iastate.edu"), 
 			 person("Jaekwang","Kim", role="aut", email="jkim@iastate.edu"),
@@ -19,6 +19,6 @@ URL: https://www.r-project.org,
         https://sites.google.com/view/jaekwangkim/software
 BugReports: https://sites.google.com/site/ichoddcse2017/home/type-of-trainings/r-package-fhdi
 NeedsCompilation: yes
-Packaged: 2020-04-22 22:26:44 UTC; ihcho_000
+Packaged: 2020-09-21 19:54:01 UTC; ihcho_000
 Repository: CRAN
-Date/Publication: 2020-04-23 16:10:25 UTC
+Date/Publication: 2020-09-22 06:30:30 UTC

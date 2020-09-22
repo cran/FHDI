@@ -1,7 +1,7 @@
 FHDI_CellMake<-function(daty, datr=NULL, k=5,
-                        w=NULL, id=NULL, i_op_SIS = 0, s_op_SIS = "global", s_op_merge="fixed", categorical=NULL)	
+                        w=NULL, id=NULL, i_op_SIS = 0, s_op_SIS = "global", s_op_cellmake = "knn", top_corr_var = 100, s_op_merge= "fixed", categorical=NULL)	
 {
-#Description------------------------------update: March 3, 2020 
+#Description------------------------------update: Aug 18, 2020 
 # main driver for Fully Efficient Fractional Imputation (FEFI) and 
 #                 Fractional Hot Deck Imputation (FHDI)
 # Perform (1) Cell Make ONLY!
@@ -22,6 +22,11 @@ FHDI_CellMake<-function(daty, datr=NULL, k=5,
 #                             the default is all 0
 #IN   : int     i_op_SIS  = 0; #0: perform FHDI without variable selection; !0: perform FHDI with user-defined
 #                                  number of selected variables. Default = 0 
+#IN   : string  s_op_SIS  = 3; #1: SIS with intersection; 2: SIS with intersection 3: SIS with global ranking
+#IN   : int     s_op_cellmake = 1; #1: perform cell construction with merging; 2: perform cell construction
+#                                      with k-nearest-neighbor
+#IN   : int     top_corr_var = the number of top ranks of variables based on correlation. Default = 100  
+#  
 #OUT  : List of 
 #   [[1]] = ID, WGT, original data matrix 	(nrow, 2+ncol)
 #		[[2]] = categorized matrix 				(nrow, ncol)
@@ -48,7 +53,7 @@ if(!is.null(datr))
 	if(nrow(datr) != nrow(daty) || ncol(datr) != ncol(daty)) 
 	{
 		print("Error! datr has different dimensions from daty! so user-defined datr cannot be used"); 
-		return; 
+	  return(NULL);
 	}
 }
 #-----
@@ -84,6 +89,11 @@ if(s_op_SIS == "intersection") {s_option_SIS = 1;} #perform SIS with intersectio
 if(s_op_SIS == "union") {s_option_SIS = 2;} #perform SIS with union
 if(s_op_SIS == "global") {s_option_SIS = 3;} #perform SIS with global ranking
 
+if(s_op_cellmake == "merging"){s_option_cellmake = 1;} #1: cell make with merging;
+if(s_op_cellmake == "knn"){s_option_cellmake = 2;} #2: cell make with KNN
+
+top_corr = top_corr_var; # Default = 100
+
 #-----------
 #below is dummy value. Not used for CellMake function separately. 
 #-----------
@@ -96,7 +106,7 @@ s_op_imputation = "FEFI"
 #Error check
 #---------
 if(is.null(FHDI_Error_Check(ncol_y, ncol_r, nrow_y, nrow_r, M, k, id, w, 
-                            s_op_imputation, i_op_SIS, s_op_SIS)))
+                            s_op_imputation, i_op_SIS, s_op_SIS, s_op_cellmake, top_corr_var)))
 {return(NULL);}
 
 #------------
@@ -163,8 +173,8 @@ for(i in 1:ncol_y){
 						 
 output_FHDI_CellMake <- .Call("CWrapper_CellMake", daty, datr, nrow_y, ncol_y, k, w, M, 
                 i_option_imputation, i_option_variance, id, 
-				NonCollapsible_categorical, i_option_SIS, s_option_SIS,
-				i_option_merge)						 
+				        NonCollapsible_categorical, i_option_SIS, s_option_SIS,
+				        i_option_merge,s_option_cellmake,top_corr)						 
 
 				
 #abnormal ending
@@ -204,7 +214,8 @@ colnames(output_FHDI_CellMake[[3]])<-column_name_of_y
 colnames(output_FHDI_CellMake[[4]])<-column_name_of_y
 
 final=list(data=output_FHDI_CellMake[[1]],cell=output_FHDI_CellMake[[2]],cell.resp=output_FHDI_CellMake[[3]],
-      cell.non.resp=output_FHDI_CellMake[[4]],w=w,s_op_merge=s_op_merge,i_op_SIS =i_op_SIS, s_op_SIS =s_op_SIS)
+      cell.non.resp=output_FHDI_CellMake[[4]],w=w,s_op_merge=s_op_merge,i_op_SIS =i_op_SIS, s_op_SIS =s_op_SIS,
+      s_op_cellmake = s_op_cellmake, top_corr_var = top_corr_var)
 
 if(i_option_SIS !=0) {
   column_name_of_codes = vector();

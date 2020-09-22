@@ -1,6 +1,6 @@
 FHDI_CellProb<-function(datz, w=NULL, id=NULL)	
 {
-#Description------------------------------Update: April 12, 2018
+#Description------------------------------Update: Aug 18, 2020
 # main driver for Fully Efficient Fractional Imputation (FEFI) and 
 #                 Fractional Hot Deck Imputation (FHDI)
 # Perform Cell Prob ONLY!
@@ -53,6 +53,8 @@ NonCollapsible_categorical = rep(0, ncol_z); #default
 
 i_option_SIS = 0; #default
 s_option_SIS = 3; #default
+s_option_cellmake = 2; #default
+top_corr_var = 100; #default
 
 #testout
 #print("Cell_Prob Only started")
@@ -62,7 +64,7 @@ s_option_SIS = 3; #default
 #Jan 11, 2017
 #----------------------
 List_FHDI_CellProb <- .Call("CWrapper_CellProb", datz, nrow_z, ncol_z, w, id,
-							NonCollapsible_categorical, i_option_SIS, s_option_SIS);
+							NonCollapsible_categorical, i_option_SIS, s_option_SIS, s_option_cellmake, top_corr_var);
 
 #abnormal ending
 if(is.null(List_FHDI_CellProb))

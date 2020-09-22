@@ -3,11 +3,10 @@
 \alias{FHDI}
 \docType{package}
 \title{Fractional Hot Deck Imputation}
-\description{Perform fractional hot deck imputation 
-Perform fully efficient fractional imputation}
+\description{Perform fractional hot deck imputation or perform fully efficient fractional imputation. This package is partially supported by the NSF grant CSSI 1931380.}
 \details{
 FHDI_Driver(daty, datr=NULL, datz=NULL, s_op_imputation="FEFI", i_op_SIS=0, 
-     s_op_SIS = "global", i_op_variance=0, M = 5, k = 5, w = NULL, id = NULL, 
+     s_op_SIS="global", s_op_cellmake="knn", top_corr_var=100, i_op_variance=1, M=5, k=5, w=NULL, id=NULL, 
 	 s_op_merge="fixed", categorical=NULL)
 }
 \seealso{FHDI_CellMake and FHDI_CellProb}
@@ -50,10 +49,12 @@ daty=cbind(y1,y2,y3,y4)
 
 result_FEFI=FHDI_Driver(daty, s_op_imputation="FEFI", k=3)
 result_FHDI=FHDI_Driver(daty, s_op_imputation="FHDI", M=5, k=3)
+result_FHDI_merging=FHDI_Driver(daty, s_op_imputation="FHDI", s_op_cellmake="merging", M=5, k=3)
 FEFI_SIS=FHDI_Driver(daty, i_op_SIS=2, s_op_SIS="intersection", k=3)
 
 names(result_FEFI)
 names(result_FHDI)
+names(result_FHDI_merging)
 names(FEFI_SIS)
 }
 \keyword{FHDI}

@@ -1,4 +1,4 @@
-//LAST UPDATE: April 13, 2020
+//LAST UPDATE: Sept 21, 2020
 
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2360,6 +2360,7 @@ double max_FHDI(double* k, const int n);
 
 double min_FHDI(double* k, const int n);
 
+double second_min_FHDI(double arr[], int n);// Written by Yicheng Yang
 
 
 int max_FHDI(int* k, const int n);
@@ -2390,7 +2391,7 @@ void order_FHDI(int* i_original, const int n);
 
 void order_FHDI(double* d_original, const int n, int* i_return); 		   
 
-
+void order_FHDI(double* d_original_0, const int n, std::vector<int> &i_return); // Written by Yicheng Yang
 
 //-------------------
 
@@ -2469,6 +2470,7 @@ void cumsum_FHDI(double* d_original, const int n, double* d_return);
 
 void Ranking_m(const int nrow, const int ncol, double** x_raw, int** r_raw, double ** correlation_yicheng, int** correlation_ranking); // Written by Yicheng Yang
 		   
+void Ranking_top(const int nrow_ol, const int ncol, const int top, double** ol_matrix, int** correlation_ranking_top); // Written by Yicheng Yang
 
 //------------------
 
@@ -2478,6 +2480,9 @@ void Ranking_m(const int nrow, const int ncol, double** x_raw, int** r_raw, doub
 void max_occur(std::vector<int> v_table_name, std::vector<int> v_table_counts, int ncol, int size_i, std::vector<int> v_lm, int v_lm_size, int b1,
 	const int i_option_collapsing, std::vector<int> &v_mxl, double** correlation_yicheng, int** correlation_temp2); // Written by Yicheng Yang
 
+void max_occur2(std::vector<int> v_table_name, std::vector<int> v_table_counts, int ncol, int size_i, std::vector<int> v_lm, int v_lm_size,
+	const int i_option_collapsing, const int top, int nrow_ol, std::vector<int> &v_mxl, double** ol_matrix, int** correlation_temp2); // Written by Yicheng Yang
+
 //------------------
 
 //Select all variables whose votes reaching i_option_collapsing for SIS with union
@@ -2485,6 +2490,9 @@ void max_occur(std::vector<int> v_table_name, std::vector<int> v_table_counts, i
 //------------------
 void max_occur_union(std::vector<int> v_table_name, std::vector<int> v_table_counts, int ncol, int size_i, std::vector<int> v_lm, int v_lm_size, int b1,
 	const int i_option_collapsing, std::vector<int> &v_mxl, double** correlation_yicheng, int** correlation_temp2); // Written by Yicheng Yang
+
+void max_occur_union2(std::vector<int> v_table_name, std::vector<int> v_table_counts, int ncol, int size_i, std::vector<int> v_lm, int v_lm_size,
+	const int i_option_collapsing, const int top, int nrow_ol, std::vector<int> &v_mxl, double** ol_matrix, int** correlation_temp2); // Written by Yicheng Yang
 
 //------------------
 
@@ -2494,6 +2502,9 @@ void max_occur_union(std::vector<int> v_table_name, std::vector<int> v_table_cou
 void correlated_variable_intersection(const int ncol, const int i_option_collapsing, int i, int* ia_temp,
 	double **correlation_yicheng, int** correlation_ranking, std::vector<int> &v_mxl); // Written by Yicheng Yang
 
+void correlated_variable_intersection2(const int ncol, const int i_option_collapsing, const int top, int i, int nrow_ol, int* ia_temp,
+	double** ol_matrix, int** correlation_ranking_top, std::vector<int> &v_mxl); // Written by Yicheng Yang
+
 //------------------
 
 //Select the most i_option_collapsing correlated variables from all observed variables of each mox with union
@@ -2502,6 +2513,8 @@ void correlated_variable_intersection(const int ncol, const int i_option_collaps
 void correlated_variable_union(const int ncol, const int i_option_collapsing, int i, int* ia_temp,
 	double **correlation_yicheng, int** correlation_ranking, std::vector<int> &v_mxl); // Written by Yicheng Yang
 
+void correlated_variable_union2(const int ncol, const int i_option_collapsing, const int top, int i, int nrow_ol, int* ia_temp,
+	double** ol_matrix, int** correlation_ranking_top, std::vector<int> &v_mxl); // Written by Yicheng Yang
 //------------------
 
 //Select the most i_option_collapsing correlated variables from all observed variables of each mox with global ranking
@@ -2509,6 +2522,9 @@ void correlated_variable_union(const int ncol, const int i_option_collapsing, in
 //------------------
 void correlated_variable_global(const int ncol, const int i_option_collapsing, int* ia_temp,
 	double **correlation_yicheng, std::vector<int> &v_mxl);// Written by Yicheng Yang
+
+void correlated_variable_global2(const int ncol, const int i_option_collapsing, int nrow_ol, int* ia_temp,
+	double** ol_matrix, std::vector<int> &v_mxl); // Wtitten by Yicheng Yang
 
 } //end of namespace
 
@@ -3722,6 +3738,49 @@ double min_FHDI(double* k, const int n)
 
 }
 
+
+//----------------------------------
+//second min value of double array written by Yicheng; Note that if arr = {1.1, 2.2, 1.1, 2.3}, it will return 2.2
+//---------------------------------
+double second_min_FHDI(double arr[], int n) {
+
+	double smallest = 0.0;
+
+	double secondSmallest = 0.0;
+
+	if (arr[0] < arr[1]) {
+		smallest = arr[0];
+		secondSmallest = arr[1];
+	}
+
+	if (arr[0] == arr[1]) {
+		smallest = arr[0];
+		for (int j = 0; j < n;j++) {
+			if (arr[j] != smallest) {
+				secondSmallest = arr[j];
+			}
+		}
+	}
+	else {
+		smallest = arr[1];
+		secondSmallest = arr[0];
+	}
+	for (int i = 0; i < n; i++) {
+
+		if (smallest > arr[i]) {
+			secondSmallest = smallest;
+			smallest = arr[i];
+		}
+
+		else if ((arr[i] < secondSmallest) && (arr[i] > smallest)) {
+			secondSmallest = arr[i];
+		}
+	}
+	return secondSmallest;
+}
+
+
+
 //---------------------------------
 
 //max value of integer array
@@ -4055,7 +4114,64 @@ void order_FHDI(double* d_original_0, const int n, int* i_return)
 }
 
 
+void order_FHDI(double* d_original_0, const int n, std::vector<int> &i_return)
+//Description ================================
+// Order the positive double-precision array in ascending order
+//
+//IN   : double d_original_0(n) = original array of double-precision float numbers
+//              d_original > 0.0 
+//OUT  : int i_return(n)    = returned with the ordered (Actual) cell numbers..]   
+//
+//=============================================
+{
+	//Note: below backup is different from integer version
+	double* d_original = new double[n]; //backup
+	Copy_dVector(d_original_0, n, d_original);
 
+	double* d_source = new double[n];
+	int* i_order = new int[n];
+
+	for (int i = 0; i<n; i++)
+	{
+		d_source[i] = d_original[i]; //backup
+		i_order[i] = i + 1; //default
+	}
+
+	//-----------
+	//leverage sorting library
+	//-----------
+	std::sort(d_source, d_source + n);
+	double d_now = 0;
+
+	i_order[0] = 1; //first cell location as default
+	for (int i = 0; i<n; i++)
+	{
+		d_now = d_source[i];
+		//----------------
+		//comparisons from the first entiry to now 
+		//----------------
+		for (int j = 0; j<n; j++)
+		{
+			if (fabs(d_now - d_original[j])<1e-15)
+			{
+				i_order[i] = j + 1; //Actual location
+				d_original[j] = -1.0; //dummy value
+				break;
+			}
+		}
+	}
+	//---prep return
+	for (int i = 0; i<n; i++)
+	{
+		i_return.push_back(i_order[i]); //backup
+	}
+
+	delete[] d_original;
+	delete[] d_source;
+	delete[] i_order;
+
+	return;
+}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -5027,14 +5143,21 @@ void Ranking_m(const int nrow, const int ncol, double** x_raw, int** r_raw, doub
 		order_FHDI(d_source_temp, ncol, i_return);// in ascending order
 
 		// Note i_return_temp must exclude itself priorly in case that i_return have several correlations of 1s. Updated on April 8, 2020 
+
 		std::vector<int> i_return_temp;
+
 		for (int j1 = 0; j1 < ncol; j1++) {
+
 			if (i_return[j1] != (i + 1)) {
+
 				i_return_temp.push_back(i_return[j1]);
+
 			}
+
 		}
 
 		for (int k3 = 0; k3 < (ncol - 1); k3++) {
+
 			correlation_m_temp[i][k3] = i_return_temp[k3];
 		}
 
@@ -5073,7 +5196,132 @@ void Ranking_m(const int nrow, const int ncol, double** x_raw, int** r_raw, doub
 	return;
 }
 
+void Ranking_top(const int nrow_ol, const int ncol, const int top, double** ol_matrix, int** correlation_ranking_top)
 
+//Description=========================================
+//Make correlation ranking matrix correlation_ranking
+//Make ranking matrix of each variable according to correlation matrix in descending order
+
+//IN	: double x(nrow, ncol) 	= {y1, y2, ... } total data containing missing values
+//IN	: double r(nrow, ncol) 	= {y1, y2, ... } total response inndicators containing missing values
+//OUT   : double correlation_yicheng(ncol, ncol);
+//OUT   : int correlation_ranking(ncol, ncol-1); // Ranking of correlation of each variable in descending order. 
+// Note it excludes itself from ranking
+//=====================================================
+{
+
+	//-----------------------
+	//Compute corrrlation matrix
+	//-----------------------
+
+	double* x1 = new double[nrow_ol];
+	double* x2 = new double[nrow_ol];
+	double d_sum = 0.0;
+	std::vector<double> cov;
+
+	std::vector<int> i_return_temp;
+
+	for (int j = 0; j<ncol; j++) //from the first column to the second last column
+	{
+		cov.clear();
+
+		for (int j_next = 0; j_next<ncol; j_next++) //next column including itself 
+		{
+			for (int i = 0; i<nrow_ol; i++)
+			{
+				x1[i] = ol_matrix[i][j];   //jth column
+				x2[i] = ol_matrix[i][j_next];//next column
+			}
+
+			//---
+			//each column's mean
+			//---
+			double x1_mean = 0.0; double x2_mean = 0.0;
+			for (int i = 0; i<nrow_ol; i++)
+			{
+				x1_mean += x1[i];   //jth column
+				x2_mean += x2[i];   //next column
+			}
+			x1_mean = x1_mean / nrow_ol;
+			x2_mean = x2_mean / nrow_ol;
+
+			//-----
+			//calculate covariance of two columns
+			//-----
+			d_sum = 0.0;
+			for (int i_1 = 0; i_1<nrow_ol; i_1++)
+			{
+				d_sum += (x1[i_1] - x1_mean)*(x2[i_1] - x2_mean);
+			}
+
+			//----------------
+			//calculate variance of two columns
+			//----------------
+			double x1_var = 0.0; double x2_var = 0.0;
+			double var_sum = 0.0;
+			for (int i_2 = 0; i_2 < nrow_ol;i_2++) {
+				var_sum = var_sum + (x1[i_2] - x1_mean)*(x1[i_2] - x1_mean);
+			}
+			x1_var = var_sum;
+
+			var_sum = 0.0;
+			for (int i_3 = 0; i_3 < nrow_ol;i_3++) {
+				var_sum = var_sum + (x2[i_3] - x2_mean)*(x2[i_3] - x2_mean);
+			}
+			x2_var = var_sum;
+
+			//---------
+			//store covariance using symmetry property
+			//---------
+			cov.push_back(d_sum / sqrt(x1_var* x2_var));
+
+			//cov[j][j_next] = d_sum / sqrt(x1_var* x2_var);
+			//cov[j_next][j] = d_sum / sqrt(x1_var* x2_var);
+		}
+
+
+		std::vector<int> i_return;
+		double* d_source_temp = new double[ncol];
+
+		for (int k = 0; k < ncol; k++) {
+			d_source_temp[k] = abs(cov[k]);// Note the ranking of correlation matrix should be based on absolute value !!!
+		}
+
+		order_FHDI(d_source_temp, ncol, i_return);
+
+		// Note i_return_temp must exclude itself priorly in case that i_return have several correlations of 1s. Updated on April 8, 2020 
+
+		i_return_temp.clear();
+
+		for (int j1 = 0; j1 < ncol; j1++) {
+
+			if (i_return[j1] != (j + 1)) {
+
+				i_return_temp.push_back(i_return[j1]);
+
+			}
+
+		}
+
+
+		for (int t = 0; t < top; t++) {
+			correlation_ranking_top[j][t] = i_return_temp[ncol - 2 - t]; //exclude the rank of itself
+		}
+
+
+		delete[] d_source_temp;
+	}
+
+
+	//---------
+	//Deallocation
+	//---------
+	delete[] x1;
+	delete[] x2;
+
+	return;
+
+}
 
 
 void max_occur(std::vector<int> v_table_name, std::vector<int> v_table_counts, int ncol, int size_i, std::vector<int> v_lm, int v_lm_size, int b1,
@@ -5209,6 +5457,183 @@ void max_occur(std::vector<int> v_table_name, std::vector<int> v_table_counts, i
 }
 
 
+void max_occur2(std::vector<int> v_table_name, std::vector<int> v_table_counts, int ncol, int size_i, std::vector<int> v_lm, int v_lm_size,
+	const int i_option_collapsing, const int top, int nrow_ol, std::vector<int> &v_mxl, double** ol_matrix, int** correlation_temp2)
+
+	//Description=========================================
+	//Select all variables whose votes reaching i_option_collapsing
+	//Algorithm:
+	//If number of variables whose votes reaching i_option_collapsing is smaller than number of required correlated variables left
+	//select all variables whose votes reaching i_option_collapsing
+	//If number of variables whose votes reaching i_option_collapsing is larger than number of required correlated variables left
+	//select variables whose votes reaching i_option_collapsing with the highest correlation
+
+	//IN    : int i_option_collapsing = choice of big-p algorithm 
+	//                            0= no big-p algorithms
+	//                           !0= perform big-p algorithms
+	//IN    : int v_table_name = unique ranking name
+	//IN    : int v_table_counts = corresponding counts of unique ranking name
+	//IN    : int size_i = number of unique ranking names
+	//IN    : int v_lm = actual location of missing variables of mox[i]
+	//IN    : int v_lm_size = number of missing variables of mox[i]
+	//IN    : int b1 = cursor of the "tank"
+	//IN    : double correlation_yicheng(ncol, ncol);// correlation matrix
+	//IN    : int correlation_temp2( v_lm_size, (ncol - v_lm_size) ); // correlation ranking matrix of missing variables neglecting itself
+	//OUT   : int v_mxl(i_option_collapsing); // the actual location of most correlated variables of mox[i]
+	//=====================================================
+
+{
+	int i_size_v_mxl = v_mxl.size();
+	int i_size_left = i_option_collapsing - i_size_v_mxl; // number of required correlated variables left
+
+	std::vector<int> location;// location of all variables reaching v_lm_size occurance
+
+							  //---------------
+	for (int i = 0; i < size_i; i++) {
+		if ((v_table_counts[i] == v_lm_size) && (v_table_name[i] != 0)) {
+			location.push_back(i);
+			//TestOut<<"locations: "<< i <<endl;
+		}
+	}
+
+	int location_size = location.size();
+
+	//if (location_size == 0) TestOut << "No variables qulified at current tank of SIS with intersection" << endl;
+	//---------------
+	//Case 1: if number of qualified variables (reaching v_lm_size occurance) is less than number of required correlated variables left
+	if ((location_size < (i_size_left + 1)) && (location_size>0)) { //location_size <= i_size_left
+
+		for (unsigned i = 0; i < location.size();i++) {
+			v_mxl.push_back(v_table_name[location[i]]); // add all of them
+
+			for (int k3 = 0; k3 < v_lm_size; k3++) {// set the added one as 0s in original ranking matrix
+				for (int k4 = 0; k4 < top; k4++) {
+					if (correlation_temp2[k3][k4] == v_table_name[location[i]]) {
+						correlation_temp2[k3][k4] = 0;
+					}
+
+				}
+			}
+			//if (v_mxl.size() == i_option_collapsing) break;
+		}
+	}//end of the first case
+
+	 //--------------
+	 //Case 2: if number of qualified variables (reaching v_lm_size occurance) is larger than number of required correlated variables left
+	if (location_size > i_size_left) {
+
+		//double* d_max = new double[location_size]; // max correlation of missing variables between each qualified variable
+		std::vector<double> d_max;
+
+
+		double* x1 = new double[nrow_ol];
+		double* x2 = new double[nrow_ol];
+		double d_sum = 0.0;
+
+		for (int i = 0; i < location_size; i++) {
+			//double* d_temp = new double[v_lm_size];
+			std::vector<double> d_temp;
+
+			for (int j = 0; j < v_lm_size; j++) {
+
+				//TestOut << "row: " << v_table_name[location[i]] - 1 << ", col:" << v_lm[j] << endl;
+
+				//int ou = v_table_name[location[i]] - 1;
+				for (int k = 0; k<nrow_ol; k++)
+				{
+					x1[k] = ol_matrix[k][v_table_name[location[i]] - 1];   //jth column
+					x2[k] = ol_matrix[k][v_lm[j] - 1];//next column
+				}
+				//---
+				//each column's mean
+				//---
+				double x1_mean = 0.0; double x2_mean = 0.0;
+				for (int i = 0; i<nrow_ol; i++)
+				{
+					x1_mean += x1[i];   //jth column
+					x2_mean += x2[i];   //next column
+				}
+				x1_mean = x1_mean / nrow_ol;
+				x2_mean = x2_mean / nrow_ol;
+				//TestOut << "x1_mean is " << x1_mean << ", and x2_mean is " << x2_mean << " at j_next = " << j_next << endl;
+				//-----
+				//calculate covariance of two columns
+				//-----
+				d_sum = 0.0;
+				for (int i_1 = 0; i_1<nrow_ol; i_1++)
+				{
+					d_sum += (x1[i_1] - x1_mean)*(x2[i_1] - x2_mean);
+				}
+
+				//----------------
+				//calculate variance of two columns
+				//----------------
+				double x1_var = 0.0; double x2_var = 0.0;
+				double var_sum = 0.0;
+				for (int i_2 = 0; i_2 < nrow_ol;i_2++) {
+					var_sum = var_sum + (x1[i_2] - x1_mean)*(x1[i_2] - x1_mean);
+				}
+				x1_var = var_sum;
+
+				var_sum = 0.0;
+				for (int i_3 = 0; i_3 < nrow_ol;i_3++) {
+					var_sum = var_sum + (x2[i_3] - x2_mean)*(x2[i_3] - x2_mean);
+				}
+				x2_var = var_sum;
+
+				//d_temp[j] = abs(d_sum / sqrt(x1_var* x2_var));
+				d_temp.push_back(abs(d_sum / sqrt(x1_var* x2_var))); // Note 1. location and v_lm have the actual locations 2. Must compare absolute value of correlation
+																	 //TestOut<<"d_temp_Top["<<i<<"]["<<j<<"]: "<< d_temp[j] <<endl;
+			}
+			d_max.push_back(max_FHDI(d_temp));
+			//d_max.push_back(max_FHDI(d_temp, v_lm_size));
+			//TestOut<<"d_max["<<i<<"]: "<< d_max[i]<<endl;
+			//delete[] d_temp;
+		}
+
+		//Pick i_size_left qualified variables among all of qualified variables
+
+		int d_max_size = d_max.size();
+
+		for (int k = 0; k < i_size_left; k++) {
+
+			int max_l = 0;
+			for (int i = 0; i < d_max_size; i++) {
+
+				if (d_max[max_l] < d_max[i]) {
+					max_l = i;
+				}
+			}
+
+			d_max[max_l] = 0;
+			//TestOut<<"We choose "<< v_table_name[location[max_l]] <<endl;
+			v_mxl.push_back(v_table_name[location[max_l]]); // add the one with max correlation 
+
+															// set the added one as 0s in original ranking matrix
+			for (int k3 = 0; k3 < v_lm_size; k3++) {
+				for (int k4 = 0; k4 < top; k4++) {
+					if (correlation_temp2[k3][k4] == v_table_name[location[max_l]]) {
+						correlation_temp2[k3][k4] = 0;
+					}
+
+				}
+			}
+
+		}
+
+		//---------
+		//Deallocation
+		//---------
+		delete[] x1;
+		delete[] x2;
+
+		//delete[] d_max;
+	}//end of the second case
+
+	return;
+
+}
+
 
 
 void max_occur_union(std::vector<int> v_table_name, std::vector<int> v_table_counts, int ncol, int size_i, std::vector<int> v_lm, int v_lm_size, int b1,
@@ -5343,7 +5768,182 @@ void max_occur_union(std::vector<int> v_table_name, std::vector<int> v_table_cou
 
 }
 
+void max_occur_union2(std::vector<int> v_table_name, std::vector<int> v_table_counts, int ncol, int size_i, std::vector<int> v_lm, int v_lm_size,
+	const int i_option_collapsing, const int top, int nrow_ol, std::vector<int> &v_mxl, double** ol_matrix, int** correlation_temp2)
 
+	//Description=========================================
+	//Select all variables whose votes reaching i_option_collapsing
+	//Algorithm:
+	//If number of variables whose votes reaching i_option_collapsing is smaller than number of required correlated variables left
+	//select all variables whose votes reaching i_option_collapsing
+	//If number of variables whose votes reaching i_option_collapsing is larger than number of required correlated variables left
+	//select variables whose votes reaching i_option_collapsing with the highest correlation
+
+	//IN    : int i_option_collapsing = choice of big-p algorithm 
+	//                            0= no big-p algorithms
+	//                           !0= perform big-p algorithms
+	//IN    : int v_table_name = unique ranking name
+	//IN    : int v_table_counts = corresponding counts of unique ranking name
+	//IN    : int size_i = number of unique ranking names
+	//IN    : int v_lm = actual location of missing variables of mox[i]
+	//IN    : int v_lm_size = number of missing variables of mox[i]
+	//IN    : int b1 = cursor of the "tank"
+	//IN    : double correlation_yicheng(ncol, ncol);// correlation matrix
+	//IN    : int correlation_temp2( v_lm_size, (ncol - v_lm_size) ); // correlation ranking matrix of missing variables neglecting itself
+	//OUT   : int v_mxl(i_option_collapsing); // the actual location of most correlated variables of mox[i]
+	//=====================================================
+
+{
+	int i_size_v_mxl = v_mxl.size();// the actual location of most correlated variables of mox[i]
+	int i_size_left = i_option_collapsing - i_size_v_mxl; // number of required correlated variables left
+
+	std::vector<int> location;// location of all variables reaching v_lm_size occurance
+
+							  //---------------
+	for (int i = 0; i < size_i; i++) {
+		if (v_table_name[i] != 0) {
+			location.push_back(i);
+			//TestOut<<"locations: "<< i <<endl;
+		}
+	}
+
+	int location_size = location.size();
+
+	//if (location_size == 0) TestOut << "No variables qulified at current tank of SIS with intersection" << endl;
+	//---------------
+	//Case 1: if number of qualified variables (reaching v_lm_size occurance) is less than number of required correlated variables left
+	if ((location_size < (i_size_left + 1)) && (location_size>0)) { //location_size <= i_size_left
+
+		for (unsigned i = 0; i < location.size();i++) {
+			v_mxl.push_back(v_table_name[location[i]]); // add all of them
+
+			for (int k3 = 0; k3 < v_lm_size; k3++) {// set the added one as 0s in original ranking matrix
+				for (int k4 = 0; k4 < top; k4++) {
+					if (correlation_temp2[k3][k4] == v_table_name[location[i]]) {
+						correlation_temp2[k3][k4] = 0;
+					}
+
+				}
+			}
+			//if (v_mxl.size() == i_option_collapsing) break;
+		}
+	}//end of the first case
+
+	 //--------------
+	 //Case 2: if number of qualified variables (reaching v_lm_size occurance) is larger than number of required correlated variables left
+	if (location_size > i_size_left) {
+
+		//TestOut<<"Yicheng here"<<endl;
+
+		//double* d_max = new double[location_size]; // max correlation of missing variables between each qualified variable
+		std::vector<double> d_max;
+
+		double* x1 = new double[nrow_ol];
+		double* x2 = new double[nrow_ol];
+		double d_sum = 0.0;
+
+		for (int i = 0; i < location_size; i++) {
+			//double* d_temp = new double[v_lm_size];
+			std::vector<double> d_temp;
+
+			for (int j = 0; j < v_lm_size; j++) {
+
+				//TestOut << "row: " << v_table_name[location[i]] - 1 << ", col:" << v_lm[j] << endl;
+
+				//int ou = v_table_name[location[i]] - 1;
+				for (int k = 0; k<nrow_ol; k++)
+				{
+					x1[k] = ol_matrix[k][v_table_name[location[i]] - 1];   //jth column
+					x2[k] = ol_matrix[k][v_lm[j] - 1];//next column
+				}
+				//---
+				//each column's mean
+				//---
+				double x1_mean = 0.0; double x2_mean = 0.0;
+				for (int i = 0; i<nrow_ol; i++)
+				{
+					x1_mean += x1[i];   //jth column
+					x2_mean += x2[i];   //next column
+				}
+				x1_mean = x1_mean / nrow_ol;
+				x2_mean = x2_mean / nrow_ol;
+				//TestOut << "x1_mean is " << x1_mean << ", and x2_mean is " << x2_mean << " at j_next = " << j_next << endl;
+				//-----
+				//calculate covariance of two columns
+				//-----
+				d_sum = 0.0;
+				for (int i_1 = 0; i_1<nrow_ol; i_1++)
+				{
+					d_sum += (x1[i_1] - x1_mean)*(x2[i_1] - x2_mean);
+				}
+
+				//----------------
+				//calculate variance of two columns
+				//----------------
+				double x1_var = 0.0; double x2_var = 0.0;
+				double var_sum = 0.0;
+				for (int i_2 = 0; i_2 < nrow_ol;i_2++) {
+					var_sum = var_sum + (x1[i_2] - x1_mean)*(x1[i_2] - x1_mean);
+				}
+				x1_var = var_sum;
+
+				var_sum = 0.0;
+				for (int i_3 = 0; i_3 < nrow_ol;i_3++) {
+					var_sum = var_sum + (x2[i_3] - x2_mean)*(x2[i_3] - x2_mean);
+				}
+				x2_var = var_sum;
+
+				//d_temp[j] = abs(d_sum / sqrt(x1_var* x2_var));
+				d_temp.push_back(abs(d_sum / sqrt(x1_var* x2_var))); // Note 1. location and v_lm have the actual locations 2. Must compare absolute value of correlation
+
+			}
+			d_max.push_back(max_FHDI(d_temp));
+
+		}
+
+		//Pick i_size_left qualified variables among all of qualified variables
+
+		int d_max_size = d_max.size();
+
+		for (int k = 0; k < i_size_left; k++) {
+
+			int max_l = 0;
+			for (int i = 0; i < d_max_size; i++) {
+
+				if (d_max[max_l] < d_max[i]) {
+					max_l = i;
+				}
+			}
+
+			d_max[max_l] = 0;
+
+			v_mxl.push_back(v_table_name[location[max_l]]); // add the one with max correlation 
+
+															// set the added one as 0s in original ranking matrix
+			for (int k3 = 0; k3 < v_lm_size; k3++) {
+				for (int k4 = 0; k4 < top; k4++) {
+					if (correlation_temp2[k3][k4] == v_table_name[location[max_l]]) {
+						correlation_temp2[k3][k4] = 0;
+					}
+
+				}
+			}
+
+
+		}
+
+		//---------
+		//Deallocation
+		//---------
+		delete[] x1;
+		delete[] x2;
+
+		//delete[] d_max;
+	}//end of the second case
+
+	return;
+
+}
 
 
 void correlated_variable_intersection(const int ncol, const int i_option_collapsing, int i, int* ia_temp,
@@ -5509,6 +6109,153 @@ void correlated_variable_intersection(const int ncol, const int i_option_collaps
 }
 
 
+void correlated_variable_intersection2(const int ncol, const int i_option_collapsing, const int top, int i, int nrow_ol, int* ia_temp,
+	double** ol_matrix, int** correlation_ranking_top, std::vector<int> &v_mxl)
+
+	//Description=========================================
+	//Select the most i_option_collapsing correlated variables from all observed variables of each mox
+	//Algorithm:
+	//Select the most correlated variables using majority vote. The last one is selected based on the highest correlation
+
+	//IN    : int i_option_collapsing = choice of big-p algorithm 
+	//                            0= no big-p algorithms
+	//                           !0= perform big-p algorithms
+	//IN    : int ia_temp(ncol) = copy of mox[i]
+	//IN    : double correlation_yicheng(ncol, ncol);// correlation matrix
+	//IN    : int correlation_ranking(ncol, ncol-1); // Ranking of correlation of each variable in descending order
+	// Note it excludes itself from ranking
+	//OUT   : int v_mxl(i_option_collapsing); // the actual location of most correlated variables of mox[i]
+	//=====================================================
+
+{
+	std::vector<int> v_lm; //temporary vector for the locaiton of missing values in mox
+
+	whichINVNOT(ia_temp, ncol, 0, v_lm); //get the actual location of missing variables of mox[i] 
+
+	int v_lm_size = v_lm.size(); //number of missing variables in mox[i]
+
+								 //========================================================
+								 // Pickout the correlation matrix of missing variables only
+								 //========================================================
+
+	int** correlation_temp = New_iMatrix(v_lm_size, top); // correlation ranking matrix of missing variables neglecting itself
+
+														  //---------------------
+														  // correlation ranking matrix of missing variables neglecting all missing variable cells
+														  // this ranking matrix is even
+	int** correlation_temp2 = New_iMatrix(v_lm_size, top);
+	Fill_iMatrix(correlation_temp2, v_lm_size, top, 0);
+
+
+	//========================================================
+	// Remove all missing variable cells from the correlation matrix of missing variables
+	//========================================================
+
+	// Pickout the correlation ranking matrix of missing variables only
+	for (int k1 = 0; k1 < v_lm_size; k1++) {
+		for (int k2 = 0; k2 < top; k2++) {
+			correlation_temp[k1][k2] = correlation_ranking_top[v_lm[k1] - 1][k2];
+		}
+	}
+
+	for (int k3 = 0; k3 < v_lm_size; k3++) {
+		for (int k4 = 0; k4 < top; k4++) {
+			for (int k5 = 0; k5 < v_lm_size;k5++) {
+				if (correlation_temp[k3][k4] == v_lm[k5]) {
+					correlation_temp[k3][k4] = 0;
+				}
+			}
+
+		}
+	}
+
+
+	//Remove all missing variables from ranking matrix
+	for (int k6 = 0; k6 < v_lm_size; k6++) {
+		for (int k7 = 0; k7 < top; k7++) {
+			for (int k8 = 0; k8 < top; k8++) {
+				if (correlation_temp[k6][k8] != 0) {
+					correlation_temp2[k6][k7] = correlation_temp[k6][k8];
+					correlation_temp[k6][k8] = 0;
+					break;
+				}
+			}
+		}
+	}
+
+	Del_iMatrix(correlation_temp, v_lm_size, top);
+
+
+	//=====================================================
+	//Get the most i_option_collapsing correlated variables
+	//======================================================
+
+	std::vector<int> v_table_name;
+	std::vector<int> v_table_counts;
+
+	//std::vector<int> v_table_name1;
+	//std::vector<int> v_table_counts1;
+
+	for (int b1 = (i_option_collapsing - 1); b1 < top; b1++) {
+		v_table_name.clear();
+		v_table_counts.clear();
+		int counter1 = 0;
+		int* cor_temp = new int[(b1 + 1)*v_lm_size]; // the vector to store the 'tank' temporaryly 
+
+		for (int a1 = 0; a1 < (b1 + 1); a1++) {
+
+			for (int a2 = 0; a2 < v_lm_size; a2++) {
+				cor_temp[counter1] = correlation_temp2[a2][a1];
+				//TestOut << "cor_temp[" << counter1 << "]: " << correlation_temp2[a2][a1] << endl;
+				counter1++;
+			}
+		}
+
+		//----------------
+		//This table function is only used for correlated variables
+		table_cpp_int(cor_temp, (b1 + 1)*v_lm_size, v_table_name, v_table_counts);
+
+		delete[] cor_temp;
+
+		int size_i = v_table_counts.size();
+
+		//for (int c1 = 0; c1 < size_i; c1++) {
+		//	TestOut<< "v_table_name: " << v_table_name[c1] <<", v_table_counts: "<< v_table_counts[c1] <<endl;
+		//}
+
+		max_occur2(v_table_name, v_table_counts, ncol, size_i, v_lm, v_lm_size, i_option_collapsing, top, nrow_ol, v_mxl, ol_matrix, correlation_temp2);
+
+		int v_mxl_size = v_mxl.size();
+
+		if (v_mxl_size == i_option_collapsing) break;
+
+	}
+
+
+	sort(v_mxl.begin(), v_mxl.end());
+
+	int v_mxl_size2 = v_mxl.size();
+
+	if (v_mxl_size2 < i_option_collapsing) {
+		Rprintf("ERROE! The intersection of top ranking matrix is not large enough to get user-defined numeber of selected variables. Reducing i_op_SIS or increasing top_corr_var will help. \n");
+		//exit(0);
+	}
+	//TestOut << "correlation_temp2 after max_occur at mox i=  " << i << endl;
+	//for (int kk2 = 0; kk2 < v_lm_size; kk2++) {
+	//	for (int kk3 = 0; kk3 < (ncol - v_lm_size); kk3++) {
+	//		TestOut << setw(20) << correlation_temp2[kk2][kk3];
+	//	}
+	//	TestOut << endl;
+	//}
+
+	//----------------------------------
+	//Del_iMatrix(correlation_temp, v_lm_size, (ncol - 1));
+	Del_iMatrix(correlation_temp2, v_lm_size, top);
+
+	return;
+}
+
+
 void correlated_variable_union(const int ncol, const int i_option_collapsing, int i, int* ia_temp,
 	double **correlation_yicheng, int** correlation_ranking, std::vector<int> &v_mxl)
 
@@ -5669,6 +6416,150 @@ void correlated_variable_union(const int ncol, const int i_option_collapsing, in
 	return;
 }
 
+
+void correlated_variable_union2(const int ncol, const int i_option_collapsing, const int top, int i, int nrow_ol, int* ia_temp,
+	double** ol_matrix, int** correlation_ranking_top, std::vector<int> &v_mxl)
+
+	//Description=========================================
+	//Select the most i_option_collapsing correlated variables from all observed variables of each mox
+	//Algorithm:
+	//Select the most correlated variables using majority vote. The last one is selected based on the highest correlation
+
+	//IN    : int i_option_collapsing = choice of big-p algorithm 
+	//                            0= no big-p algorithms
+	//                           !0= perform big-p algorithms
+	//IN    : int ia_temp(ncol) = copy of mox[i]
+	//IN    : double correlation_yicheng(ncol, ncol);// correlation matrix
+	//IN    : int correlation_ranking(ncol, ncol-1); // Ranking of correlation of each variable in descending order
+	// Note it excludes itself from ranking
+	//OUT   : int v_mxl(i_option_collapsing); // the actual location of most correlated variables of mox[i]
+	//=====================================================
+
+{
+	std::vector<int> v_lm; //temporary vector for the locaiton of missing values in mox
+
+	whichINVNOT(ia_temp, ncol, 0, v_lm); //get the actual location of missing variables of mox[i] 
+
+	int v_lm_size = v_lm.size(); //number of missing variables in mox[i]
+
+								 //========================================================
+								 // Pickout the correlation matrix of missing variables only
+								 //========================================================
+
+	int** correlation_temp = New_iMatrix(v_lm_size, top); // correlation ranking matrix of missing variables neglecting itself
+
+														  //---------------------
+														  // correlation ranking matrix of missing variables neglecting all missing variable cells
+														  // this ranking matrix is even
+	int** correlation_temp2 = New_iMatrix(v_lm_size, top);
+	Fill_iMatrix(correlation_temp2, v_lm_size, top, 0);
+	//TestOut << "v_lm at mox i=  " << i << endl;
+	//for (int kk1 = 0; kk1 < v_lm_size; kk1++) {
+	//	TestOut << v_lm[kk1] << endl;
+	//}
+
+	//========================================================
+	// Remove all missing variable cells from the correlation matrix of missing variables
+	//========================================================
+
+	// Pickout the correlation ranking matrix of missing variables only
+	for (int k1 = 0; k1 < v_lm_size; k1++) {
+		for (int k2 = 0; k2 < top; k2++) {
+			correlation_temp[k1][k2] = correlation_ranking_top[v_lm[k1] - 1][k2];
+		}
+	}
+
+	for (int k3 = 0; k3 < v_lm_size; k3++) {
+		for (int k4 = 0; k4 < top; k4++) {
+			for (int k5 = 0; k5 < v_lm_size;k5++) {
+				if (correlation_temp[k3][k4] == v_lm[k5]) {
+					correlation_temp[k3][k4] = 0;
+				}
+			}
+
+		}
+	}
+
+
+	//Remove all missing variables from ranking matrix
+	for (int k6 = 0; k6 < v_lm_size; k6++) {
+		for (int k7 = 0; k7 < top; k7++) {
+			for (int k8 = 0; k8 < top; k8++) {
+				if (correlation_temp[k6][k8] != 0) {
+					correlation_temp2[k6][k7] = correlation_temp[k6][k8];
+					correlation_temp[k6][k8] = 0;
+					break;
+				}
+			}
+		}
+	}
+
+	Del_iMatrix(correlation_temp, v_lm_size, top);
+
+
+	//=====================================================
+	//Get the most i_option_collapsing correlated variables
+	//======================================================
+
+	std::vector<int> v_table_name;
+	std::vector<int> v_table_counts;
+
+	//std::vector<int> v_table_name1;
+	//std::vector<int> v_table_counts1;
+
+
+	for (int b1 = 0; b1 < top; b1++) {
+		v_table_name.clear();
+		v_table_counts.clear();
+		int counter1 = 0;
+		int* cor_temp = new int[(b1 + 1)*v_lm_size]; // the vector to store the 'tank' temporaryly 
+
+		for (int a1 = 0; a1 < (b1 + 1); a1++) {
+
+			for (int a2 = 0; a2 < v_lm_size; a2++) {
+				cor_temp[counter1] = correlation_temp2[a2][a1];
+				counter1++;
+			}
+		}
+
+		//----------------
+		//This table function is only used for correlated variables
+		table_cpp_int(cor_temp, (b1 + 1)*v_lm_size, v_table_name, v_table_counts);
+
+		delete[] cor_temp;
+
+		int size_i = v_table_counts.size();
+
+		//for (int c1 = 0; c1 < size_i; c1++) {
+		//	TestOut<< "v_table_name: " << v_table_name[c1] <<", v_table_counts: "<< v_table_counts[c1] <<endl;
+		//}
+
+		max_occur_union2(v_table_name, v_table_counts, ncol, size_i, v_lm, v_lm_size, i_option_collapsing, top, nrow_ol, v_mxl, ol_matrix, correlation_temp2);
+
+		int v_mxl_size = v_mxl.size();
+
+		if (v_mxl_size == i_option_collapsing) break;
+
+	}
+
+	sort(v_mxl.begin(), v_mxl.end());
+
+	int v_mxl_size2 = v_mxl.size();
+
+	if (v_mxl_size2 < i_option_collapsing) {
+		Rprintf("ERROE! The union of top ranking matrix is not large enough to get user-defined numeber of selected variables. Reducing i_op_SIS or increasing top_corr_var will help. \n");
+		//exit(0);
+	}
+
+
+	//----------------------------------
+	//Del_iMatrix(correlation_temp, v_lm_size, (ncol - 1));
+	Del_iMatrix(correlation_temp2, v_lm_size, (ncol - v_lm_size));
+
+	return;
+}
+
+
 void correlated_variable_global(const int ncol, const int i_option_collapsing, int* ia_temp,
 	double **correlation_yicheng, std::vector<int> &v_mxl)
 
@@ -5793,7 +6684,143 @@ void correlated_variable_global(const int ncol, const int i_option_collapsing, i
 	return;
 }
 
+void correlated_variable_global2(const int ncol, const int i_option_collapsing, int nrow_ol, int* ia_temp,
+	double** ol_matrix, std::vector<int> &v_mxl)
 
+	//Description=========================================
+	//Select the most i_option_collapsing correlated variables from all observed variables of each mox
+	//Algorithm:
+	//Select the most correlated variables using majority vote. The last one is selected based on the highest correlation
+
+	//IN    : int i_option_collapsing = choice of big-p algorithm 
+	//                               0= no big-p algorithms
+	//                              !0= perform big-p algorithms
+	//IN    : int ia_temp(ncol) = copy of mox[i]
+	//IN    : double correlation_yicheng(ncol, ncol);// correlation matrix
+
+	//OUT   : int v_mxl(i_option_collapsing); // the actual location of most correlated variables of mox[i]
+	//=====================================================
+
+{
+
+	std::vector<int> v_lm; //temporary vector for the locaiton of missing values in mox
+
+	whichINVNOT(ia_temp, ncol, 0, v_lm); //get the actual location of missing variables of mox[i] 
+
+	int v_lm_size = v_lm.size(); //number of missing variables in mox[i]
+
+	std::vector<int> v_lo; //temporary vector for the actual locaiton of observed values in mox[i]
+
+	whichINV(ia_temp, ncol, 0, v_lo); //get the actual location of Non-zero in mox 
+
+	int v_lo_size = v_lo.size(); //number of observed variables in mox[i]
+
+	std::vector<double> r_star; // vector of the highest correlation of each obeserved variable of current mox
+	std::vector<double> r_temp; // temporary vector to hold coreelations of between an observed variable and all missing variables
+
+								//=================================
+								// Select out the vector of the highest correlation of each obeserved variable of current mox
+								//==================================
+
+	double* x1 = new double[nrow_ol];
+	double* x2 = new double[nrow_ol];
+	double d_sum = 0.0;
+
+	for (int k8 = 0; k8 < v_lo_size; k8++) {
+
+		r_temp.clear();
+
+		for (int k9 = 0; k9 < v_lm_size; k9++) {
+
+			for (int k10 = 0; k10<nrow_ol; k10++)
+			{
+				x1[k10] = ol_matrix[k10][v_lo[k8] - 1];
+				x2[k10] = ol_matrix[k10][v_lm[k9] - 1];
+			}
+
+			//---
+			//each column's mean
+			//---
+			double x1_mean = 0.0; double x2_mean = 0.0;
+			for (int i = 0; i<nrow_ol; i++)
+			{
+				x1_mean += x1[i];   //jth column
+				x2_mean += x2[i];   //next column
+			}
+			x1_mean = x1_mean / nrow_ol;
+			x2_mean = x2_mean / nrow_ol;
+			//TestOut << "x1_mean is " << x1_mean << ", and x2_mean is " << x2_mean << " at j_next = " << j_next << endl;
+			//-----
+			//calculate covariance of two columns
+			//-----
+			d_sum = 0.0;
+			for (int i_1 = 0; i_1<nrow_ol; i_1++)
+			{
+				d_sum += (x1[i_1] - x1_mean)*(x2[i_1] - x2_mean);
+			}
+
+			//----------------
+			//calculate variance of two columns
+			//----------------
+			double x1_var = 0.0; double x2_var = 0.0;
+			double var_sum = 0.0;
+			for (int i_2 = 0; i_2 < nrow_ol;i_2++) {
+				var_sum = var_sum + (x1[i_2] - x1_mean)*(x1[i_2] - x1_mean);
+			}
+			x1_var = var_sum;
+
+			var_sum = 0.0;
+			for (int i_3 = 0; i_3 < nrow_ol;i_3++) {
+				var_sum = var_sum + (x2[i_3] - x2_mean)*(x2[i_3] - x2_mean);
+			}
+			x2_var = var_sum;
+
+			r_temp.push_back(abs(d_sum / sqrt(x1_var* x2_var)));
+			//r_temp.push_back(correlation_temp[k9][k8]);
+		}
+
+		r_star.push_back(max_FHDI(r_temp));
+
+	}
+
+	//===================================
+	// Add variables whose correlation is among the top of the largest i_option_collapsing
+	//====================================
+
+	for (int k10 = 0; k10 < i_option_collapsing; k10++) {
+		int max_corr = 0;
+
+		for (int k11 = 0; k11 < v_lo_size; k11++) {
+			if (r_star[max_corr] < r_star[k11]) {
+				max_corr = k11;
+			}
+		}
+
+		//TestOut<<"max_corr: "<< max_corr <<endl;
+		v_mxl.push_back(v_lo[max_corr]); // the actual location of the variable
+
+		r_star[max_corr] = 0;
+	}
+
+
+	sort(v_mxl.begin(), v_mxl.end());
+
+	int v_mxl_size = v_mxl.size();
+
+	if (v_mxl_size != i_option_collapsing) {
+		Rprintf("ERROE! The global ranking of top ranking matrix is not large enough to get user-defined numeber of selected variables. Reducing i_op_SIS or increasing top_corr_var will help. \n");
+		//exit(0);
+	}
+
+
+	//---------
+	//Deallocation
+	//---------
+	delete[] x1;
+	delete[] x2;
+
+	return;
+}
 
 //-----------------------------------------------------
 //-----------------------------------------------------
@@ -6049,6 +7076,8 @@ public:
 
 	void get_block(const int i_row, double* d_value); 
 
+	void get_block_yicheng(const int i_row, std::vector<int> &v_value); //Written by Yicheng Yang
+
 	void get_block(const int i_row, const int n_size_row, const int n_size_col, 
 
                    double** d_value);	
@@ -6063,13 +7092,15 @@ public:
 
 	void put_block(const int i_row, const int n_size, double* d_value); 
 
+	void put_block_yicheng(const int i_row, const int n_size, std::vector<double> v_value); //Written by Yicheng Yang
+
     void put_block(const int i_row, const int n_size_row, const int n_size_col, 
 
                    double ** d_value);	
 
     void put_block(const int i_row, std::vector<double> v_value);
 
-	
+	void put_block(const int i_row, std::vector<int> v_value); // Written by Yicheng Yang
 
 	//==========================
 
@@ -6333,7 +7364,27 @@ void List_FHDI::get_block(const int i_row, double* d_value)
 
 }
 
+void List_FHDI::get_block_yicheng(const int i_row, std::vector<int> &v_value)
+//Description==================================
+//	get stored block at the i_row of the list 
+//
+//IN   : int  i_row    = target row in the list
+//OUT  : double d_value[n_size]  where n_size must be known before calling this fn. 
+//
+//Note: all variable preceded by '_' are private of Grid
+//=============================================
+{
+	int n_size = _n_each_row_size[i_row];
 
+	//accumulated size of all the previous rows in the list
+	int i_sum = 0; for (int k = 0; k < i_row; k++) { i_sum += _n_each_row_size[k]; }
+
+	for (int i = 0; i < n_size; i++) {
+		v_value.push_back(_v_block[i_sum + i]);
+	}
+
+	return;
+}
 
 void List_FHDI::get_block(const int i_row, const int n_size_row, const int n_size_col, 
 
@@ -6478,7 +7529,67 @@ void List_FHDI::put_block(const int i_row, const int n_size, double * d_value)
 }
 
 
+void List_FHDI::put_block_yicheng(const int i_row, const int n_size, std::vector<double> v_value)
+//Description==================================
 
+//	put the new row into block
+
+//  Note: 1. if current row i_row was not stored before, just insert it by using .insert and update the size as n_size
+
+//        2. if this row has been stored before, just insert it by using .insert and accumlate the size as n_existing_size + n_size
+
+//
+//IN  : int i_row  = target row number of the list (from 0 like c++ index)
+
+//IN  : int n_size = ACTUAL size of the current row 
+
+//IN  : vector<double> v_value
+
+//
+
+//Note: all variable preceded by '_' are private of Grid
+
+//=============================================
+{
+	int n_existing_size = _n_each_row_size[i_row];
+	//----------------
+	//first time input
+	//----------------
+	if (n_existing_size == 0)
+	{
+		//accumulated size of all the previous rows in the list
+		int i_sum = 0; for (int k = 0; k < i_row; k++) { i_sum += _n_each_row_size[k]; }
+
+		_v_block.insert(_v_block.begin() + i_sum, v_value.begin(), v_value.end());
+
+		_n_each_row_size[i_row] = n_size;
+
+	}
+	//---------------
+	//replace existing stored data
+	//---------------
+	//if ((n_existing_size > 0) && (n_existing_size == n_size))
+	//{
+	//	//accumulated size of all the previous rows in the list
+	//	int i_sum = 0; for (int k = 0; k < i_row; k++) { i_sum += _n_each_row_size[k]; }
+
+	//	for (int i = 0; i < n_size; i++) { _v_block[i_sum + i] = v_value[i]; }
+	//}
+
+	if (n_existing_size > 0)
+	{
+		//accumulated size of all the previous rows in the list
+		int i_sum = 0; for (int k = 0; k < (i_row + 1); k++) { i_sum += _n_each_row_size[k]; }
+
+		//std::vector<int>::iterator it;
+
+		_v_block.insert(_v_block.begin() + i_sum, v_value.begin(), v_value.end());
+
+		_n_each_row_size[i_row] = n_existing_size + n_size;
+	}
+
+	return;
+}
 
 
 void List_FHDI::put_block(const int i_row, const int n_size_row, const int n_size_col, 
@@ -6677,7 +7788,50 @@ void List_FHDI::put_block(const int i_row, std::vector<double> v_value)
 
 }
 
+void List_FHDI::put_block(const int i_row, std::vector<int> v_value)// Written by Yicheng
+																	//Description==================================
+																	//	put the new row store in double vector into block
+																	//  Note: 1. if current row i_row was not stored before, just append it by using push_back
+																	//        2. if this row has been stored before, replacement takes place at the row
+																	//
+																	//IN  : int i_row  = target row number of the list (from 0 like c++ index)
+																	//IN  : std::vector<double> d_value[i_size] 
+																	//
+																	//Note: all variable preceded by '_' are private of Grid
+																	//=============================================
+{
+	const int n_size = (int)v_value.size();
 
+	int n_existing_size = _n_each_row_size[i_row];
+	//----------------
+	//first time input
+	//----------------
+	if (n_existing_size == 0)
+	{
+		//----------------
+		//store the new data into the _v_block 
+		//----------------
+		for (int i = 0; i < n_size; i++) _v_block.push_back(v_value[i]);
+
+		//-----------------
+		//update the size of current row of list
+		//-----------------
+		_n_each_row_size[i_row] = n_size;
+
+	}
+	//---------------
+	//replace existing stored data
+	//---------------
+	if (n_existing_size > 0)
+	{
+		//accumulated size of all the previous rows in the list
+		int i_sum = 0; for (int k = 0; k < i_row; k++) { i_sum += _n_each_row_size[k]; }
+
+		for (int i = 0; i < n_size; i++) { _v_block[i_sum + i] = v_value[i]; }
+	}
+
+	return;
+}
 
 
 
@@ -8918,7 +10072,10 @@ bool categorize_cpp(double** x, const int nrow, const int ncol, double* k, doubl
 		
 		if(fabs_FHDI(d_sum_temp) < 1E-15)
 		{
-			Rprintf("Error! The given data set has row(s) having all missing cells!   "); 
+			Rprintf("Error! The given data set has row(s) having all missing cells !!!   "); 
+
+			//Rprintf("%d ", i_row + 1);
+
 			return 0;
 		}
 	}
@@ -10421,554 +11578,571 @@ namespace FHDI{
 
 
 
-bool nDAU_cpp(double** uox, double** mox, const int nrow_uox, const int nrow_mox, const int ncol,
+	bool nDAU_cpp(double** uox, double** mox, const int nrow_uox, const int nrow_mox, const int ncol,
 
-              std::string cn[], int* ol, const int nrow_ol, 
+		std::string cn[], int* ol, const int nrow_ol, int i_cellmake,
 
-	          std::vector<int> &v_nD, List_FHDI &List_nU, int* tnU,
+		std::vector<int> &v_nD, List_FHDI &List_nU, int* tnU,
 
-			  bool b_DEBUG)
+		bool b_DEBUG)
 
-//Description=========================================
+		//Description=========================================
 
-// identify information of the missing cells and observed cells
+		// identify information of the missing cells and observed cells
 
-//
+		//
 
-// Algorithm:  
+		// Algorithm:  
 
-// 
+		// 
 
-//
+		//
 
-// original R code: Dr. Im, J. and Dr. Kim, J. 
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
 
-// c++ code: 		Dr. Cho, I. 
+		// c++ code: 		Dr. Cho, I. and Yicheng Yang
 
-// All rights reserved
+		// All rights reserved
 
-// 
+		// 
 
-// updated: March 28, 2017
+		// updated: Aug 9, 2020
 
-//----------------------------------------------------
+		//----------------------------------------------------
 
-//IN    : double uox(nrow_uox, ncol)= sorted unique patterns of observed cells. up to i_count_uox rows are meaningful 
+		//IN    : double uox(nrow_uox, ncol)= sorted unique patterns of observed cells. up to i_count_uox rows are meaningful 
 
-//IN    : double mox(nrow_mox, ncol)= sorted unique patterns of missing  cells. up to i_count_mox rows are meaningful                           
+		//IN    : double mox(nrow_mox, ncol)= sorted unique patterns of missing  cells. up to i_count_mox rows are meaningful                           
 
-//IN 	: string cn(nrow)		= vector of string to represent each row of z          
+		//IN 	: string cn(nrow)		= vector of string to represent each row of z          
 
-//IN	: int ol(nrow_ol)		= actual location of rows containing ONLY observed cells    
+		//IN	: int ol(nrow_ol)		= actual location of rows containing ONLY observed cells    
 
-//INOUT : std::vector v_nD		= total number of donnors of each missing pattern
+		//INOUT : std::vector v_nD		= total number of donnors of each missing pattern
 
-//OUT   : List_FHDI List_nU     = list of observed cells to serve as donors 
+		//OUT   : List_FHDI List_nU     = list of observed cells to serve as donors 
 
-//OUT   : int tnU[nrow_uox]		= table format of the total numbers of donors for each missing rows
+		//OUT   : int tnU[nrow_uox]		= table format of the total numbers of donors for each missing rows
 
-//====================================================
-
-{
-
-    //initialize 	
-
-    double* snr2 = new double[nrow_mox]; 
-
-    for(int i=0; i<nrow_mox; i++) {snr2[i] = i+1;} //actual row number of mox
-
-    
-
-    //------------
-
-    //make a table of unique strings in cn
-
-    //------------
-
-    std::vector<std::string> v_table_item_cn; 
-
-    std::vector<int>	     v_table_count_cn;
-
-
-
-    //observed patterns only
-
-    //std::string s_cn_ol[nrow_ol]; 
-
-	std::string *s_cn_ol = new std::string[nrow_ol]; 
-
-    for(int i=0; i<nrow_ol; i++) { s_cn_ol[i] = cn[ol[i]-1]; } //"-1" for actual location number of row
-
- 	std::sort(s_cn_ol, s_cn_ol+nrow_ol); //sort the observed patterns 
-
-	
-
-    table_cpp(s_cn_ol, nrow_ol, 
-
-	          v_table_item_cn, v_table_count_cn); 
-
-
-
-	
-
-    //-----------
-
-    //null string of width of ncol
-
-	//-----------
-
-	std::string s_zval; for(int i=0; i<ncol; i++) s_zval.append("0"); 
-
-		
-
-	//-------------------
-
-	//Loop for mox (missing cells patterns) rows
-
-	//-------------------
-
-	double* d_temp = new double[ncol]; 
-
-	int* ia_temp = new int[ncol]; //temporary integer array  
-
-	 
-
-	std::string s_cn0; //temporary string for a row of mox
-
-	//-------------------------------------
-
-	//example
-
-	// mox[i,] 		13 0 1
-
-	// mxl 			1    3		//location of observed cells in mox
-
-	// nxl			2         	//number of observed cells in mox
-
-	// rcn0			d1			//condensed string of the observed cells in mox (from 35 letters, 1-9 and a-z)
-
-	// cand 		"11" "29" "d1" "b3" "d1" ... 	//condensed strings of uox corresponding to the observed cell columns
-
-	// oloc			3    5     	//location of cand that has the same as rcn0
-
-	//-------------------------------------
-
-	//initialize 
-
-	
-
-	for(int i=0; i<nrow_mox; i++)
+		//====================================================
 
 	{
 
-		for(int j=0; j<ncol; j++) d_temp[j] = mox[i][j];  //ith row of mox
+		//initialize 	
 
-		
+		double* snr2 = new double[nrow_mox];
 
-		Trans1(d_temp, ncol, s_cn0); //condense a row to string 
+		for (int i = 0; i<nrow_mox; i++) { snr2[i] = i + 1; } //actual row number of mox
 
 
 
-		
+															  //------------
 
-		//---------
+															  //make a table of unique strings in cn
 
-		//when current missing row is null string, i.e. "   "
+															  //------------
 
-		//---------
+		std::vector<std::string> v_table_item_cn;
 
-		if(s_cn0.compare(s_zval) == 0) //0: equal string
+		std::vector<int>	     v_table_count_cn;
+
+
+
+		//observed patterns only
+
+		//std::string s_cn_ol[nrow_ol]; 
+
+		std::string *s_cn_ol = new std::string[nrow_ol];
+
+		for (int i = 0; i<nrow_ol; i++) { s_cn_ol[i] = cn[ol[i] - 1]; } //"-1" for actual location number of row
+
+		std::sort(s_cn_ol, s_cn_ol + nrow_ol); //sort the observed patterns 
+
+
+
+		table_cpp(s_cn_ol, nrow_ol,
+
+			v_table_item_cn, v_table_count_cn);
+
+
+
+
+
+		//-----------
+
+		//null string of width of ncol
+
+		//-----------
+
+		std::string s_zval; for (int i = 0; i<ncol; i++) s_zval.append("0");
+
+
+
+		//-------------------
+
+		//Loop for mox (missing cells patterns) rows
+
+		//-------------------
+
+		double* d_temp = new double[ncol];
+
+		int* ia_temp = new int[ncol]; //temporary integer array  
+
+
+
+		std::string s_cn0; //temporary string for a row of mox
+
+						   //-------------------------------------
+
+						   //example
+
+						   // mox[i,] 		13 0 1
+
+						   // mxl 			1    3		//location of observed cells in mox
+
+						   // nxl			2         	//number of observed cells in mox
+
+						   // rcn0			d1			//condensed string of the observed cells in mox (from 35 letters, 1-9 and a-z)
+
+						   // cand 		"11" "29" "d1" "b3" "d1" ... 	//condensed strings of uox corresponding to the observed cell columns
+
+						   // oloc			3    5     	//location of cand that has the same as rcn0
+
+						   //-------------------------------------
+
+						   //initialize 
+
+
+
+		for (int i = 0; i<nrow_mox; i++)
 
 		{
 
-			//---------------------
+			for (int j = 0; j<ncol; j++) d_temp[j] = mox[i][j];  //ith row of mox
 
-			//number of donors; this case all observed cells are possible donors
 
-			//---------------------
 
-			int i_nD_sum = 0; 
-
-			for(unsigned k=0; k<v_table_count_cn.size(); k++) i_nD_sum += v_table_count_cn[k];
-
-			v_nD.push_back(i_nD_sum); //store the number of possible donors into the integer vector to return
-
-			
-
-			//------
-
-			//store a row of nU into the List storage
-
-			//for this null string row, all observed rows become possible donors
-
-			//------	
-
-			double* d_nU_temp = new double[nrow_uox]; 
-
-			for(int k=0; k<nrow_uox; k++) d_nU_temp[k] = k+1;
-
-			List_nU.put_block(i, nrow_uox, d_nU_temp);
-
-			delete[] d_nU_temp; 
-
-			
-
-			
-
-		}
-
-		
-
-		//----------
-
-		//for general cases for missing units, other than null string
-
-		//----------
-
-		if(s_cn0.compare(s_zval) != 0) //0: equal string
-
-		{
-
-			//-----
-
-			//find non zero cells of current missing row mox
-
-			//-----
-
-			for(int k=0; k<ncol; k++) ia_temp[k] = (int)mox[i][k]; 
-
-			
-
-			//Note: below will contain ACTUAL location of cells with non-zero observed data
-
-			std::vector<int> v_mxl; //temporary vector for the locaiton of non zeros in mox
-
-			whichINV(ia_temp, ncol, 0, v_mxl); //get the location of Non-zero in mox 
-
-			
-
-			//-----
-
-			//total number of non zeros in mox
-
-			//-----
-
-			const int nxl = v_mxl.size(); //total number of observed units at current row (>0)
+			Trans1(d_temp, ncol, s_cn0); //condense a row to string 
 
 
 
 
 
-			double* d_rcn0_temp = new double[nxl]; //temporary
+										 //---------
 
-			for(int k=0; k<nxl; k++) d_rcn0_temp[k] = mox[i][v_mxl[k] - 1]; //"-1" is for actual location
+										 //when current missing row is null string, i.e. "   "
 
-			
+										 //---------
 
-			//-----
-
-			//condense non-zero category names in current row of mox
-
-			//-----
-
-			std::string s_rcn0; 
-
-			Trans1(d_rcn0_temp, nxl, s_rcn0); //condense one row  
-
-			
-			//deallocate used array or matrix (2018_0416)
-			delete[] d_rcn0_temp;
-			
-
-			
-
-			//--------------
-
-			//make a list of possible donors 
-
-			//--------------
-
-			std::vector<int> v_oloc;
-
-			if(nxl >= 1) //unlike R code, below algorithm suffices for all cases 
+			if (s_cn0.compare(s_zval) == 0) //0: equal string
 
 			{
 
-				//----
+				//---------------------
 
-				//get all non-zero cells from all observed rows
+				//number of donors; this case all observed cells are possible donors
 
-				//----
+				//---------------------
 
-				double * d_t1 = new double[v_mxl.size()];
+				int i_nD_sum = 0;
 
-				std::vector<std::string> v_cand; //vector of found string with condensed non-zero observed data
+				for (unsigned k = 0; k<v_table_count_cn.size(); k++) i_nD_sum += v_table_count_cn[k];
+
+				v_nD.push_back(i_nD_sum); //store the number of possible donors into the integer vector to return
+
+
+
+										  //------
+
+										  //store a row of nU into the List storage
+
+										  //for this null string row, all observed rows become possible donors
+
+										  //------	
+
+				double* d_nU_temp = new double[nrow_uox];
+
+				for (int k = 0; k<nrow_uox; k++) d_nU_temp[k] = k + 1;
+
+				List_nU.put_block(i, nrow_uox, d_nU_temp);
+
+				delete[] d_nU_temp;
+
+
+
+
+
+			}
+
+
+
+			//----------
+
+			//for general cases for missing units, other than null string
+
+			//----------
+
+			if (s_cn0.compare(s_zval) != 0) //0: equal string
+
+			{
 
 				//-----
 
-				//search all observed rows
-
-				//of which the same columns are non-zero as the current missing row  
+				//find non zero cells of current missing row mox
 
 				//-----
 
-				for(int m=0; m<nrow_uox; m++)
+				for (int k = 0; k<ncol; k++) ia_temp[k] = (int)mox[i][k];
 
-				{	//Note: "-1" in v_mxl is from the ACTUAL location info in it
 
-					for(unsigned k=0; k<v_mxl.size(); k++) d_t1[k] = uox[m][v_mxl[k]-1];
 
-					
+				//Note: below will contain ACTUAL location of cells with non-zero observed data
 
-					//------
+				std::vector<int> v_mxl; //temporary vector for the locaiton of non zeros in mox
 
-					//condense the found rows with non-zero observed cell only  
+				whichINV(ia_temp, ncol, 0, v_mxl); //get the location of Non-zero in mox 
 
-					//------
 
-					std::string s_cand_1;
 
-					Trans1(d_t1, v_mxl.size(), s_cand_1);
+												   //-----
 
-					v_cand.push_back(s_cand_1); //add more string to the string vector 
+												   //total number of non zeros in mox
+
+												   //-----
+
+				const int nxl = v_mxl.size(); //total number of observed units at current row (>0)
+
+
+
+
+
+				double* d_rcn0_temp = new double[nxl]; //temporary
+
+				for (int k = 0; k<nxl; k++) d_rcn0_temp[k] = mox[i][v_mxl[k] - 1]; //"-1" is for actual location
+
+
+
+																				   //-----
+
+																				   //condense non-zero category names in current row of mox
+
+																				   //-----
+
+				std::string s_rcn0;
+
+				Trans1(d_rcn0_temp, nxl, s_rcn0); //condense one row  
+
+
+												  //deallocate used array or matrix (2018_0416)
+				delete[] d_rcn0_temp;
+
+
+
+
+				//--------------
+
+				//make a list of possible donors 
+
+				//--------------
+
+				std::vector<int> v_oloc;
+
+				if (nxl >= 1) //unlike R code, below algorithm suffices for all cases 
+
+				{
+
+					//----
+
+					//get all non-zero cells from all observed rows
+
+					//----
+
+					double * d_t1 = new double[v_mxl.size()];
+
+					std::vector<std::string> v_cand; //vector of found string with condensed non-zero observed data
+
+													 //-----
+
+													 //search all observed rows
+
+													 //of which the same columns are non-zero as the current missing row  
+
+													 //-----
+
+					for (int m = 0; m<nrow_uox; m++)
+
+					{	//Note: "-1" in v_mxl is from the ACTUAL location info in it
+
+						for (unsigned k = 0; k<v_mxl.size(); k++) d_t1[k] = uox[m][v_mxl[k] - 1];
+
+
+
+						//------
+
+						//condense the found rows with non-zero observed cell only  
+
+						//------
+
+						std::string s_cand_1;
+
+						Trans1(d_t1, v_mxl.size(), s_cand_1);
+
+						v_cand.push_back(s_cand_1); //add more string to the string vector 
+
+					}
+
+
+
+					//--------------
+
+					//Find the rows of v_cand that match the current non-zero missing pattern
+
+					//Note: below will contain ACTUAL locations of the found rows 
+
+					//--------------
+
+					which(v_cand, s_rcn0, v_oloc); //get the locations of observed cells containing s_rcn0 
+
+
+
+												   //------------
+
+												   //local deallocation
+
+												   //------------
+
+					delete[] d_t1;
 
 				}
 
-			
 
-				//--------------
 
-				//Find the rows of v_cand that match the current non-zero missing pattern
+				//----------------
 
-				//Note: below will contain ACTUAL locations of the found rows 
+				//Store oloc into LIST named nU 
 
-				//--------------
+				// ith row of nU corresponds to ith row of the List
 
-				which(v_cand, s_rcn0,  v_oloc); //get the locations of observed cells containing s_rcn0 
+				//----------------
 
-				
+				int i_oloc_temp = (int)v_oloc.size(); //size of current oloc
 
-				//------------
+				if (i_oloc_temp>0) //only for meaningful oloc
 
-				//local deallocation
+				{
 
-				//------------
+					double* d_oloc_temp = new double[i_oloc_temp];
 
-				delete[] d_t1;				
+					for (int k = 0; k<i_oloc_temp; k++) d_oloc_temp[k] = v_oloc[k];
 
-			}
+					List_nU.put_block(i, i_oloc_temp, d_oloc_temp); //store ith missing row's donors list into the block  
 
-			
+					delete[] d_oloc_temp;
 
-			//----------------
+				}
 
-			//Store oloc into LIST named nU 
+				//---------------------
 
-			// ith row of nU corresponds to ith row of the List
+				//number of donors; this case only the matched observed rows become possible donors
 
-			//----------------
+				//---------------------
 
-			int i_oloc_temp = (int)v_oloc.size(); //size of current oloc
+				int i_temp_tocn_sum = 0;
 
-			if(i_oloc_temp>0) //only for meaningful oloc
+				for (int k = 0; k<i_oloc_temp; k++) //accumulate all possible donors 
 
-			{
+				{
+					i_temp_tocn_sum += v_table_count_cn[v_oloc[k] - 1];
+				} //-1 for actual loc
 
-				double* d_oloc_temp = new double[i_oloc_temp]; 
+				v_nD.push_back(i_temp_tocn_sum); //store into integer vector to return 
 
-				for(int k=0; k<i_oloc_temp; k++) d_oloc_temp[k] = v_oloc[k]; 
 
-				List_nU.put_block(i, i_oloc_temp, d_oloc_temp); //store ith missing row's donors list into the block  
 
-				delete[] d_oloc_temp; 
 
-			}
 
-			//---------------------
+			} //end of general missing case, other than null string row case
 
-			//number of donors; this case only the matched observed rows become possible donors
+		} //end of the main loop for i of all missing patterns  
 
-			//---------------------
 
-			int i_temp_tocn_sum = 0; 
 
-			for(int k=0; k<i_oloc_temp; k++) //accumulate all possible donors 
+		  //----------------------------
 
-			{ i_temp_tocn_sum += v_table_count_cn[v_oloc[k]-1]; } //-1 for actual loc
+		  //make a table-like information of nU
 
-			v_nD.push_back(i_temp_tocn_sum); //store into integer vector to return 
+		  //example:
 
+		  // List_nU
 
+		  // 0:  3,5,7
 
-			
+		  // 1:  1,10
 
-		} //end of general missing case, other than null string row case
+		  // 2:  23,1,3, 5
 
-	} //end of the main loop for i of all missing patterns  
+		  // then,
 
-	
+		  // d_v_nU_unlist_temp: 3,5,7,1,10, 23,1,3,5,...
 
-	//----------------------------
+		  // v_table_item_List_nU ; v_table_count_List_nU
 
-	//make a table-like information of nU
+		  // 1                      2 
 
-	//example:
+		  // 3                      2 
 
-	// List_nU
+		  // 5                      2 
 
-	// 0:  3,5,7
+		  // 7                      1 
 
-    // 1:  1,10
+		  // 10                     1 
 
-    // 2:  23,1,3, 5
+		  // 23                     1  	
 
-    // then,
+		  //finally, 
 
-    // d_v_nU_unlist_temp: 3,5,7,1,10, 23,1,3,5,...
+		  //tnU
 
-	// v_table_item_List_nU ; v_table_count_List_nU
+		  // 2, 2, 2, 1, 1
 
-	// 1                      2 
+		  //----------------------------
 
-    // 3                      2 
+		std::vector<double> v_nU_unlist;
 
-    // 5                      2 
+		List_nU.unlist(v_nU_unlist); //get the list of all entities of List_nU
 
-    // 7                      1 
+		int i_size_v_nU_unlist = (int)v_nU_unlist.size();
 
-    // 10                     1 
 
-    // 23                     1  	
 
-	//finally, 
 
-	//tnU
 
-	// 2, 2, 2, 1, 1
+		//----
 
-	//----------------------------
-
-	std::vector<double> v_nU_unlist; 
-
-	List_nU.unlist(v_nU_unlist); //get the list of all entities of List_nU
-
-	int i_size_v_nU_unlist = (int)v_nU_unlist.size(); 
-
-	
-
-	
-
-	//----
-
-	//Error check
-
-	//-----
-
-	if(i_size_v_nU_unlist <= 0) 
-
-	{
-
-		Rprintf("No possible donors with current k. Retry with reduced k \n");
-
-		return 0;
-
-	}
-
-	
-
-	double* d_v_nU_unlist_temp = new double[i_size_v_nU_unlist];
-
-	for(int k=0; k<i_size_v_nU_unlist; k++) d_v_nU_unlist_temp[k] = v_nU_unlist[k]; //a copy of all donors (row numbers) 
-
-	
-
-    std::vector<double> v_table_item_List_nU; //names of List_nU
-
-    std::vector<int>	v_table_count_List_nU;//counts of List_nU
-
-
-
-	table_cpp(d_v_nU_unlist_temp, i_size_v_nU_unlist, 
-
-		      v_table_item_List_nU, v_table_count_List_nU);
-
-	//testout
-
-	if(b_DEBUG) 
-
-	{Rprintf("table_cpp has been done "); }
-
-	
-
-	Fill_iVector(tnU, nrow_uox, 0);
-
-	for(int i=0; i<nrow_uox; i++)
-
-	{
+		//Error check
 
 		//-----
 
-		//error check
-
-		//sometimes tnU size is less than v_table_item_List_nU 
-
-		//-----
-
-		if(i >= (int)v_table_item_List_nU.size()) {break;}
-
-		
-
-		//-----
-
-		//search meaningful locations to be stored into tnU 
-
-		//-----
-
-		double d_t2 = v_table_item_List_nU[i]; //Note: Actual number is stored!
-
-		//if(std::isnan(d_t2)==1) {break;} //Exit at the end of the table list. only for meaningful number 
-		if(isnan_FHDI(d_t2) == 1) {break;} //Exit at the end of the table list. only for meaningful number 
-		
-
-		for(int j=1; j<nrow_uox+1; j++) //"+1" is needed for Actual # stored
+		if ((i_size_v_nU_unlist <= 0) && (i_cellmake == 2))
 
 		{
 
-			if(fabs_FHDI(d_t2 - j) < 1e-15) {tnU[i] = v_table_count_List_nU[i]; break;}
+			//Rprint("No possible donors with current k. Retry with reduced k \n");
+
+			Rprintf("Causion!!! No possible donors with current k in nDAU_cpp. \n");
+			//return 0;
 
 		}
 
+		if ((i_size_v_nU_unlist <= 0) && (i_cellmake == 1))
+
+		{
+
+			//Rprint("No possible donors with current k. Retry with reduced k \n");
+
+			Rprintf("ERROR!!! No possible donors with current k in nDAU_cpp. Retry with reduced k. \n");
+
+			//exit(0);
+
+			return 0;
+
+		}
+
+		double* d_v_nU_unlist_temp = new double[i_size_v_nU_unlist];
+
+		for (int k = 0; k<i_size_v_nU_unlist; k++) d_v_nU_unlist_temp[k] = v_nU_unlist[k]; //a copy of all donors (row numbers) 
+
+
+
+		std::vector<double> v_table_item_List_nU; //names of List_nU
+
+		std::vector<int>	v_table_count_List_nU;//counts of List_nU
+
+
+
+		table_cpp(d_v_nU_unlist_temp, i_size_v_nU_unlist,
+
+			v_table_item_List_nU, v_table_count_List_nU);
+
+		//testout
+
+		if (b_DEBUG)
+
+		{
+			Rprintf("table_cpp has been done ");
+		}
+
+
+
+		Fill_iVector(tnU, nrow_uox, 0);
+
+		for (int i = 0; i<nrow_uox; i++)
+
+		{
+
+			//-----
+
+			//error check
+
+			//sometimes tnU size is less than v_table_item_List_nU 
+
+			//-----
+
+			if (i >= (int)v_table_item_List_nU.size()) { break; }
+
+
+
+			//-----
+
+			//search meaningful locations to be stored into tnU 
+
+			//-----
+
+			double d_t2 = v_table_item_List_nU[i]; //Note: Actual number is stored!
+
+												   //if(std::isnan(d_t2)==1) {break;} //Exit at the end of the table list. only for meaningful number 
+			if (isnan_FHDI(d_t2) == 1) { break; } //Exit at the end of the table list. only for meaningful number 
+
+
+			for (int j = 1; j<nrow_uox + 1; j++) //"+1" is needed for Actual # stored
+
+			{
+
+				if (fabs_FHDI(d_t2 - j) < 1e-15) { tnU[i] = v_table_count_List_nU[i]; break; }
+
+			}
+
+		}
+
+
+
+
+
+
+
+
+
+		//-----------------
+
+		//Deallocation
+
+		//-----------------
+
+		delete[] s_cn_ol;
+
+		delete[] snr2;
+
+		delete[] d_temp;
+
+		delete[] ia_temp;
+
+		delete[] d_v_nU_unlist_temp;
+
+		//delete[] tnU;
+
+		return 1;
+
 	}
-
-	
-
-		
-
-	
-
-	 
-
-    //-----------------
-
-    //Deallocation
-
-    //-----------------
-
-	delete[] s_cn_ol; 
-
-    delete[] snr2; 
-
-	delete[] d_temp;
-
-	delete[] ia_temp;
-
-	delete[] d_v_nU_unlist_temp;
-
-	//delete[] tnU;
-
-    return 1;
-
-}
 
 
 
@@ -10990,9 +12164,9 @@ namespace FHDI {
 	//===========================================================================
 	bool nDAU_Bigp_cpp(double** uox, double** mox, const int nrow_uox, const int nrow_mox, const int ncol, const int i_option_collapsing, const int i_option_SIS_type,
 
-		std::string cn[], int* ol, const int nrow_ol,
+		std::string cn[], int* ol, const int nrow_ol, const int top, int i_cellmake,
 
-		std::vector<int> &v_nD, List_FHDI &List_nU, int* tnU, int** codes, double** correlation_yicheng, int** correlation_ranking,
+		std::vector<int> &v_nD, List_FHDI &List_nU, int* tnU, int** codes, int** correlation_ranking_top, double** ol_matrix,
 
 		bool b_DEBUG)
 
@@ -11010,13 +12184,13 @@ namespace FHDI {
 
 		// original R code: Dr. Im, J. and Dr. Kim, J. 
 
-		// c++ code: 		Yicheng Yang 
+		// c++ code: 		Dr. Cho, I. and Yicheng Yang
 
 		// All rights reserved
 
 		// 
 
-		// updated: March 26, 2020
+		// updated: Aug 11, 2020
 
 		//----------------------------------------------------
 
@@ -11136,8 +12310,6 @@ namespace FHDI {
 
 						   //initialize 
 
-						   //cout<<"i_option_collapsing: "<< i_option_collapsing <<endl;
-						   //TestOut<<"i_count_mox"<< nrow_mox <<endl;
 
 		for (int i = 0; i<nrow_mox; i++)
 
@@ -11145,12 +12317,6 @@ namespace FHDI {
 
 			for (int j = 0; j<ncol; j++) d_temp[j] = mox[i][j];  //ith row of mox
 
-																 //TestOut << "mox at i = " << i << endl;
-																 //for (int kk2 = 0; kk2 < ncol; kk2++) {
-
-																 //		TestOut << setw(20) << d_temp[kk2];
-																 //}
-																 //TestOut << endl;
 
 			Trans1(d_temp, ncol, s_cn0); //condense a row to string 
 
@@ -11235,38 +12401,35 @@ namespace FHDI {
 				if (oc < (i_option_collapsing + 1)) { // oc <= i_option_collapsing
 
 					whichINV(ia_temp, ncol, 0, v_mxl); //get the location of Non-zero in mox 
-
 				}
 
 				if (oc > i_option_collapsing) {
 
 					if (i_option_SIS_type == 1) {
 
-						FHDI::correlated_variable_intersection(ncol, i_option_collapsing, i, ia_temp, correlation_yicheng, correlation_ranking, v_mxl);
-
+						//FHDI::correlated_variable_intersection(ncol, i_option_collapsing, i, ia_temp, correlation_yicheng, correlation_ranking, v_mxl, TestOut);
+						FHDI::correlated_variable_intersection2(ncol, i_option_collapsing, top, i, nrow_ol, ia_temp, ol_matrix, correlation_ranking_top, v_mxl);
 					}
 
 					if (i_option_SIS_type == 2) {
 
-						FHDI::correlated_variable_union(ncol, i_option_collapsing, i, ia_temp, correlation_yicheng, correlation_ranking, v_mxl);
-
+						//FHDI::correlated_variable_union(ncol, i_option_collapsing, i, ia_temp, correlation_yicheng, correlation_ranking, v_mxl, TestOut);
+						FHDI::correlated_variable_union2(ncol, i_option_collapsing, top, i, nrow_ol, ia_temp, ol_matrix, correlation_ranking_top, v_mxl);
 					}
 
 					if (i_option_SIS_type == 3) {
 
-						FHDI::correlated_variable_global(ncol, i_option_collapsing, ia_temp, correlation_yicheng, v_mxl);
-
+						//FHDI::correlated_variable_global(ncol, i_option_collapsing, ia_temp, correlation_yicheng, v_mxl, TestOut);
+						FHDI::correlated_variable_global2(ncol, i_option_collapsing, nrow_ol, ia_temp, ol_matrix, v_mxl);
 					}
 
 				}
 
-				int v_mxl_size_1 = v_mxl.size();
+				int v_mxl_size = v_mxl.size();
 
-				for (int b3 = 0; b3 < v_mxl_size_1; b3++) {
+				for (int b3 = 0; b3 < v_mxl_size; b3++) {
 					codes[i][b3] = v_mxl[b3];
-					//TestOut << "v_mxl[" << b3 << "]: " << v_mxl[b3] << endl;
 				}
-
 
 				const int nxl = v_mxl.size(); //total number of the most correlated units at current row (>0)
 
@@ -11281,6 +12444,7 @@ namespace FHDI {
 																				   //condense non-zero category names in current row of mox
 
 																				   //-----
+
 				std::string s_rcn0;
 
 				Trans1(d_rcn0_temp, nxl, s_rcn0); //condense one row  
@@ -11472,12 +12636,26 @@ namespace FHDI {
 
 		//-----
 
-		if (i_size_v_nU_unlist <= 0)
+		if ((i_size_v_nU_unlist <= 0) && (i_cellmake == 2))
 
 		{
 
-			Rprintf("No possible donors with current k. Retry with reduced k \n");
+			//Rprint("No possible donors with current k. Retry with reduced k \n");
 
+			Rprintf("Causion!!! No possible donors with current k in nDAU_cpp. \n");
+			//return 0;
+
+		}
+
+		if ((i_size_v_nU_unlist <= 0) && (i_cellmake == 1))
+
+		{
+
+			//Rprint("No possible donors with current k. Retry with reduced k \n");
+
+			Rprintf("ERROR!!! No possible donors with current k in nDAU_cpp. Retry with reduced k. \n");
+
+			//exit(0);
 			return 0;
 
 		}
@@ -11549,8 +12727,6 @@ namespace FHDI {
 			}
 
 		}
-
-
 
 
 
@@ -13402,6 +14578,952 @@ namespace FHDI {
 	}
 } //end of namespace
 
+  //Fn===========================================================================
+
+  //KNN.cc-----------------------------------------------------------------------------
+
+  //Fn===========================================================================
+
+namespace FHDI {
+
+
+	void KNN(const int i_reci, double** uox, const int nrow_uox,
+		double** mox, const int nrow_mox, double* d_k,
+		std::string cn[], int* ol, const int nrow_ol,
+		const int nrow, const int ncol, const int i_merge,
+		std::vector<int> &v_nD, List_FHDI &List_nU)
+		//Description=========================================
+		// Find deficient donors for the recipient who has less than 2 donors by the Euclidean distance
+		//
+		// Algorithm: 											
+		//   For a given missing row at i_reci                 e.g., {12, NA, 4}           
+		//   Step 1: compute Euclidean distance from all unique observed patterns to the recipient  
+		//   Step 2: Case 0: if the recipient has a donor, then randomly select another one from list
+		//   Step 3: Case 1: if the recipient has no donor and the max occurnace of the candidate (who has minimum distance) in the list is >=2, then randomly select another one from list
+		//   Step 4: Case 2: if the recipient has no donor and the max occurnace of the candidate (who has minimum distance) in the list is <2, and the size of the list is >=2, 
+		//                   then randomly select two donors from list
+		//   Step 5: Case 3: if the recipient has no donor and the max occurnace of the candidate (who has minimum distance) in the list is <2, and the size of the list is 1, 
+		//                   then select another donor from the list of candicates who has the second minimum distance
+		//
+		//
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+		// c++ code: 		Yicheng Yang. 
+		// All rights reserved
+		// 
+		// updated: Aug 9, 2020
+		//----------------------------------------------------
+		//IN    : int i_reci = location of row with missing cell that has the least number of donors
+		//
+		//IN    : double uox(nrow_uox, ncol)= sorted unique patterns of observed cells. up to i_count_uox rows are meaningful 
+		//IN    : double mox(nrow_mox, ncol)= sorted unique patterns of missing  cells. up to i_count_mox rows are meaningful                           
+		//IN 	: string cn(nrow)		= vector of string to represent each row of z          
+		//IN	: int ol(nrow_ol)		= actual location of rows containing ONLY observed cells 
+		//INOUT : v_nD(nrow_mox)       = total number of donors of all mox 
+		//INOUT : List_nU(nrow_mox)    = List of actual location of donors of all mox in uox
+		//====================================================
+	{
+		//below setting is for debugging random sampling
+		//const bool b_random = 0; //0: use rand(); 1:deterministic for debugging 
+
+		//---------------
+		//initialize random number generator
+		//---------------
+		//if (i_merge == 1) std::srand(time(NULL)); //turn on random seed using C++ standard rand() fn 
+		//									//this will generate purely random numbers and 
+		//									//will be platform-dependent, i.e., different on Win and Linux 
+		//if (i_merge == 0) std::srand(123);	//turn on the fixed seed //This is still platform-dependent 
+		//									//maybe, use Numerical Recipe for platform-independent  
+
+		//---------------
+		//std::string cn_ol[nrow_ol];
+		std::string *cn_ol = new std::string[nrow_ol];
+
+		for (int i = 0; i < nrow_ol; i++) cn_ol[i] = cn[ol[i] - 1]; //Note: -1 for actual loc
+		std::vector<std::string> v_table_cn_ol_row1; //names of the table
+		std::vector<int> 		 v_table_cn_ol_row2; //counts of the table
+		table_cpp(cn_ol, nrow_ol, v_table_cn_ol_row1, v_table_cn_ol_row2);
+
+		//----------------
+		//get a string of the current row having missing cells, which has the least observed donors
+		//----------------
+		double* d_cn0 = new double[ncol];
+		for (int i = 0; i < ncol; i++) d_cn0[i] = mox[i_reci][i];
+		std::string cn0;
+		Trans1(d_cn0, ncol, cn0);
+
+
+		//----------------
+		//ACTUAL locations of other missing rows that have the same string as mox[i]
+		//----------------
+		std::vector<int> v_mloc;
+		which(cn, nrow, cn0, v_mloc);
+		//const int i_nml = (int)v_mloc.size();
+		//testout
+		/*
+		if(b_DEBUG){
+		RPrint("========in Merge============");
+		RPrint("ol: "); RPrint(ol, nrow_ol);
+		RPrint("cn_ol: "); RPrint(cn_ol, nrow_ol);
+		RPrint("nrow_uox: "); RPrint(nrow_uox);
+		RPrint("nrow_mox: "); RPrint(nrow_mox);
+		RPrint("i_reci: "); RPrint(i_reci);
+		RPrint("v_table_cn_ol_row2: "); RPrint(v_table_cn_ol_row2);
+		RPrint("d_cn0[]: "); RPrint(d_cn0, ncol);
+		RPrint("cn0[]: "); RPrint(&cn0,1 );
+		RPrint("v_mloc: "); RPrint(v_mloc);
+		RPrint("i_nml: "); RPrint(i_nml);
+		}
+		*/
+
+
+		//-----------------
+		//Which columns are NOT missing in mox[i_reci][]
+		//-----------------
+		double* d_mox_row = new double[ncol]; //temporary array
+		for (int i = 0; i < ncol; i++) d_mox_row[i] = mox[i_reci][i];
+
+
+		std::vector<int> v_mxl; //ACTUAL location of non-missing column of mox[i_reci][]
+		whichINV(d_mox_row, ncol, 0.0, v_mxl);
+		const int i_nxl = (int)v_mxl.size(); //number of non-missing cell on this row
+		delete[] d_mox_row;
+
+		//-----------------
+		//Find the nearest potential donor cells using "fdis"
+		//NOTE: below two matrix and array has nrow_uox rows since it is 
+		//related to observed cells uox
+		//-----------------
+		double ** d_cand = New_dMatrix(nrow_uox, ncol); //NOTE: the column may be flexible for below cases 
+		double *  d_fdist = new double[nrow_uox];        //distance between entities 
+		Fill_dVector(d_fdist, nrow_uox, 0.0);
+
+		if (i_nxl == 1) //when the current missing row has only ONE observed cell   
+		{
+			//------------
+			//make a copy of all rows of the one column 
+			// that corresponds to the column where the observed cell of current missing row
+			// is located 		
+			//------------
+			for (int i = 0; i < nrow_uox; i++)
+			{
+				d_cand[i][0] = (uox[i][v_mxl[0] - 1]) / (d_k[v_mxl[0] - 1]);
+			} //-1 for ACTUAL location 
+
+			  //calculate distance using |a-b|^2
+			const double d_mox_mxl = (mox[i_reci][v_mxl[0] - 1]) / (d_k[v_mxl[0] - 1]);
+			distance2(d_cand, nrow_uox, i_nxl, d_mox_mxl,
+				d_fdist);
+			//---
+			//NOTE: only the 1st value contains meaningful distance	
+			//to avoid error in finding the minimum distance, 
+			//in below, minimum searching needs due consideration
+			//---
+
+			//testout
+			//if(b_DEBUG){
+			//RPrint("successful so far2: i_nxl == 1 ");
+			//RPrint("d_fdist[]: "); RPrint(d_fdist, nrow_uox);
+			//RPrint("d_cand[][]: "); RPrint(d_cand, nrow_uox, ncol);
+			//}
+		}
+
+
+		if (i_nxl > 1) //when current missing row has more than one column that has observed cells 
+		{
+			//------------
+			//make a copy of all rows of all columns that correspond to the observed cells 
+			//------------
+			for (int i = 0; i < nrow_uox; i++)
+			{
+				for (int j = 0; j < i_nxl; j++) //note: i_nxl is the length of v_mxl
+				{
+					d_cand[i][j] = (uox[i][v_mxl[j] - 1]) / (d_k[v_mxl[j] - 1]); // Normalized it by k
+				} //-1 for ACTUAL location 
+			}
+			//-------------
+			//calculate distance = sum(|a-b|^2) per row where mox[i][mxl] is the origin
+			//-------------	
+			double d_sum_dist = 0.0;
+			for (int i = 0; i < nrow_uox; i++)
+			{
+				d_sum_dist = 0.0; //re-initialize
+				for (int j = 0; j < i_nxl; j++)
+				{
+					double d_mox_temp = (mox[i_reci][v_mxl[j] - 1]) / (d_k[v_mxl[j] - 1]);// Normalized it by k
+					double d_temp1 = d_cand[i][j];
+					d_sum_dist += (d_mox_temp - d_temp1)*(d_mox_temp - d_temp1);
+				}
+				d_fdist[i] = d_sum_dist;
+			}
+			//testout
+			//if(b_DEBUG){
+			//RPrint("successful so far3: : i_nxl > 1 ");
+			//RPrint("d_fdist[]: "); RPrint(d_fdist, nrow_uox);
+			//RPrint("d_cand[][]: "); RPrint(d_cand, nrow_uox, ncol);
+			//}
+		}
+
+		//-------------
+		//set the distance from obatined donors in uox to mox[i_reci] as 1234567 instead of 0s
+		//if the distnace is 0, that means this uox is already a donor in the list
+		//-------------
+		for (int k1 = 0; k1 < nrow_uox; k1++) {
+			if (d_fdist[k1] == 0) {
+				d_fdist[k1] = 1234567;
+			}
+		}
+
+		//------------
+		//find the minimum distance
+		//------------
+		std::vector<int> v_floc; //ACTUAL location of donors in uox who has the minimum distance
+		double d_min_fdist = 0.0;
+		if (i_nxl >= 1)
+		{
+			d_min_fdist = min_FHDI(d_fdist, nrow_uox);
+			which(d_fdist, nrow_uox, d_min_fdist, v_floc);
+		}
+
+		const int i_size_floc = (int)v_floc.size();
+		if (i_size_floc <= 0) { Rprintf("Error! floc size is 0!"); return; }
+
+		//testout
+		//if(b_DEBUG){
+		//RPrint("under the condition of i_nxl: "); RPrint(i_nxl);
+		//RPrint("d_min_fdist: "); RPrint(d_min_fdist);
+		//RPrint("v_floc: "); RPrint(v_floc);
+		//}
+
+		//------------
+		//select out a table of the location information of the minimum distance cells
+		//------------
+		int* i_nf = new int[i_size_floc]; // occurance of all donors in uox for mox[i]
+		for (int i = 0; i < i_size_floc; i++) i_nf[i] = v_table_cn_ol_row2[v_floc[i] - 1]; //-1 for actual loc
+		const int max_nf = max_FHDI(i_nf, i_size_floc); //highest occueance of all donors
+
+														//testout
+														//if(b_DEBUG){
+														//RPrint("max_nf: "); RPrint(max_nf);
+														//RPrint("i_nf[]: "); RPrint(i_nf, i_size_floc);
+														//}
+
+														//-------------
+														//find rows that have max nf
+														//-------------
+		std::vector<int> v_nf_max;
+		which(i_nf, i_size_floc, max_nf, v_nf_max); //Actual locations which have max of nf
+		const int i_size_nf_max = (int)v_nf_max.size();
+
+		//-------------
+		//locations having the minimum distance between missing and observed cells
+		//-------------
+		std::vector<int> v_xloc;// actual locations of donors in uox who has minimum distance and highest occurance
+		for (int i = 0; i < i_size_nf_max; i++) v_xloc.push_back(v_floc[v_nf_max[i] - 1]); //-1 for actual loc
+		const int i_size_xloc = (int)v_xloc.size();
+
+
+		// Example:
+		// v_floc = {1,3,7,9} -> occur = {3,3,1,1}
+		// v_xloc ={1,3} -> occur = {3,3}
+		// i_size_xloc = i_size_nf_max =2
+
+		//---------------------------------------
+		//Case 0: if mox[i] has one donor and it only needs one more donor from uox who has the smallest distance
+
+		//a) i_size_xloc >=2, need randomly select 1
+		//{3,3,2,1} i_size_xloc=2
+		//{1,1} i_size_xloc=2
+
+		//b) i_size_xloc == 1, no random selection
+		//{3,2,1,1} i_size_xloc=1
+		//{2} ..
+		//{1} .. 
+
+		//----------------------------------------
+
+
+		if (v_nD[i_reci] == 1) {
+
+			//-------------
+			//random number within [1, i_size_xloc]
+			//Note: this is ACTUAL location
+			//-------------
+			int i_loc_rand_temp0 = 1;
+			//if ((i_merge == 1) && (i_size_xloc >= 2)) i_loc_rand_temp0 = std::rand() % i_size_xloc + 1; //purely random 
+			if ((i_merge == 1) && (i_size_xloc >= 2)) i_loc_rand_temp0 = (int)floor(Rf_runif(1.0, i_size_xloc)); //purely random 
+
+																												 //if(b_random) i_loc_rand_temp0 = 1 ; //for debugging // 
+			const int i_loc_rand_xloc = v_xloc[i_loc_rand_temp0 - 1]; //-1 for actual loc
+
+			v_nD[i_reci] = 1 + max_nf;
+
+			std::vector<double> d_oloc_temp;
+
+			d_oloc_temp.push_back(i_loc_rand_xloc);
+
+			//sort(d_oloc_temp.begin(), d_oloc_temp.end());
+
+			List_nU.put_block_yicheng(i_reci, 1, d_oloc_temp);
+
+		}
+
+
+
+		if (v_nD[i_reci] == 0) {
+
+
+			//-----------------------------
+			//Case 1: if mox[i] has no donors and the highest occurance (i.e., max_nf) of donors with the smallest distance is >= 2
+			//        then it needs only one more donor from uox who has the smallest distance
+
+			//a) max_nf >= 2
+			// {3,3,2,1} i_size_xloc >=2, need randomly select 1
+
+			// {3,2,1,1} i_size_xloc ==1,no random selection
+			// {2} ..
+
+			if (max_nf >= 2) {
+
+				//-------------
+				//random number within [1, i_size_xloc]
+				//Note: this is ACTUAL location
+				//-------------
+				int i_loc_rand_temp0 = 1;
+				//if ((i_merge == 1) && (i_size_xloc >= 2)) i_loc_rand_temp0 = std::rand() % i_size_xloc + 1; //purely random 
+				if ((i_merge == 1) && (i_size_xloc >= 2)) i_loc_rand_temp0 = (int)floor(Rf_runif(1.0, i_size_xloc)); //purely random  
+
+				const int i_loc_rand_xloc = v_xloc[i_loc_rand_temp0 - 1]; //-1 for actual loc
+
+				v_nD[i_reci] = max_nf;
+
+				std::vector<double> d_oloc_temp;
+				d_oloc_temp.push_back(i_loc_rand_xloc);
+
+				//sort(d_oloc_temp.begin(), d_oloc_temp.end());
+
+				List_nU.put_block_yicheng(i_reci, 1, d_oloc_temp);
+
+			}
+
+
+			//Case 2: if mox[i] has no donors and the highest occurance (i.e., max_nf) of donors with the smallest distance is < 2 and 
+			//        v_floc.size() is >= 2,
+			//        then it needs two donors from uox who has the smallest distance
+
+			// {1,1,1,1} need randomly select 2
+
+			// {1,1} no random selection 
+
+			if ((max_nf < 2) && (v_floc.size() >= 2)) {
+
+				//-------------
+				//random number within [1, i_size_xloc]
+				//Note: this is ACTUAL location
+				//-------------
+				int i_loc_rand_temp0 = 1;
+				int i_loc_rand_temp1 = 2;
+
+				if ((i_merge == 1) && (i_size_xloc > 2)) {
+					i_loc_rand_temp0 = 0;// Make sure it will go into the while loop
+					i_loc_rand_temp1 = 0;
+					while (i_loc_rand_temp0 == i_loc_rand_temp1) {
+						//i_loc_rand_temp0 = std::rand() % i_size_xloc + 1;
+						//i_loc_rand_temp1 = std::rand() % i_size_xloc + 1;
+
+						i_loc_rand_temp0 = (int)floor(Rf_runif(1.0, i_size_xloc));
+						i_loc_rand_temp1 = (int)floor(Rf_runif(1.0, i_size_xloc));
+					}
+				}
+
+				//if ((i_merge == 1) && (i_size_xloc > 2)) i_loc_rand_temp0 = std::rand() % i_size_xloc + 1; //purely random 
+				//if ((i_merge == 1) && (i_size_xloc > 2)) i_loc_rand_temp1 = std::rand() % i_size_xloc + 1; //purely random 
+
+				//if (i_loc_rand_temp0 == i_loc_rand_temp1) { RPrint("Error in KNN of cell make for random selection!!!"); return; }
+
+				if (i_loc_rand_temp0 == i_loc_rand_temp1) {
+
+					Rprintf("Error in KNN of cell make big-n for random selection !!!");
+
+					return;
+				}
+				//if(b_random) i_loc_rand_temp0 = 1 ; //for debugging // 
+				const int i_loc_rand_xloc = v_xloc[i_loc_rand_temp0 - 1]; //-1 for actual loc
+
+				const int i_loc_rand_xloc1 = v_xloc[i_loc_rand_temp1 - 1]; //-1 for actual loc
+
+				v_nD[i_reci] = 2;
+
+				std::vector<double> d_oloc_temp;
+				d_oloc_temp.push_back(i_loc_rand_xloc);
+				d_oloc_temp.push_back(i_loc_rand_xloc1);
+
+				//sort(d_oloc_temp.begin(), d_oloc_temp.end());
+
+				List_nU.put_block_yicheng(i_reci, 2, d_oloc_temp);
+
+			}
+
+			//Case 3: if mox[i] has no donors and the highest occurance (i.e., max_nf) of donors with the smallest distance is < 2 and 
+			//        v_floc.size() is = 1,
+			//        then it needs two donors from uox who has the smallest distance
+
+			// {1} no random selection and find in the second minimum set
+			if ((max_nf < 2) && (v_floc.size() == 1)) {
+
+				std::vector<int> v_floc_second; //ACTUAL location of donors in uox who has the second minimum distance
+				double d_second_min_fdist = 0.0;
+				if (i_nxl >= 1)
+				{
+					d_second_min_fdist = second_min_FHDI(d_fdist, nrow_uox);
+					which(d_fdist, nrow_uox, d_second_min_fdist, v_floc_second);
+				}
+
+				if (d_second_min_fdist == d_min_fdist) { Rprintf("Error in KNN of cell make for getting the second minimum distance!!!"); return; }
+
+				const int i_size_floc_second = (int)v_floc_second.size();
+
+				int* i_nf_second = new int[i_size_floc_second]; // occurance of all donors in uox for mox[i]
+				for (int i = 0; i < i_size_floc_second; i++) i_nf_second[i] = v_table_cn_ol_row2[v_floc_second[i] - 1]; //-1 for actual loc
+				const int max_nf_second = max_FHDI(i_nf_second, i_size_floc_second); //highest occueance of all donors
+
+																					 //-------------
+																					 //find rows that have max_nf_second
+																					 //-------------
+				std::vector<int> v_nf_max_second;
+				which(i_nf_second, i_size_floc_second, max_nf_second, v_nf_max_second); //Actual locations which have max of nf
+				const int i_size_nf_max_second = (int)v_nf_max_second.size();
+
+				//-------------
+				//locations having the second minimum distance between missing and observed cells
+				//-------------
+				std::vector<int> v_xloc_second;// actual locations of donors in uox who has the seond minimum distance and highest occurance
+				for (int i = 0; i < i_size_nf_max_second; i++) v_xloc_second.push_back(v_floc_second[v_nf_max_second[i] - 1]); //-1 for actual loc
+				const int i_size_xloc_second = (int)v_xloc_second.size();
+
+				v_nD[i_reci] = 1 + max_nf_second;
+
+				int i_loc_rand_temp0 = 1;
+				//if ((i_merge == 1) && (i_size_xloc_second >= 2)) i_loc_rand_temp0 = std::rand() % i_size_xloc + 1; //purely random 
+				if ((i_merge == 1) && (i_size_xloc_second >= 2)) i_loc_rand_temp0 = (int)floor(Rf_runif(1.0, i_size_xloc));  //purely random 
+
+				const int i_loc_rand_xloc = v_xloc_second[i_loc_rand_temp0 - 1]; //-1 for actual loc
+
+				std::vector<double> d_oloc_temp;
+				d_oloc_temp.push_back(v_floc[0]);
+				d_oloc_temp.push_back(i_loc_rand_xloc);
+
+				//sort(d_oloc_temp.begin(), d_oloc_temp.end());
+
+				List_nU.put_block_yicheng(i_reci, 2, d_oloc_temp);
+
+
+				//delete[] d_oloc_temp;
+
+				delete[] i_nf_second;
+			}
+
+
+
+		}
+
+		//------------------
+		//Deallocation
+		//------------------
+		delete[] d_cn0;
+		Del_dMatrix(d_cand, nrow_uox, ncol);
+		delete[] d_fdist;
+		delete[] i_nf;
+
+		delete[] cn_ol;
+
+		return; //temporary ending 
+	}
+
+} //end of namespace
+
+  //Fn===========================================================================
+
+  //KNN_Bigp.cc-----------------------------------------------------------------------------
+
+  //Fn===========================================================================
+
+namespace FHDI {
+
+
+	void KNN_Bigp(const int i_reci, double** uox, const int nrow_uox,
+		double** mox, const int nrow_mox, double* d_k, int** codes, const int i_option_collapsing,
+		std::string cn[], int* ol, const int nrow_ol,
+		const int nrow, const int ncol, const int i_merge,
+		std::vector<int> &v_nD, List_FHDI &List_nU)
+		//Description=========================================
+		// Find deficient donors for the recipient who has less than 2 donors by the Euclidean distance
+		//
+		// Algorithm: 											
+		//   For a given missing row at i_reci                 e.g., {12, NA, 4}           
+		//   Step 1: compute Euclidean distance from all unique observed patterns to the recipient  
+		//   Step 2: Case 0: if the recipient has a donor, then randomly select another one from list
+		//   Step 3: Case 1: if the recipient has no donor and the max occurnace of the candidate (who has minimum distance) in the list is >=2, then randomly select another one from list
+		//   Step 4: Case 2: if the recipient has no donor and the max occurnace of the candidate (who has minimum distance) in the list is <2, and the size of the list is >=2, 
+		//                   then randomly select two donors from list
+		//   Step 5: Case 3: if the recipient has no donor and the max occurnace of the candidate (who has minimum distance) in the list is <2, and the size of the list is 1, 
+		//                   then select another donor from the list of candicates who has the second minimum distance
+		//
+		//
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+		// c++ code: 		Yicheng Yang. 
+		// All rights reserved
+		// 
+		// updated: Aug 11, 2020
+		//----------------------------------------------------
+		//IN    : int i_reci = location of row with missing cell that has the least number of donors
+		//
+		//IN    : double uox(nrow_uox, ncol)= sorted unique patterns of observed cells. up to i_count_uox rows are meaningful 
+		//IN    : double mox(nrow_mox, ncol)= sorted unique patterns of missing  cells. up to i_count_mox rows are meaningful                           
+		//IN 	: string cn(nrow)		= vector of string to represent each row of z          
+		//IN	: int ol(nrow_ol)		= actual location of rows containing ONLY observed cells 
+		//INOUT : v_nD(nrow_mox)       = total number of donors of all mox 
+		//INOUT : List_nU(nrow_mox)    = List of actual location of donors of all mox in uox
+		//====================================================
+	{
+		//below setting is for debugging random sampling
+		//const bool b_random = 0; //0: use rand(); 1:deterministic for debugging 
+
+		//---------------
+		//initialize random number generator
+		//---------------
+		//if(i_merge == 1) std::srand(time(NULL)); //turn on random seed using C++ standard rand() fn 
+		//                                    //this will generate purely random numbers and 
+		//									//will be platform-dependent, i.e., different on Win and Linux 
+		//if(i_merge == 0) std::srand(123);	//turn on the fixed seed //This is still platform-dependent 
+		//                                    //maybe, use Numerical Recipe for platform-independent  
+
+		//---------------
+		//std::string cn_ol[nrow_ol];
+		std::string *cn_ol = new std::string[nrow_ol];
+
+		for (int i = 0; i<nrow_ol; i++) cn_ol[i] = cn[ol[i] - 1]; //Note: -1 for actual loc
+		std::vector<std::string> v_table_cn_ol_row1; //names of the table
+		std::vector<int> 		 v_table_cn_ol_row2; //counts of the table
+		table_cpp(cn_ol, nrow_ol, v_table_cn_ol_row1, v_table_cn_ol_row2);
+
+		//----------------
+		//get a string of the current row having missing cells, which has the least observed donors
+		//----------------
+		double* d_cn0 = new double[ncol];
+		for (int i = 0; i<ncol; i++) d_cn0[i] = mox[i_reci][i];
+		std::string cn0;
+		Trans1(d_cn0, ncol, cn0);
+
+
+		//----------------
+		//ACTUAL locations of other missing rows that have the same string as mox[i]
+		//----------------
+		std::vector<int> v_mloc;
+		which(cn, nrow, cn0, v_mloc);
+		//const int i_nml = (int)v_mloc.size();
+		//testout
+		/*
+		if(b_DEBUG){
+		RPrint("========in Merge============");
+		RPrint("ol: "); RPrint(ol, nrow_ol);
+		RPrint("cn_ol: "); RPrint(cn_ol, nrow_ol);
+		RPrint("nrow_uox: "); RPrint(nrow_uox);
+		RPrint("nrow_mox: "); RPrint(nrow_mox);
+		RPrint("i_reci: "); RPrint(i_reci);
+		RPrint("v_table_cn_ol_row2: "); RPrint(v_table_cn_ol_row2);
+		RPrint("d_cn0[]: "); RPrint(d_cn0, ncol);
+		RPrint("cn0[]: "); RPrint(&cn0,1 );
+		RPrint("v_mloc: "); RPrint(v_mloc);
+		RPrint("i_nml: "); RPrint(i_nml);
+		}
+		*/
+
+
+		//-----------------
+		//Which columns are NOT missing in mox[i_reci][]
+		//-----------------
+		double* d_mox_row = new double[ncol]; //temporary array
+		for (int i = 0; i<ncol; i++) d_mox_row[i] = mox[i_reci][i];
+
+
+		std::vector<int> v_mxl; //ACTUAL location of non-missing column of mox[i_reci][]
+								//whichINV(d_mox_row, ncol, 0.0, v_mxl);
+
+		for (int k = 0; k < i_option_collapsing; k++) {
+			//if (codes[i_reci][i] == 0) { TestOut << "Error! Check the correlated_variables function, it is not correct !!!" << endl; }
+
+			if (codes[i_reci][k] != 0) { // This is for case that the number of observed values in mox[i_recv] is smaller than i_option_collapsing
+				v_mxl.push_back(codes[i_reci][k]);
+			}
+
+		}
+
+
+		const int i_nxl = (int)v_mxl.size(); //number of non-missing cell on this row
+		delete[] d_mox_row;
+
+		//-----------------
+		//Find the nearest potential donor cells using "fdis"
+		//NOTE: below two matrix and array has nrow_uox rows since it is 
+		//related to observed cells uox
+		//-----------------
+		double ** d_cand = New_dMatrix(nrow_uox, ncol); //NOTE: the column may be flexible for below cases 
+		double *  d_fdist = new double[nrow_uox];        //distance between entities 
+		Fill_dVector(d_fdist, nrow_uox, 0.0);
+
+		if (i_nxl == 1) //when the current missing row has only ONE observed cell   
+		{
+			//------------
+			//make a copy of all rows of the one column 
+			// that corresponds to the column where the observed cell of current missing row
+			// is located 		
+			//------------
+			for (int i = 0; i<nrow_uox; i++)
+			{
+				d_cand[i][0] = (uox[i][v_mxl[0] - 1]) / (d_k[v_mxl[0] - 1]);
+			} //-1 for ACTUAL location 
+
+			  //calculate distance using |a-b|^2
+			const double d_mox_mxl = (mox[i_reci][v_mxl[0] - 1]) / (d_k[v_mxl[0] - 1]);
+			distance2(d_cand, nrow_uox, i_nxl, d_mox_mxl,
+				d_fdist);
+			//---
+			//NOTE: only the 1st value contains meaningful distance	
+			//to avoid error in finding the minimum distance, 
+			//in below, minimum searching needs due consideration
+			//---
+
+			//testout
+			//if(b_DEBUG){
+			//RPrint("successful so far2: i_nxl == 1 ");
+			//RPrint("d_fdist[]: "); RPrint(d_fdist, nrow_uox);
+			//RPrint("d_cand[][]: "); RPrint(d_cand, nrow_uox, ncol);
+			//}
+		}
+
+
+		if (i_nxl >1) //when current missing row has more than one column that has observed cells 
+		{
+			//------------
+			//make a copy of all rows of all columns that correspond to the observed cells 
+			//------------
+			for (int i = 0; i<nrow_uox; i++)
+			{
+				for (int j = 0; j<i_nxl; j++) //note: i_nxl is the length of v_mxl
+				{
+					d_cand[i][j] = (uox[i][v_mxl[j] - 1]) / (d_k[v_mxl[j] - 1]);
+				} //-1 for ACTUAL location 
+			}
+			//-------------
+			//calculate distance = sum(|a-b|^2) per row where mox[i][mxl] is the origin
+			//-------------	
+			double d_sum_dist = 0.0;
+			for (int i = 0; i<nrow_uox; i++)
+			{
+				d_sum_dist = 0.0; //re-initialize
+				for (int j = 0; j<i_nxl; j++)
+				{
+					double d_mox_temp = (mox[i_reci][v_mxl[j] - 1]) / (d_k[v_mxl[j] - 1]);
+					double d_temp1 = d_cand[i][j];
+					d_sum_dist += (d_mox_temp - d_temp1)*(d_mox_temp - d_temp1);
+				}
+				d_fdist[i] = d_sum_dist;
+			}
+			//testout
+			//if(b_DEBUG){
+			//RPrint("successful so far3: : i_nxl > 1 ");
+			//RPrint("d_fdist[]: "); RPrint(d_fdist, nrow_uox);
+			//RPrint("d_cand[][]: "); RPrint(d_cand, nrow_uox, ncol);
+			//}
+		}
+
+		//-------------
+		//set the distance from obatined donors in uox to mox[i_reci] as 1234567 instead of 0s
+		//if the distnace is 0, that means this uox is already a donor in the list
+		//-------------
+		for (int k1 = 0; k1 < nrow_uox; k1++) {
+			if (d_fdist[k1] == 0) {
+				d_fdist[k1] = 1234567;
+			}
+		}
+
+		//------------
+		//find the minimum distance
+		//------------
+		std::vector<int> v_floc; //ACTUAL location of donors in uox who has the minimum distance
+		double d_min_fdist = 0.0;
+		if (i_nxl >= 1)
+		{
+			d_min_fdist = min_FHDI(d_fdist, nrow_uox);
+			which(d_fdist, nrow_uox, d_min_fdist, v_floc);
+		}
+
+		const int i_size_floc = (int)v_floc.size();
+		if (i_size_floc <= 0) { Rprintf("Error! floc size is 0!"); return; }
+
+
+		//testout
+		//if(b_DEBUG){
+		//RPrint("under the condition of i_nxl: "); RPrint(i_nxl);
+		//RPrint("d_min_fdist: "); RPrint(d_min_fdist);
+		//RPrint("v_floc: "); RPrint(v_floc);
+		//}
+
+		//------------
+		//select out a table of the location information of the minimum distance cells
+		//------------
+		int* i_nf = new int[i_size_floc]; // occurance of all donors in uox for mox[i]
+		for (int i = 0; i<i_size_floc; i++) i_nf[i] = v_table_cn_ol_row2[v_floc[i] - 1]; //-1 for actual loc
+		const int max_nf = max_FHDI(i_nf, i_size_floc); //highest occueance of all donors
+
+														//testout
+														//if(b_DEBUG){
+														//RPrint("max_nf: "); RPrint(max_nf);
+														//RPrint("i_nf[]: "); RPrint(i_nf, i_size_floc);
+														//}
+
+														//-------------
+														//find rows that have max nf
+														//-------------
+		std::vector<int> v_nf_max;
+		which(i_nf, i_size_floc, max_nf, v_nf_max); //Actual locations which have max of nf
+		const int i_size_nf_max = (int)v_nf_max.size();
+
+		//-------------
+		//locations having the minimum distance between missing and observed cells
+		//-------------
+		std::vector<int> v_xloc;// actual locations of donors in uox who has minimum distance and highest occurance
+		for (int i = 0; i < i_size_nf_max; i++) v_xloc.push_back(v_floc[v_nf_max[i] - 1]); //-1 for actual loc
+		const int i_size_xloc = (int)v_xloc.size();
+
+
+		// Example:
+		// v_floc = {1,3,7,9} -> occur = {3,3,1,1}
+		// v_xloc ={1,3} -> occur = {3,3}
+		// i_size_xloc = i_size_nf_max =2
+
+		//---------------------------------------
+		//Case 0: if mox[i] has one donor and it only needs one more donor from uox who has the smallest distance
+
+		//a) i_size_xloc >=2, need randomly select 1
+		//{3,3,2,1} i_size_xloc=2
+		//{1,1} i_size_xloc=2
+
+		//b) i_size_xloc == 1, no random selection
+		//{3,2,1,1} i_size_xloc=1
+		//{2} ..
+		//{1} .. 
+
+		//----------------------------------------
+
+		if (v_nD[i_reci] == 1) {
+
+			//-------------
+			//random number within [1, i_size_xloc]
+			//Note: this is ACTUAL location
+			//-------------
+			int i_loc_rand_temp0 = 1;
+			//if ((i_merge == 1)&&(i_size_xloc >=2)) i_loc_rand_temp0 = std::rand() % i_size_xloc + 1; //purely random 
+			if ((i_merge == 1) && (i_size_xloc >= 2)) i_loc_rand_temp0 = (int)floor(Rf_runif(1.0, i_size_xloc)); //purely random 
+
+																												 //if(b_random) i_loc_rand_temp0 = 1 ; //for debugging // 
+			const int i_loc_rand_xloc = v_xloc[i_loc_rand_temp0 - 1]; //-1 for actual loc
+
+			v_nD[i_reci] = 1 + max_nf;
+
+
+			std::vector<double> d_oloc_temp;
+
+			d_oloc_temp.push_back(i_loc_rand_xloc);
+
+			//sort(d_oloc_temp.begin(), d_oloc_temp.end());
+
+			List_nU.put_block_yicheng(i_reci, 1, d_oloc_temp);
+
+
+		}
+
+
+
+		if (v_nD[i_reci] == 0) {
+
+
+			//-----------------------------
+			//Case 1: if mox[i] has no donors and the highest occurance (i.e., max_nf) of donors with the smallest distance is >= 2
+			//        then it needs only one more donor from uox who has the smallest distance
+
+			//a) max_nf >= 2
+			// {3,3,2,1} i_size_xloc >=2, need randomly select 1
+
+			// {3,2,1,1} i_size_xloc ==1,no random selection
+			// {2} ..
+
+			if (max_nf >= 2) {
+
+				//-------------
+				//random number within [1, i_size_xloc]
+				//Note: this is ACTUAL location
+				//-------------
+				int i_loc_rand_temp0 = 1;
+				//if ((i_merge == 1) && (i_size_xloc >= 2)) i_loc_rand_temp0 = std::rand() % i_size_xloc + 1; //purely random 
+				if ((i_merge == 1) && (i_size_xloc >= 2)) i_loc_rand_temp0 = (int)floor(Rf_runif(1.0, i_size_xloc)); //purely random  
+
+																													 //if(b_random) i_loc_rand_temp0 = 1 ; //for debugging // 
+				const int i_loc_rand_xloc = v_xloc[i_loc_rand_temp0 - 1]; //-1 for actual loc
+
+				v_nD[i_reci] = max_nf;
+
+				std::vector<double> d_oloc_temp;
+				d_oloc_temp.push_back(i_loc_rand_xloc);
+
+				//sort(d_oloc_temp.begin(), d_oloc_temp.end());
+
+				List_nU.put_block_yicheng(i_reci, 1, d_oloc_temp);
+
+
+				//delete[] d_oloc_temp;
+
+			}
+
+
+			//Case 2: if mox[i] has no donors and the highest occurance (i.e., max_nf) of donors with the smallest distance is < 2 and 
+			//        v_floc.size() is >= 2,
+			//        then it needs two donors from uox who has the smallest distance
+
+			// {1,1,1,1} need randomly select 2
+
+			// {1,1} no random selection 
+
+			if ((max_nf < 2) && (v_floc.size() >= 2)) {
+
+				//-------------
+				//random number within [1, i_size_xloc]
+				//Note: this is ACTUAL location
+				//-------------
+				int i_loc_rand_temp0 = 1;
+				int i_loc_rand_temp1 = 2;
+
+				if ((i_merge == 1) && (i_size_xloc > 2)) {
+					i_loc_rand_temp0 = 0;// Make sure it will go into the while loop
+					i_loc_rand_temp1 = 0;
+					while (i_loc_rand_temp0 == i_loc_rand_temp1) {
+						//i_loc_rand_temp0 = std::rand() % i_size_xloc + 1;
+						//i_loc_rand_temp1 = std::rand() % i_size_xloc + 1;
+
+						i_loc_rand_temp0 = (int)floor(Rf_runif(1.0, i_size_xloc));
+						i_loc_rand_temp1 = (int)floor(Rf_runif(1.0, i_size_xloc));
+					}
+				}
+
+				//if ((i_merge == 1) && (i_size_xloc > 2)) i_loc_rand_temp0 = std::rand() % i_size_xloc + 1; //purely random 
+				//if ((i_merge == 1) && (i_size_xloc > 2)) i_loc_rand_temp1 = std::rand() % i_size_xloc + 1; //purely random 
+
+				//if (i_loc_rand_temp0 == i_loc_rand_temp1) { RPrint("Error in KNN of cell make for random selection!!!"); return; }
+
+				if (i_loc_rand_temp0 == i_loc_rand_temp1) {
+
+					Rprintf("Error in KNN of cell make big-p for random selection !!!");
+
+					return;
+				}
+				//if(b_random) i_loc_rand_temp0 = 1 ; //for debugging // 
+				const int i_loc_rand_xloc = v_xloc[i_loc_rand_temp0 - 1]; //-1 for actual loc
+				const int i_loc_rand_xloc1 = v_xloc[i_loc_rand_temp1 - 1]; //-1 for actual loc
+
+				v_nD[i_reci] = 2;
+
+
+				std::vector<double> d_oloc_temp;
+				d_oloc_temp.push_back(i_loc_rand_xloc);
+				d_oloc_temp.push_back(i_loc_rand_xloc1);
+
+				//sort(d_oloc_temp.begin(), d_oloc_temp.end());
+
+				List_nU.put_block_yicheng(i_reci, 2, d_oloc_temp);
+
+
+				//delete[] d_oloc_temp;
+			}
+
+			//Case 3: if mox[i] has no donors and the highest occurance (i.e., max_nf) of donors with the smallest distance is < 2 and 
+			//        v_floc.size() is = 1,
+			//        then it needs two donors from uox who has the smallest distance
+
+			// {1} no random selection and find in the second minimum set
+			if ((max_nf < 2) && (v_floc.size() == 1)) {
+
+				std::vector<int> v_floc_second; //ACTUAL location of donors in uox who has the second minimum distance
+				double d_second_min_fdist = 0.0;
+				if (i_nxl >= 1)
+				{
+					d_second_min_fdist = second_min_FHDI(d_fdist, nrow_uox);
+					which(d_fdist, nrow_uox, d_second_min_fdist, v_floc_second);
+				}
+
+				if (d_second_min_fdist == d_min_fdist) { Rprintf("Error in KNN of cell make for getting the second minimum distance!!!"); return; }
+				const int i_size_floc_second = (int)v_floc_second.size();
+
+				int* i_nf_second = new int[i_size_floc_second]; // occurance of all donors in uox for mox[i]
+				for (int i = 0; i < i_size_floc_second; i++) i_nf_second[i] = v_table_cn_ol_row2[v_floc_second[i] - 1]; //-1 for actual loc
+				const int max_nf_second = max_FHDI(i_nf_second, i_size_floc_second); //highest occueance of all donors
+
+																					 //-------------
+																					 //find rows that have max_nf_second
+																					 //-------------
+				std::vector<int> v_nf_max_second;
+				which(i_nf_second, i_size_floc_second, max_nf_second, v_nf_max_second); //Actual locations which have max of nf
+				const int i_size_nf_max_second = (int)v_nf_max_second.size();
+
+				//-------------
+				//locations having the second minimum distance between missing and observed cells
+				//-------------
+				std::vector<int> v_xloc_second;// actual locations of donors in uox who has the seond minimum distance and highest occurance
+				for (int i = 0; i < i_size_nf_max_second; i++) v_xloc_second.push_back(v_floc_second[v_nf_max_second[i] - 1]); //-1 for actual loc
+				const int i_size_xloc_second = (int)v_xloc_second.size();
+
+
+				v_nD[i_reci] = 1 + max_nf_second;
+
+				int i_loc_rand_temp0 = 1;
+				//if ((i_merge == 1) && (i_size_xloc_second >= 2)) i_loc_rand_temp0 = std::rand() % i_size_xloc + 1; //purely random 
+				if ((i_merge == 1) && (i_size_xloc_second >= 2)) i_loc_rand_temp0 = (int)floor(Rf_runif(1.0, i_size_xloc));  //purely random 
+
+				const int i_loc_rand_xloc = v_xloc_second[i_loc_rand_temp0 - 1]; //-1 for actual loc
+
+
+				std::vector<double> d_oloc_temp;
+				d_oloc_temp.push_back(v_floc[0]);
+				d_oloc_temp.push_back(i_loc_rand_xloc);
+
+				//sort(d_oloc_temp.begin(), d_oloc_temp.end());
+
+				List_nU.put_block_yicheng(i_reci, 2, d_oloc_temp);
+
+
+				//delete[] d_oloc_temp;
+
+				delete[] i_nf_second;
+			}
+
+
+
+		}
+
+		//------------------
+		//Deallocation
+		//------------------
+		delete[] d_cn0;
+		Del_dMatrix(d_cand, nrow_uox, ncol);
+		delete[] d_fdist;
+		delete[] i_nf;
+
+		delete[] cn_ol;
+
+		return; //temporary ending 
+	}
+} //end of namespace
+
+
 
 //Fn===========================================================================
 
@@ -13687,7 +15809,7 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 	int* tnU = new int[nrow]; Fill_iVector(tnU, nrow, 0); //this default size will be udpated in the main loop
 
-	
+	int i_cellmake = 1; // actiavte the b_success_nDAU because cell make may not have enough donors
 
 	//============================================
 
@@ -13824,7 +15946,7 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 		bool b_success_nDAU = nDAU_cpp(uox, mox, i_count_uox, i_count_mox, ncol,
 
-				 cn, ol, i_count_ol, 
+				 cn, ol, i_count_ol, i_cellmake,
 
 				 v_nD, List_nU, tnU, b_DEBUG_nDAU); 	
 
@@ -14238,7 +16360,7 @@ bool Cell_Make_Extension_cpp(double** x, const int nrow, const int ncol, double*
 
 			b_success_nDAU =  nDAU_cpp(uox, mox, i_count_uox, i_count_mox, ncol,
 
-					 cn, ol, i_count_ol, 
+					 cn, ol, i_count_ol, i_cellmake,
 
 					 v_nD, List_nU, tnU, b_DEBUG_nDAU); 			
 
@@ -14551,7 +16673,7 @@ namespace FHDI {
 
 		rbind_FHDI &rbind_mox_CellMake,
 
-		const int i_merge, const int i_option_collapsing, const int i_option_SIS_type)
+		const int i_merge, const int i_option_collapsing, const int i_option_SIS_type, int top)
 
 		//Description=========================================
 
@@ -14832,34 +16954,64 @@ namespace FHDI {
 
 		int* tnU = new int[nrow]; Fill_iVector(tnU, nrow, 0); //this default size will be udpated in the main loop
 
+		int i_cellmake = 1; // actiavte the b_success_nDAU because cell make may not have enough donors
+
+		//============================================
+
+		//============================================
+
+		//Main Loop to update z by merging algorithm
+
+		//============================================
+
+		//============================================
+
+		//--------------------------------------
+		//Compute correlation ranking matrix 
+		//-----------------------------------------
+		// Ranking of correlation of each variable in descending order. Note it excludes itself from ranking
+
+		//double** correlation_yicheng = New_dMatrix(ncol, ncol);
+		//int** correlation_ranking = New_iMatrix(ncol, (ncol - 1));
+		//FHDI::Ranking_m(nrow, ncol, x, r, correlation_yicheng, correlation_ranking);
+
+		//----------------
+		//Prepare fully observed y matrix
+		//---------------------
+		std::vector<int> ol_temp;
+		int d_temp = 0;
+		for (int i_row = 0; i_row < nrow; i_row++)
+		{
+			d_temp = 1.0;
+			for (int i_col = 0; i_col < ncol; i_col++)
+			{
+				if (r[i_row][i_col] == 0) { d_temp = 0.0; break; } //found zero, i.e. missing cell
+			}
+
+			if (fabs(d_temp) > 1e-15) //this row has no missing cells
+			{
+				ol_temp.push_back(i_row);
+			} //actual number of the row having no missing cells
+		}
+		int nrow_ol = ol_temp.size();
+
+		double** ol_matrix = New_dMatrix(nrow_ol, ncol);
+
+		for (int i = 0;i < nrow_ol;i++) {
+			for (int j = 0; j < ncol; j++) {
+				ol_matrix[i][j] = x[ol_temp[i]][j];
+			}
+		}
 
 
-															  //============================================
+		//int top = 100; // Top "top" rankings exclude itself. Note that  i_option_collapsing < top <= ncol-1
+		if ((ncol - 1) < top) {
+			top = ncol - 1;
+		}
 
-															  //============================================
+		int** correlation_ranking_top = New_iMatrix(ncol, top);
 
-															  //Main Loop to update z by merging algorithm
-
-															  //============================================
-
-															  //============================================
-
-															  //--------------------------------------
-															  //Compute correlation ranking matrix 
-															  //-----------------------------------------
-															  // Ranking of correlation of each variable in descending order. Note it excludes itself from ranking
-
-		double** correlation_yicheng = New_dMatrix(ncol, ncol);
-		int** correlation_ranking = New_iMatrix(ncol, (ncol - 1));
-		FHDI::Ranking_m(nrow, ncol, x, r, correlation_yicheng, correlation_ranking);
-
-		//TestOut << "correlation matrix: " << endl;
-		//for (int i = 0; i < ncol; i++) {
-		//	for (int j = 0; j < ncol; j++) {
-		//		TestOut << setw(20) << correlation_yicheng[i][j];
-		//	}
-		//	TestOut << endl;
-		//}
+		FHDI::Ranking_top(nrow_ol, ncol, top, ol_matrix, correlation_ranking_top);
 
 		//----------------------------------------
 
@@ -14995,9 +17147,9 @@ namespace FHDI {
 			//TestOut << "nDAU_Bigp_cpp at i_loop " << i_loop << endl;
 			bool b_success_nDAU = nDAU_Bigp_cpp(uox, mox, i_count_uox, i_count_mox, ncol, i_option_collapsing, i_option_SIS_type, 
 
-				cn, ol, i_count_ol,
+				cn, ol, i_count_ol, top, i_cellmake,
 
-				v_nD, List_nU, tnU, codes, correlation_yicheng, correlation_ranking, b_DEBUG_nDAU);
+				v_nD, List_nU, tnU, codes, correlation_ranking_top, ol_matrix, b_DEBUG_nDAU);
 			//testout
 
 
@@ -15421,9 +17573,9 @@ namespace FHDI {
 
 				bool b_success_nDAU = nDAU_Bigp_cpp(uox, mox, i_count_uox, i_count_mox, ncol, i_option_collapsing, i_option_SIS_type,
 
-					cn, ol, i_count_ol,
+					cn, ol, i_count_ol, top, i_cellmake,
 
-					v_nD, List_nU, tnU, codes, correlation_yicheng, correlation_ranking, b_DEBUG_nDAU);
+					v_nD, List_nU, tnU, codes, correlation_ranking_top, ol_matrix, b_DEBUG_nDAU);
 
 
 
@@ -15682,7 +17834,7 @@ namespace FHDI {
 
 		//RPrint(" ========= Cell_Make_Extension.. has successfully finished!");
 
-		Rprintf(" ========= FHDI_CellMake has successfully finished!\n");
+		Rprintf(" ========= FHDI_CellMake_Bigp has successfully finished! \n");
 
 
 
@@ -15716,12 +17868,1248 @@ namespace FHDI {
 		Del_dMatrix(mox, nrow, ncol);
 
 
-		Del_dMatrix(correlation_yicheng, ncol, ncol);
+		Del_dMatrix(ol_matrix, nrow_ol, ncol);
 
-		Del_iMatrix(correlation_ranking, ncol, (ncol - 1));
+		Del_iMatrix(correlation_ranking_top, ncol, top);
+
+		//Del_dMatrix(correlation_yicheng, ncol, ncol);
+
+		//Del_iMatrix(correlation_ranking, ncol, (ncol - 1));
 
 
 
+
+		return 1;
+
+	}
+
+} //end of namespace
+
+  //Fn===========================================================================
+
+  //Cell_Make_Neighbor_cpp.cc-----------------------------------------------------------------------------
+
+  //Fn===========================================================================
+
+namespace FHDI {
+
+
+	bool Cell_Make_Neighbor_cpp(double** x, const int nrow, const int ncol, double* d_k,
+
+		int* NonCollapsible_categorical,
+
+		double** z,
+
+		rbind_FHDI &rbind_uox_CellMake,
+
+		rbind_FHDI &rbind_mox_CellMake,
+
+		List_FHDI &List_nU,
+
+		const int i_merge)
+
+		//Description=========================================
+
+		// make cells with the raw data matrix x 
+
+		// categorization takes place 
+
+		// according to the given number of categories stored in d_k(ncol)
+
+		//
+
+		// Algorithm:  for categorization
+
+		// perc: percentiles used to get quantiles, determined by k
+
+		// quan: quantiles if k=4, we quan=(Q1,Q2,Q3) have Q1(=1/4), Q2 (=Median) and Q3(=3/4)
+
+		// 
+
+		// Note: as of Oct 2016, NA values (missing data) is marked by a long integer at the parent "r" code
+
+		//
+
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+
+		// c++ code: 		Dr. Cho, I. and Yicheng Yang
+
+		// All rights reserved
+
+		// 
+
+		// updated: Aug 9, 2020
+
+		//----------------------------------------------------
+
+		//IN	: double x(nrow, ncol) 	= {y1, y2, ... } total data containing missing values
+
+		//IN	: double d_k(ncol)		= a vector of categories of each column of xalloc
+
+		//IN    : int NonCollapsible_categorical(nrol) = {0,0, .., 1,.. 0} 
+		//				index for non-collapsible categorical variables. 
+		//				when at least one column has "1" skip cell-collapse procedure
+		//				this may casue a potential error of lack of enough donor! 
+		//				(2018, 04 21) 
+		//											  
+
+		//OUT   : double z(nrow, ncol)  = catorized matrix corresponding to original matrix x
+
+		//                                initialized with 0.0 
+
+		//OUT	: rbind_FHDI rbind_uox_CellMake(ncol); //compact storage of uox, unique observed rows sorted in the ascending order
+
+		//OUT	: rbind_FHDI rbind_mox_CellMake(ncol); //compact storage of mox, unique observed rows sorted in the ascending order
+
+		//
+
+		//IN    : int i_merge = random donor selection in Merge algorithm in Cell Make
+
+		//                            0= no random seed number setting
+
+		//						      1= random seed number setting 
+
+		//====================================================
+
+	{
+
+
+		//-------------------------------------
+		//Determine if there is Non-Collapsible Categorical variable
+		//-------------------------------------
+		double* d_k_Collapsible = new double[ncol]; //k for collapsible variables only 
+		Copy_dVector(d_k, ncol, d_k_Collapsible);
+
+		int i_NonCollapsible_categ_total = 0;
+		for (int i = 0; i<ncol; i++)
+		{
+			i_NonCollapsible_categ_total += NonCollapsible_categorical[i];
+
+			if (NonCollapsible_categorical[i] == 0) d_k_Collapsible[i] = d_k[i]; //use user-defined k 
+			if (NonCollapsible_categorical[i] == 1) d_k_Collapsible[i] = 1; //will be overwritten by actual total categories
+		}
+
+		//testout
+		/*RPrint("initial d_k[]"); RPrint(d_k, ncol);
+		RPrint("\n");
+		RPrint("d_k_Collapsible[]"); RPrint(d_k_Collapsible, ncol);
+		RPrint("\n");
+		RPrint("NonCollapsible_categorical[]"); RPrint(NonCollapsible_categorical, ncol);
+		RPrint("\n");
+		*/
+
+
+		//-------------------------------------
+
+		//Categorize raw data
+
+		//-------------------------------------
+		//Note: when there is non-collapsible variable, 
+		//      its associated d_k
+		//      is replaced with actual total categories 
+		bool b_success_categorize = categorize_cpp(x, nrow, ncol, d_k, z,
+			NonCollapsible_categorical);
+
+		//TestOut << " z matrix from categorize" << endl;
+		//RPrint(z, nrow, ncol, TestOut);
+
+		if (!b_success_categorize)
+		{
+			//early deallocation 
+			delete[] d_k_Collapsible;
+
+			return 0;
+		}
+
+		//testout
+		//   	RPrint("After initial categorize()  \n"); 
+
+		//RPrint("d_k: \n"); RPrint(d_k,  ncol);
+
+		//RPrint("z: \n"); RPrint(z, nrow, ncol);
+
+
+		//----------
+		//clear category matrix for possible garbage
+		//Note: z has only positive integer as category #
+		//----------
+		/*for(int i=0; i<nrow; i++)
+		{
+		for(int j=0; j<ncol; j++)
+		{
+		if(fabs_FHDI(z[i][j] < 1e-3)) z[i][j] = 0.0;
+		}
+		}
+		*/
+
+
+		//-------------------------------------
+
+		//make a copy of z
+
+		//-------------------------------------
+
+		//double** zbase = New_dMatrix(nrow, ncol);
+
+		//Copy_dMatrix(z, nrow, ncol, zbase);
+
+
+
+		//-------------------------------------
+
+		//sort in the order of high missing rate
+
+		//at the end, i_orn has the "actual" column numbers from highest missing rate
+
+		//            to the lowest missing rate
+
+		//-------------------------------------
+
+		int* i_orn = new int[ncol]; 	 	Fill_iVector(i_orn, ncol, 0);
+
+		int* i_orn_temp = new int[ncol]; 	Fill_iVector(i_orn_temp, ncol, 0);
+
+		int* i_orn_temp2 = new int[ncol]; 	Fill_iVector(i_orn_temp2, ncol, 0);
+
+
+
+		int i_temp = 0;
+
+		for (int i_col = 0; i_col<ncol; i_col++)
+
+		{
+
+			i_temp = 0;
+
+			for (int i_row = 0; i_row<nrow; i_row++)
+
+			{
+
+				if (fabs_FHDI(z[i_row][i_col]) < 1e-5) //count only  "0"
+
+				{
+					i_temp++;
+				}
+
+			}
+
+			i_orn_temp[i_col] = i_temp; //store how many "0" in this column
+
+		}
+
+		Copy_iVector(i_orn_temp, ncol, i_orn_temp2); //store before sorting 
+
+													 //std::sort(&i_orn_temp[0], &i_orn_temp[ncol-1]); //this works well, but not recommended
+
+		std::sort(i_orn_temp, i_orn_temp + ncol);
+
+
+
+		for (int i = 0; i<ncol; i++)
+
+		{
+
+			i_temp = i_orn_temp[ncol - 1 - i]; //reversed searching since the "sort" occurred in ascending order
+
+			for (int j = 0; j<ncol; j++)
+
+			{
+
+				if (i_temp == i_orn_temp2[j])
+
+				{
+
+					i_orn[i] = j + 1; //store column number (actual number, 1, 2, ...) 
+
+					i_orn_temp2[j] = -1; //not to be found again 
+
+					break;
+
+				}
+
+			}
+
+		}
+
+
+
+		//-------------------------------------
+
+		//create concatenated vector of z
+
+		//-------------------------------------
+
+		//Note: after Zmat..() all of the below variables are updated 
+
+		//-------------------------------------
+
+		//std::string cn[nrow]; //declaration of concatenated string vector of z
+
+		std::string *cn = new std::string[nrow]; //declaration of concatenated string vector of z
+
+		int* ml = new int[nrow];
+
+		int* ol = new int[nrow];
+
+		double** uox = New_dMatrix(nrow, ncol);
+
+		double** mox = New_dMatrix(nrow, ncol);
+
+		int i_count_ol;
+
+		int i_count_ml;
+
+		int i_count_uox;
+
+		int i_count_mox;
+
+
+
+		std::vector<int> v_nD;
+
+		//List_FHDI List_nU(nrow); //default for the size of nrow, but will be updated in the main loop
+
+		int* tnU = new int[nrow]; Fill_iVector(tnU, nrow, 0); //this default size will be udpated in the main loop
+
+		int i_cellmake = 2; // Inactiavte the b_success_nDAU because cell make with KNN always have enough donors
+
+							//============================================
+
+							//============================================
+
+							//Main part to update z by K-nearest-neighbor
+
+							//============================================
+
+							//============================================
+
+		bool b_DEBUG_Zmat = false;
+
+		//if (i_loop == -5) b_DEBUG_Zmat = true;
+
+		Zmat_Extension_cpp(z, nrow, ncol, cn,
+
+			ml, ol, i_count_ol, i_count_ml,
+
+			uox, mox, i_count_uox, i_count_mox,
+
+			b_DEBUG_Zmat);
+
+
+		if (i_count_ml <= 0 || i_count_ol <= 0)
+
+		{
+			Rprintf("ERROR! i_count_ml or _ol is zero! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+			//early deallocaiton -----------------
+			delete[] d_k_Collapsible;
+			delete[] cn;
+			delete[] ml;
+			delete[] ol;
+			delete[] tnU;
+			//Del_dMatrix(zbase, nrow, ncol);
+			Del_dMatrix(uox, nrow, ncol);
+			Del_dMatrix(mox, nrow, ncol);
+			delete[] i_orn;
+			delete[] i_orn_temp;
+			delete[] i_orn_temp2;
+
+			return 0;
+		}
+
+
+		//------------------------------------------
+
+		//generate number of donors nD[]
+
+		// List of observed cells serving as donors List_nU: row numbers of donors per each missing row
+
+		// Table of nU, tnU: total number of all donors for each missing row 
+
+		//------------------------------------------
+
+		//re-initialize tnU and List_nU and v_nD
+
+		List_nU.initialize(i_count_mox);
+
+		v_nD = std::vector<int>();
+
+		tnU = NULL; tnU = new int[i_count_uox]; Fill_iVector(tnU, i_count_uox, 0);
+
+
+
+		bool b_DEBUG_nDAU = 0;
+
+		//if(i_loop>9) b_DEBUG_nDAU = 1;
+
+
+
+		bool b_success_nDAU = nDAU_cpp(uox, mox, i_count_uox, i_count_mox, ncol,
+
+			cn, ol, i_count_ol, i_cellmake,
+
+			v_nD, List_nU, tnU, b_DEBUG_nDAU);
+
+		//testout
+
+		//RPrint("nDAU_... has been done");
+
+		if (!b_success_nDAU)
+		{
+			Rprintf("Error! nDAU Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+			//early deallocaiton -----------------
+			delete[] d_k_Collapsible;
+			delete[] cn;
+			delete[] ml;
+			delete[] ol;
+			delete[] tnU;
+			//Del_dMatrix(zbase, nrow, ncol);
+			Del_dMatrix(uox, nrow, ncol);
+			Del_dMatrix(mox, nrow, ncol);
+			delete[] i_orn;
+			delete[] i_orn_temp;
+			delete[] i_orn_temp2;
+
+			return 0; //abnormal ending 	
+
+			//exit(0);
+		}
+
+		//-------------------------------------------------------------
+		// Updated on Aug 14, 2020. This part enables 
+		// cell make with KNN to handle categorical data or hybrid data
+		//--------------------------------------------------------------
+		int i_min_nD = min_FHDI(v_nD);
+
+		if (i_min_nD >= 2) //if more than 2 donors exist, exit
+
+		{
+
+			Rprintf("Note that the current data already has at least two donors for all recipients originally such that KNN won't take place! \n");
+
+			return 1;
+
+		} //finish main loop 
+
+		if (i_NonCollapsible_categ_total >= 1 && i_min_nD < 2)
+		{
+			Rprintf("The current data set does not have enough donors while there is at least one non-collapsible categorical variable! \n");
+
+			Rprintf("Thus, KNN won't take place! \n");
+
+			return 0; 
+
+			//exit(0);
+		}
+
+		//----------------------------------------------------------
+
+		for (int i_loop = 0; i_loop < i_count_mox; i_loop++) {
+
+			if (v_nD[i_loop] < 2) {
+
+				KNN(i_loop, uox, i_count_uox,
+					mox, i_count_mox, d_k,
+					cn, ol, i_count_ol,
+					nrow, ncol, i_merge,
+					v_nD, List_nU);
+
+			}
+		}
+
+
+
+		//Important!!! Note that List_nU must include actual locations of donors in uox in ascending orders
+		//Or there will be mismatch problem in FHDI_Neighbor to compute fractional weights
+
+		std::vector<int> List_temp;
+
+		for (int j2 = 0; j2 < i_count_mox;j2++) {
+
+			List_temp.clear();
+
+			List_nU.get_block_yicheng(j2, List_temp);
+
+			sort(List_temp.begin(), List_temp.end());
+
+			//cout<<"List_temp at "<<j2<<endl;
+			//for (int j3 = 0; j3 < List_temp.size();j3++) {
+			//	cout<<"List_temp["<<j3<<"]: "<< List_temp[j3]<<endl;
+			//}
+
+			List_nU.put_block(j2, List_temp);
+
+		}
+
+		//int v_nD_size = v_nD.size();
+
+		//for (int kk = 0; kk < v_nD_size; kk++) {
+		//	if (v_nD[kk] < 2) Rprintf("ERROR! The dataset after k-nearest-neighbor still does not gurantee at least two donors for all unique missing patterns");
+		//}
+
+		int i_min_nD2 = min_FHDI(v_nD);
+
+		if (i_min_nD2 < 2) {
+
+			Rprintf("ERROR! The dataset after k-nearest-neighbor still does not gurantee at least two donors for all unique missing patterns");
+
+			return 0; //abnormal ending 
+
+		}
+		//----------
+		//clear uox and mox matrix for possible garbage
+		//Note: Must have only positive integer as category #
+		//----------
+		for (int i = 0; i<i_count_uox; i++)
+		{
+			for (int j = 0; j<ncol; j++)
+			{
+				if (fabs_FHDI(uox[i][j] < 1e-3)) uox[i][j] = 0.0;
+			}
+		}
+		for (int i = 0; i<i_count_mox; i++)
+		{
+			for (int j = 0; j<ncol; j++)
+			{
+				if (fabs_FHDI(mox[i][j] < 1e-3)) mox[i][j] = 0.0;
+			}
+		}
+
+
+
+
+		//--------------
+
+		//prepare separate output of Cell Make
+
+		//--------------
+
+		double* d_temp_um = new double[ncol];
+
+		for (int i = 0; i<i_count_uox; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++) d_temp_um[j] = uox[i][j];
+
+
+
+			rbind_uox_CellMake.append_block(d_temp_um);
+
+		}
+
+		for (int i = 0; i<i_count_mox; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++) d_temp_um[j] = mox[i][j];
+
+
+
+			rbind_mox_CellMake.append_block(d_temp_um);
+
+		}
+
+		delete[] d_temp_um;
+
+
+
+
+
+		//testout
+
+		//RPrint(" ========= Cell_Make_Extension.. has successfully finished!");
+
+		Rprintf(" ========= FHDI_CellMake with KNN has successfully finished! \n");
+
+
+
+		//-------------------------------------
+
+		//Deallocation
+
+		//-------------------------------------
+		delete[] d_k_Collapsible;
+
+		delete[] cn;
+
+		delete[] i_orn;
+
+		delete[] i_orn_temp;
+
+		delete[] i_orn_temp2;
+
+		delete[] ml;
+
+		delete[] ol;
+
+		delete[] tnU;
+
+
+
+		//Del_dMatrix(zbase, nrow, ncol);
+
+		Del_dMatrix(uox, nrow, ncol);
+
+		Del_dMatrix(mox, nrow, ncol);
+
+
+
+
+
+		return 1;
+
+	}
+
+} //end of namespace
+
+  //Fn===========================================================================
+
+  //Cell_Make_Neighbor_Bigp_cpp.cc-----------------------------------------------------------------------------
+
+  //Fn===========================================================================
+
+namespace FHDI {
+
+	bool Cell_Make_Neighbor_Bigp_cpp(double** x, int** r, const int nrow, const int ncol, double* d_k,
+
+		int* NonCollapsible_categorical,
+
+		double** z,
+
+		int** codes,
+
+		rbind_FHDI &rbind_uox_CellMake,
+
+		rbind_FHDI &rbind_mox_CellMake,
+
+		List_FHDI &List_nU,
+
+		const int i_merge, const int i_option_collapsing, const int i_option_SIS_type, int top)
+
+		//Description=========================================
+
+		// make cells with the raw data matrix x 
+
+		// categorization takes place 
+
+		// according to the given number of categories stored in d_k(ncol)
+
+		//
+
+		// Algorithm:  for categorization
+
+		// perc: percentiles used to get quantiles, determined by k
+
+		// quan: quantiles if k=4, we quan=(Q1,Q2,Q3) have Q1(=1/4), Q2 (=Median) and Q3(=3/4)
+
+		// 
+
+		// Note: as of Oct 2016, NA values (missing data) is marked by a long integer at the parent "r" code
+
+		//
+
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+
+		// c++ code: 		Dr. Cho, I. and Yicheng Yang
+
+		// All rights reserved
+
+		// 
+
+		// updated: Aug 11, 2020
+
+		//----------------------------------------------------
+
+		//IN	: double x(nrow, ncol) 	= {y1, y2, ... } total data containing missing values
+
+		//IN	: double d_k(ncol)		= a vector of categories of each column of xalloc
+
+		//IN    : int NonCollapsible_categorical(nrol) = {0,0, .., 1,.. 0} 
+		//				index for non-collapsible categorical variables. 
+		//				when at least one column has "1" skip cell-collapse procedure
+		//				this may casue a potential error of lack of enough donor! 
+		//				(2018, 04 21) 
+		//											  
+
+		//OUT   : double z(nrow, ncol)  = catorized matrix corresponding to original matrix x
+
+		//                                initialized with 0.0 
+
+		//OUT	: rbind_FHDI rbind_uox_CellMake(ncol); //compact storage of uox, unique observed rows sorted in the ascending order
+
+		//OUT	: rbind_FHDI rbind_mox_CellMake(ncol); //compact storage of mox, unique observed rows sorted in the ascending order
+
+		//
+
+		//IN    : int i_merge = random donor selection in Merge algorithm in Cell Make
+
+		//                            0= no random seed number setting
+
+		//						      1= random seed number setting 
+
+		//====================================================
+
+	{
+
+
+
+		//-------------------------------------
+		//Determine if there is Non-Collapsible Categorical variable
+		//-------------------------------------
+		double* d_k_Collapsible = new double[ncol]; //k for collapsible variables only 
+		Copy_dVector(d_k, ncol, d_k_Collapsible);
+
+		int i_NonCollapsible_categ_total = 0;
+		for (int i = 0; i<ncol; i++)
+		{
+			i_NonCollapsible_categ_total += NonCollapsible_categorical[i];
+
+			if (NonCollapsible_categorical[i] == 0) d_k_Collapsible[i] = d_k[i]; //use user-defined k 
+			if (NonCollapsible_categorical[i] == 1) d_k_Collapsible[i] = 1; //will be overwritten by actual total categories
+		}
+
+		//testout
+		/*RPrint("initial d_k[]"); RPrint(d_k, ncol);
+		RPrint("\n");
+		RPrint("d_k_Collapsible[]"); RPrint(d_k_Collapsible, ncol);
+		RPrint("\n");
+		RPrint("NonCollapsible_categorical[]"); RPrint(NonCollapsible_categorical, ncol);
+		RPrint("\n");
+		*/
+
+
+		//-------------------------------------
+
+		//Categorize raw data
+
+		//-------------------------------------
+		//Note: when there is non-collapsible variable, 
+		//      its associated d_k
+		//      is replaced with actual total categories 
+		bool b_success_categorize = categorize_cpp(x, nrow, ncol, d_k, z,
+			NonCollapsible_categorical);
+
+		//TestOut << " z matrix from categorize" << endl;
+		//RPrint(z, nrow, ncol, TestOut);
+
+		if (!b_success_categorize)
+		{
+			//early deallocation 
+			delete[] d_k_Collapsible;
+
+			return 0;
+		}
+
+		//testout
+		//   	RPrint("After initial categorize()  \n"); 
+
+		//RPrint("d_k: \n"); RPrint(d_k,  ncol);
+
+		//RPrint("z: \n"); RPrint(z, nrow, ncol);
+
+
+		//----------
+		//clear category matrix for possible garbage
+		//Note: z has only positive integer as category #
+		//----------
+		/*for(int i=0; i<nrow; i++)
+		{
+		for(int j=0; j<ncol; j++)
+		{
+		if(fabs_FHDI(z[i][j] < 1e-3)) z[i][j] = 0.0;
+		}
+		}
+		*/
+
+
+		//-------------------------------------
+
+		//make a copy of z
+
+		//-------------------------------------
+
+		double** zbase = New_dMatrix(nrow, ncol);
+
+		Copy_dMatrix(z, nrow, ncol, zbase);
+
+
+
+		//-------------------------------------
+
+		//sort in the order of high missing rate
+
+		//at the end, i_orn has the "actual" column numbers from highest missing rate
+
+		//            to the lowest missing rate
+
+		//-------------------------------------
+
+		int* i_orn = new int[ncol]; 	 	Fill_iVector(i_orn, ncol, 0);
+
+		int* i_orn_temp = new int[ncol]; 	Fill_iVector(i_orn_temp, ncol, 0);
+
+		int* i_orn_temp2 = new int[ncol]; 	Fill_iVector(i_orn_temp2, ncol, 0);
+
+
+
+		int i_temp = 0;
+
+		for (int i_col = 0; i_col<ncol; i_col++)
+
+		{
+
+			i_temp = 0;
+
+			for (int i_row = 0; i_row<nrow; i_row++)
+
+			{
+
+				if (fabs_FHDI(z[i_row][i_col]) < 1e-5) //count only  "0"
+
+				{
+					i_temp++;
+				}
+
+			}
+
+			i_orn_temp[i_col] = i_temp; //store how many "0" in this column
+
+		}
+
+		Copy_iVector(i_orn_temp, ncol, i_orn_temp2); //store before sorting 
+
+													 //std::sort(&i_orn_temp[0], &i_orn_temp[ncol-1]); //this works well, but not recommended
+
+		std::sort(i_orn_temp, i_orn_temp + ncol);
+
+
+
+		for (int i = 0; i<ncol; i++)
+
+		{
+
+			i_temp = i_orn_temp[ncol - 1 - i]; //reversed searching since the "sort" occurred in ascending order
+
+			for (int j = 0; j<ncol; j++)
+
+			{
+
+				if (i_temp == i_orn_temp2[j])
+
+				{
+
+					i_orn[i] = j + 1; //store column number (actual number, 1, 2, ...) 
+
+					i_orn_temp2[j] = -1; //not to be found again 
+
+					break;
+
+				}
+
+			}
+
+		}
+
+
+
+		//-------------------------------------
+
+		//create concatenated vector of z
+
+		//-------------------------------------
+
+		//Note: after Zmat..() all of the below variables are updated 
+
+		//-------------------------------------
+
+		//std::string cn[nrow]; //declaration of concatenated string vector of z
+
+		std::string *cn = new std::string[nrow]; //declaration of concatenated string vector of z
+
+		int* ml = new int[nrow];
+
+		int* ol = new int[nrow];
+
+		double** uox = New_dMatrix(nrow, ncol);
+
+		double** mox = New_dMatrix(nrow, ncol);
+
+		int i_count_ol;
+
+		int i_count_ml;
+
+		int i_count_uox;
+
+		int i_count_mox;
+
+
+
+		std::vector<int> v_nD;
+
+		//List_FHDI List_nU(nrow); //default for the size of nrow, but will be updated in the main loop
+
+		int* tnU = new int[nrow]; Fill_iVector(tnU, nrow, 0); //this default size will be udpated in the main loop
+
+		int i_cellmake = 2; // Inactiavte the b_success_nDAU because cell make with KNN always have enough donors
+
+		//============================================
+
+		//============================================
+
+		//Main part to update z by K-nearest-neighbor
+
+		//============================================
+
+		//============================================
+
+		//--------------------------------------
+		//Compute correlation ranking matrix 
+		//-----------------------------------------
+		// Ranking of correlation of each variable in descending order. Note it excludes itself from ranking
+
+		//double** correlation_yicheng = New_dMatrix(ncol, ncol);
+		//int** correlation_ranking = New_iMatrix(ncol, (ncol - 1));
+
+		//FHDI::Ranking_m(nrow, ncol, x, r, correlation_yicheng, correlation_ranking, TestOut);
+
+		//----------------
+	    //Prepare fully observed y matrix
+	    //---------------------
+		std::vector<int> ol_temp;
+		int d_temp = 0;
+		for (int i_row = 0; i_row < nrow; i_row++)
+		{
+			d_temp = 1.0;
+			for (int i_col = 0; i_col < ncol; i_col++)
+			{
+				if (r[i_row][i_col] == 0) { d_temp = 0.0; break; } //found zero, i.e. missing cell
+			}
+
+			if (fabs(d_temp) > 1e-15) //this row has no missing cells
+			{
+				ol_temp.push_back(i_row);
+			} //actual number of the row having no missing cells
+		}
+		int nrow_ol = ol_temp.size();
+
+		double** ol_matrix = New_dMatrix(nrow_ol, ncol);
+
+		for (int i = 0;i < nrow_ol;i++) {
+			for (int j = 0; j < ncol; j++) {
+				ol_matrix[i][j] = x[ol_temp[i]][j];
+			}
+		}
+
+
+
+		//int top = 100; // Top "top" rankings exclude itself. Note that  i_option_collapsing < top <= ncol-1
+		if ((ncol - 1) < top) {
+			top = ncol - 1;
+		}
+
+		int** correlation_ranking_top = New_iMatrix(ncol, top);
+
+		FHDI::Ranking_top(nrow_ol, ncol, top, ol_matrix, correlation_ranking_top);
+
+
+		//TestOut << "correlation matrix: " << endl;
+		//for (int i = 0; i < ncol; i++) {
+		//	for (int j = 0; j < ncol; j++) {
+		//		TestOut << setw(20) << correlation_yicheng[i][j];
+		//	}
+		//	TestOut << endl;
+		//}
+
+		bool b_DEBUG_Zmat = false;
+
+		//if (i_loop == -5) b_DEBUG_Zmat = true;
+
+		Zmat_Extension_cpp(z, nrow, ncol, cn,
+
+			ml, ol, i_count_ol, i_count_ml,
+
+			uox, mox, i_count_uox, i_count_mox,
+
+			b_DEBUG_Zmat);
+
+
+		if (i_count_ml <= 0 || i_count_ol <= 0 || (nrow_ol != i_count_ol))
+
+		{
+			Rprintf("ERROR! i_count_ml or _ol is zero! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+			//early deallocaiton -----------------
+			delete[] d_k_Collapsible;
+			delete[] cn;
+			delete[] ml;
+			delete[] ol;
+			delete[] tnU;
+			Del_dMatrix(zbase, nrow, ncol);
+			Del_dMatrix(uox, nrow, ncol);
+			Del_dMatrix(mox, nrow, ncol);
+			delete[] i_orn;
+			delete[] i_orn_temp;
+			delete[] i_orn_temp2;
+
+			return 0;
+		}
+
+
+		//------------------------------------------
+
+		//generate number of donors nD[]
+
+		// List of observed cells serving as donors List_nU: row numbers of donors per each missing row
+
+		// Table of nU, tnU: total number of all donors for each missing row 
+
+		//------------------------------------------
+
+		//re-initialize tnU and List_nU and v_nD
+
+		List_nU.initialize(i_count_mox);
+
+		v_nD = std::vector<int>();
+
+		tnU = NULL; tnU = new int[i_count_uox]; Fill_iVector(tnU, i_count_uox, 0);
+
+
+
+		bool b_DEBUG_nDAU = 0;
+
+		//if(i_loop>9) b_DEBUG_nDAU = 1;
+
+		//!!!!! Initialize codes before nDAU every loop
+		for (int k1 = 0; k1 < nrow; k1++) {
+			for (int k2 = 0; k2 < i_option_collapsing; k2++) {
+				codes[k1][k2] = 0;
+			}
+		}
+
+		bool b_success_nDAU = nDAU_Bigp_cpp(uox, mox, i_count_uox, i_count_mox, ncol, i_option_collapsing, i_option_SIS_type,
+
+			cn, ol, i_count_ol, top, i_cellmake,
+
+			v_nD, List_nU, tnU, codes, correlation_ranking_top, ol_matrix, b_DEBUG_nDAU);
+
+		//testout
+
+		//RPrint("nDAU_... has been done");
+
+		if (!b_success_nDAU)
+		{
+			Rprintf("Error! nDAU Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+			//early deallocaiton -----------------
+			delete[] d_k_Collapsible;
+			delete[] cn;
+			delete[] ml;
+			delete[] ol;
+			delete[] tnU;
+			Del_dMatrix(zbase, nrow, ncol);
+			Del_dMatrix(uox, nrow, ncol);
+			Del_dMatrix(mox, nrow, ncol);
+			delete[] i_orn;
+			delete[] i_orn_temp;
+			delete[] i_orn_temp2;
+
+			return 0; //abnormal ending 
+
+			//exit(0);
+		}
+
+
+		//-------------------------------------------------------------
+		// Updated on Aug 14, 2020. This part enables 
+		// cell make with KNN to handle categorical data or hybrid data
+		//--------------------------------------------------------------
+		int i_min_nD = min_FHDI(v_nD);
+
+		if (i_min_nD >= 2) //if more than 2 donors exist, exit
+
+		{
+
+			Rprintf("Note that the current data already has at least two donors for all recipients originally such that KNN won't take place! \n");
+
+			return 1;
+
+		} //finish main loop 
+
+		if (i_NonCollapsible_categ_total >= 1 && i_min_nD < 2)
+		{
+			Rprintf("The current data set does not have enough donors while there is at least one non-collapsible categorical variable! \n");
+
+			Rprintf("Thus, KNN won't take place! \n");
+
+			return 0;
+
+			//exit(0);
+		}
+
+		//----------------------------------------------------------
+
+
+		for (int i_loop = 0; i_loop < i_count_mox; i_loop++) {
+
+			if (v_nD[i_loop] < 2) {
+
+				KNN_Bigp(i_loop, uox, i_count_uox,
+					mox, i_count_mox, d_k, codes, i_option_collapsing,
+					cn, ol, i_count_ol,
+					nrow, ncol, i_merge,
+					v_nD, List_nU);
+
+			}
+		}
+
+
+		//Important!!! Note that List_nU must include actual locations of donors in uox in ascending orders
+		//Or there will be mismatch problem in FHDI_Neighbor to compute fractional weights
+
+		std::vector<int> List_temp;
+
+		for (int j2 = 0; j2 < i_count_mox;j2++) {
+
+			List_temp.clear();
+
+			List_nU.get_block_yicheng(j2, List_temp);
+
+			sort(List_temp.begin(), List_temp.end());
+
+			//cout<<"List_temp at "<<j2<<endl;
+			//for (int j3 = 0; j3 < List_temp.size();j3++) {
+			//	cout<<"List_temp["<<j3<<"]: "<< List_temp[j3]<<endl;
+			//}
+
+			List_nU.put_block(j2, List_temp);
+
+		}
+		//int i_min_nD = min_FHDI(v_nD);
+
+		//int v_nD_size = v_nD.size();
+
+		//for (int kk = 0; kk< v_nD_size;kk++) {
+
+		//	if (v_nD[kk] < 2) Rprintf("ERROR! The dataset after k-nearest-neighbor still does not gurantee at least two donors for all unique missing patterns");
+
+		//}
+
+		int i_min_nD2 = min_FHDI(v_nD);
+
+		if (i_min_nD2 < 2) {
+
+			Rprintf("ERROR! The dataset after k-nearest-neighbor still does not gurantee at least two donors for all unique missing patterns");
+
+			return 0; //abnormal ending 
+
+		}
+
+		//----------
+		//clear uox and mox matrix for possible garbage
+		//Note: Must have only positive integer as category #
+		//----------
+		for (int i = 0; i<i_count_uox; i++)
+		{
+			for (int j = 0; j<ncol; j++)
+			{
+				if (fabs_FHDI(uox[i][j] < 1e-3)) uox[i][j] = 0.0;
+			}
+		}
+		for (int i = 0; i<i_count_mox; i++)
+		{
+			for (int j = 0; j<ncol; j++)
+			{
+				if (fabs_FHDI(mox[i][j] < 1e-3)) mox[i][j] = 0.0;
+			}
+		}
+
+
+
+
+		//--------------
+
+		//prepare separate output of Cell Make
+
+		//--------------
+
+		double* d_temp_um = new double[ncol];
+
+		for (int i = 0; i<i_count_uox; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++) d_temp_um[j] = uox[i][j];
+
+
+
+			rbind_uox_CellMake.append_block(d_temp_um);
+
+		}
+
+		for (int i = 0; i<i_count_mox; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++) d_temp_um[j] = mox[i][j];
+
+
+
+			rbind_mox_CellMake.append_block(d_temp_um);
+
+		}
+
+		delete[] d_temp_um;
+
+
+
+
+
+		//testout
+
+		//RPrint(" ========= Cell_Make_Extension.. has successfully finished!");
+
+		Rprintf(" ========= FHDI_CellMake_Bigp with KNN has successfully finished! \n");
+
+
+		//-------------------------------------
+
+		//Deallocation
+
+		//-------------------------------------
+		delete[] d_k_Collapsible;
+
+		delete[] cn;
+
+		delete[] i_orn;
+
+		delete[] i_orn_temp;
+
+		delete[] i_orn_temp2;
+
+		delete[] ml;
+
+		delete[] ol;
+
+		delete[] tnU;
+
+
+
+		Del_dMatrix(zbase, nrow, ncol);
+
+		Del_dMatrix(uox, nrow, ncol);
+
+		Del_dMatrix(mox, nrow, ncol);
+
+
+		Del_dMatrix(ol_matrix, nrow_ol, ncol);
+
+		Del_iMatrix(correlation_ranking_top, ncol, top);
+
+		//Del_dMatrix(correlation_yicheng, ncol, ncol);
+
+		//Del_iMatrix(correlation_ranking, ncol, (ncol - 1));
 
 		return 1;
 
@@ -16641,6 +20029,324 @@ namespace FHDI
 	}
 
 } //end of namespace
+
+  //Fn===========================================================================
+
+  //AGMAT_Neighbor_cpp.cc-----------------------------------------------------------------------------
+
+  //Fn===========================================================================
+
+namespace FHDI
+{
+	bool AGMAT_Neighbor_cpp(double** mox, const int nrow_mox,
+		double** uox, const int nrow_uox,
+		const int ncol, int* id,
+		std::vector<std::string> v_table_tmvec_row1,
+		std::vector<int> v_table_tmvec_row2,
+		std::string cn[], const int nrow, List_FHDI &List_nU,
+		rbind_FHDI &rst_final)
+		//Description=========================================
+		// Augment missing cells in mox using the observed values of uox
+		//
+		// Algorithm:  All possible donors will be used to fill in the missing cell 
+		//             but, if there is no matched donors in uox, this algorithm may fail
+		//             as of Oct 2016
+		// for each missing pattern, find all the possible donors
+		// e.g., 
+		// (1) a missing row   = 000
+		// 	   agmat           = all observed rows
+		// (2) a missing row   = a01
+		//     agmat           = ac1, af1, a11, ..., az1. 
+		//
+		//
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+		// c++ code: 		Dr. Cho, I. and Yicheng Yang
+		// All rights reserved
+		// 
+		// updated: Aug 11, 2020
+		//----------------------------------------------------
+		//IN    : double mox(nrow_mox, ncol)= sorted unique patterns of missing  cells. up to i_count_mox rows are meaningful                           
+		//IN    : double uox(nrow_uox, ncol)= sorted unique patterns of observed cells. up to i_count_uox rows are meaningful 
+		//IN    : int id(nrow) = index of row. Default is ACTUAL row number
+		//IN	: vector<string> v_table_tmvec_row1  = name table of condensed missing patterns
+		//IN	: vector<int> v_table_tmvec_row2  = counts table of condensed missing patterns
+		//IN  	: string cn(nrow)		= vector of string to represent each row of z     
+		//OUT   : rbind_FHDI rst_final(??, ncol) = updated observed rows to be used later 
+		//                                          number of rows will be determined by this code   
+		//====================================================
+	{
+
+		const int nr1 = nrow_mox;
+		const int nr2 = nrow_uox;
+
+		//-------------------
+		//initialize rst, the matrix for storage for augmented observations
+		//-------------------
+		rbind_FHDI rst(ncol + 1); //1+ncol = (row id)+(observed rows used for imputation later) 
+
+								  //--------------------
+								  //Main Loop for all missing rows
+								  //--------------------
+		int* i_temp_x = new int[ncol];
+		int i_sum_x = 0;
+		std::vector<int> v_cn_z_i;
+		int* zid = NULL;
+		int i_size_zid = 0;
+		int i_loc = 0;
+		//int* i_srst = new int[nr2]; // not used in KNN
+		std::vector<int> loc_srst_nl;
+
+		//-------------
+		//LOOP for all missing rows
+		//-------------
+		for (int i = 0; i<nr1; i++)
+		{
+			//get current row of missing cell 
+			for (int j = 0; j<ncol; j++) i_temp_x[j] = (int)mox[i][j];
+			i_sum_x = sum_FHDI(i_temp_x, ncol);
+
+			std::string s_temp = v_table_tmvec_row1[i]; //name of ith row
+
+			v_cn_z_i.clear(); //re-initialize 
+			which(cn, nrow, s_temp, v_cn_z_i); //Note: Actual location is returned
+			int i_size_v_cn_z_i = (int)v_cn_z_i.size(); //number of locations in cn having s_temp
+
+														//----------------------
+														//Condition 1: this row's cells are all missing
+														//  this case, all observed rows are used for imputation 
+														//-----------------------
+			if (i_sum_x == 0)
+			{
+				//-----------------
+				//make "zid" which means 
+				//the row location of current missing row repeated by number of all observed rows
+				//-----------------
+				zid = NULL; //re-initialize; 
+				i_size_zid = i_size_v_cn_z_i*nr2;
+				zid = new int[i_size_zid];
+
+				for (int j = 0; j<i_size_v_cn_z_i; j++)
+				{
+					for (int k = 0; k<nr2; k++) //repeated copy of the id number 
+					{
+						//NOTE: zid contains ACTUAL id number 
+						zid[j*nr2 + k] = id[v_cn_z_i[j] - 1]; //-1 for actual location
+					}
+				}
+
+				//-------------------
+				//make a matrix that consists of zid & repeated uox for all missing rows
+				//-------------------
+				double** rst_temp = New_dMatrix(i_size_zid, ncol + 1);
+
+				for (int j = 0; j<i_size_v_cn_z_i; j++) //all rows that have the current missing pattern
+				{
+					for (int k = 0; k<nr2; k++) //repeated copy  
+					{
+						i_loc = j*nr2 + k; //serial number of the entire rows of the matrix
+
+										   //first column is zid[]
+						rst_temp[i_loc][0] = zid[i_loc];
+
+						//from the second through the end columns are occupied with uox
+						for (int i_col = 0; i_col<ncol; i_col++)
+						{
+							rst_temp[i_loc][i_col + 1] = uox[k][i_col];
+						}
+					}
+				}
+				//---
+				//Append the entire matrix to rst
+				//---
+				rst.bind_blocks(i_size_zid, ncol + 1, rst_temp);
+
+				//testout
+				/*
+				RPrint(" ==Condition1. all cells on a row are missing. i: "); RPrint(i);
+				RPrint("zid:"); RPrint(zid, i_size_zid);
+				RPrint("rst:");
+				rst.print_rbind_FHDI();
+				*/
+
+				//---------
+				//local deallocation
+				//---------
+				Del_dMatrix(rst_temp, i_size_zid, ncol + 1);
+			}
+
+			//----------------------
+			//Condition 2: some cells of current row are missing
+			//-----------------------
+			//int nl = 0;
+			if (i_sum_x > 0)
+			{
+				//------
+				//number of observed cells on this row
+				//------
+				//nl = 0; 
+				//for(int j=0; j<ncol; j++) 
+				//{
+				//	if(mox[i][j]>0) nl++; 
+				//}
+				//
+				////-------
+				////indicator matrix that matches the donors
+				////srst: row-wise sum of the indicator matrix 
+				////algorithm: 
+				//// current row   = a01 
+				//// observed rows = a11, ab1, af1, ... will be selected and stored  
+				////-------
+				//loc_srst_nl.clear(); //re-initialize
+				//Fill_iVector(i_srst, nr2, 0); //re-initialize 
+				//	
+				//for(int j=0; j<nr2; j++)
+				//{
+				//	int i_sum_crst = 0; 
+				//	for(int k=0; k<ncol; k++)
+				//	{
+				//		//Note: in below check, mox is fixed at ith row 
+				//		if(fabs(mox[i][k] - uox[j][k])<1e-3) //part of missing cell = obserbed cell 
+				//		{
+				//			i_sum_crst++; // increment if a cell of missing row = obs. cell 
+				//		}
+				//	}
+				//	//---
+				//	//store how many cells of missing row match those of observed row
+				//	//---
+				//	i_srst[j] = i_sum_crst; 
+				//	if(i_sum_crst==nl) loc_srst_nl.push_back(j+1); //Actual location 				
+				//}
+				//testout
+				/*
+				RPrint(" ==Condition2. some cells on a row are missing. i: "); RPrint(i);
+				RPrint("nl: "); RPrint(nl);
+				RPrint("srst: "); RPrint(i_srst, nr2);
+				RPrint("loc_srst_nl: "); RPrint(loc_srst_nl);
+				*/
+
+				loc_srst_nl.clear(); //re-initialize
+
+				List_nU.get_block_yicheng(i, loc_srst_nl);
+
+				//-----
+				//total matching rows
+				//-----
+				const int i_size_loc_srst_nl = (int)loc_srst_nl.size();
+				if (i_size_loc_srst_nl == 0) //error case
+				{
+					Rprintf("Error! there is no matched cell! \n"); return 0;
+				}
+
+				if (i_size_loc_srst_nl > 0)
+				{
+					//-----------------
+					//make "zid" which means 
+					//the row location of current missing row repeated by number of observed rows
+					//-----------------
+					zid = NULL; //re-initialize; 
+					i_size_zid = i_size_v_cn_z_i*i_size_loc_srst_nl;
+					zid = new int[i_size_zid];
+
+					for (int j = 0; j<i_size_v_cn_z_i; j++)
+					{
+						for (int k = 0; k<i_size_loc_srst_nl; k++) //repeated copy of the id number 
+						{
+							//NOTE: zid contains ACTUAL id number 
+							zid[j*i_size_loc_srst_nl + k] = id[v_cn_z_i[j] - 1]; //-1 for actual location
+						}
+					}
+
+					//-------------------
+					//make a matrix that consists of zid & repeated uox for all missing rows
+					//-------------------
+					double** rst_temp2 = New_dMatrix(i_size_zid, ncol + 1);
+
+					for (int j = 0; j<i_size_v_cn_z_i; j++)
+					{
+						for (int k = 0; k<i_size_loc_srst_nl; k++) //repeated copy of the id number 
+						{
+							i_loc = j*i_size_loc_srst_nl + k; //serial number of the entire rows of the matrix
+
+															  //first column is zid[]
+							rst_temp2[i_loc][0] = zid[i_loc];
+
+							//from the second through the end columns are occupied with uox
+							for (int i_col = 0; i_col<ncol; i_col++)
+							{
+								//rst_temp2[i_loc][i_col+1] = uox[k][i_col]; //cf. condition 1 form
+								rst_temp2[i_loc][i_col + 1] = uox[loc_srst_nl[k] - 1][i_col]; //-1 for actual location
+
+							}
+						}
+					}
+					//---
+					//Append the entire matrix to rst
+					//---
+					rst.bind_blocks(i_size_zid, ncol + 1, rst_temp2);
+
+					//testout
+					/*
+					RPrint("zid:"); RPrint(zid, i_size_zid);
+					RPrint("rst:");
+					rst.print_rbind_FHDI();
+					*/
+
+					//---------
+					//local deallocation
+					//---------
+					Del_dMatrix(rst_temp2, i_size_zid, ncol + 1);
+				}
+			}
+
+		} //end of LOOP for all missing rows
+
+		  //----------------
+		  //re-order rst in terms of id (the first column)
+		  //----------------
+		const int n_row_rst = rst.size_row();
+		int* i_rst_id = new int[n_row_rst];
+		for (int i = 0; i<n_row_rst; i++) i_rst_id[i] = (int)rst(i, 0);
+		order_FHDI(i_rst_id, n_row_rst); //returned with the order of rows in ascending magnitude
+										 //testout
+										 //RPrint("n_row_rst :"); RPrint(n_row_rst);
+										 //RPrint("i_rst_id :"); RPrint(i_rst_id, n_row_rst);
+
+
+										 //--------------------
+										 //remove the first column with id
+										 //store the rst into the final storage
+										 //--------------------
+										 //rbind_FHDI rst_final(ncol); //Note: without the first column of id
+		double* d_row_rst = new double[ncol + 1];
+		double* d_row_rst_short = new double[ncol];
+		for (int i = 0; i<n_row_rst; i++)
+		{
+			rst.get_block(i_rst_id[i] - 1, d_row_rst); //get a row// -1 for actual loc
+			for (int k = 0; k<ncol; k++) d_row_rst_short[k] = d_row_rst[k + 1]; //without id  
+			rst_final.append_block(d_row_rst_short);	//append a new row to the final storage 
+		}
+
+		//testout
+		//RPrint("End of AUGMAT =========="); 
+		//RPrint("rst_final:"); rst_final.print_rbind_FHDI(); 
+
+		//-------
+		//local deallocation
+		//-------
+		delete[] i_temp_x;
+		delete[] zid;
+		//delete[] i_srst;
+		delete[] i_rst_id;
+		delete[] d_row_rst;
+		delete[] d_row_rst_short;
+
+		return 1;
+	}
+
+} //end of namespace
+
+
+
 
 
 //Fn===========================================================================
@@ -17877,6 +21583,443 @@ namespace FHDI
 
 } //end of namespace
 
+  //Fn===========================================================================
+
+  //Cal_W_Neighbor_cpp.cc-----------------------------------------------------------------------------
+
+  //Fn===========================================================================
+
+namespace FHDI
+{
+	bool Cal_W_Neighbor_cpp(double** mox, const int nrow_mox,
+		double** uox, const int nrow_uox,
+		const int ncol, int* id, List_FHDI &List_nU,
+		std::vector<std::string> v_table_tmvec_row1,
+		std::vector<int> v_table_tmvec_row2,
+		std::vector<double> jp_prob,
+		double** d_mx, const int i_size_ml,
+		double* w, std::string cn[], const int nrow,
+		std::vector<double> &v_rst_final)
+		//Description=========================================
+		// update weight and joint probability
+		//
+		// Algorithm:  All possible donors will be used to fill in the missing cell 
+		//             but, if there is no matched donors in uox, this algorithm may fail
+		//             as of Oct 2016
+		//
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+		// c++ code: 		Dr. Cho, I. 
+		// All rights reserved
+		// 
+		// updated: Oct 26, 2016
+		//----------------------------------------------------
+		//IN    : double mox(nrow_mox, ncol)= sorted unique patterns of missing  cells. up to i_count_mox rows are meaningful                           
+		//IN    : double uox(nrow_uox, ncol)= sorted unique patterns of observed cells. up to i_count_uox rows are meaningful 
+		//IN    : int id(nrow) = index of row. Default is ACTUAL row number
+		//IN	: vector<string> v_table_tmvec_row1  = name of table of condensed missing patterns
+		//IN	: vector<int> v_table_tmvec_row2  = counts of table of condensed missing patterns
+		//IN   	: vector<double> jp_prob 	= weighted joint probability of all condensed observed DONORS
+		//IN    : double d_mx(i_size_ml, ncol) = copy of all the missing cells 
+		//IN    : double w[ml] 				= weights corresponding to missing rows
+		//IN  	: string cn(nrow)			= vector of string to represent each row of z     
+		//OUT   : std::vector<double> &v_rst_final  = new weights 
+		//====================================================
+	{
+		const int nr1 = nrow_mox;
+		const int nr2 = nrow_uox;
+		const int nx = i_size_ml; //rows of mx
+
+								  //-------------------
+								  //sum of joint probability
+								  //-------------------
+		double sum_jp = 0.0;
+		const int i_size_jp = (int)jp_prob.size();
+		for (int i = 0; i<i_size_jp; i++) sum_jp += jp_prob[i];
+
+		//-------------------
+		//initialize rst, the matrix for storage for augmented observations
+		//-------------------
+		rbind_FHDI rst(2); //number of columns 
+
+						   //--------------------
+						   //Main Loop for all missing rows
+						   //--------------------
+		int* i_temp_x = new int[ncol];
+		int i_sum_x = 0;
+		std::vector<int> v_cn_z_i; // actual location of mox[i] in z
+		int* zid = NULL;
+		int i_size_zid = 0;
+		int i_loc = 0;
+		int* i_srst = new int[nx];		//for Condition 1&2
+		int* i_srst1 = new int[nr2]; 	//for Condition 2
+		std::vector<int> loc_srst_ncol; // actual locations of mox[i] in ml
+		std::vector<int> loc_srst_ncol1; // actual locations of donors of mox[i] in uox
+
+		double* w_srst_ncol = NULL;
+		double* jp_zi = NULL;
+
+		//----------------
+		//LOOP for all missing rows
+		//----------------
+		for (int i = 0; i<nr1; i++)
+		{
+			//---------------------
+			// generate sum of rows that indicate the matched rows of mx and mox
+			//---------------------
+			//indicator matrix that matches the donors
+			//srst: row-wise sum of the indicator matrix 
+			//-------
+			loc_srst_ncol.clear(); //re-initialize
+			Fill_iVector(i_srst, nx, 0); //re-initialize 
+
+			for (int j = 0; j<nx; j++)  //Loop for i_size_ml, all the missing rows
+			{
+				int i_sum_crst = 0;
+				for (int k = 0; k<ncol; k++)
+				{
+					//Note: in below check, mox is fixed at ith row 
+					if (fabs(mox[i][k] - d_mx[j][k])<1e-3) //part of missing cell = obserbed cell 
+					{
+						i_sum_crst++; // increment if a cell of missing row = obs. cell 
+					}
+				}
+				//---
+				//store how many cells of the current missing row match those of all missing rows
+				//---
+				i_srst[j] = i_sum_crst;
+
+				//---
+				//store numbers of missing rows that exactly match the current missing row
+				//i.e., target rows to be imputed later 
+				//---
+				if (i_sum_crst == ncol) loc_srst_ncol.push_back(j + 1); //Actual location 				
+			}
+			//-----
+			//how many missing rows have the same missing pattern as the current missing row
+			//-----
+			const int i_size_loc_srst_ncol = (int)loc_srst_ncol.size();
+
+			//---------------------------------
+			//get current row of missing cell 
+			//---------------------------------
+			for (int j = 0; j<ncol; j++) i_temp_x[j] = mox[i][j];
+			i_sum_x = sum_FHDI(i_temp_x, ncol); //how many non-zeros in current missing row
+
+			std::string s_temp = v_table_tmvec_row1[i]; //string name of ith missing row
+
+			v_cn_z_i.clear(); //re-initialize 
+			which(cn, nrow, s_temp, v_cn_z_i); //Note: Actual location of mox[i] in z is returned
+			int i_size_v_cn_z_i = (int)v_cn_z_i.size(); //number of locations in cn having s_temp
+
+														//----------------------
+														//----------------------
+														//Condition 1: this row's cells are all missing
+														//----------------------
+														//----------------------
+			if (i_sum_x == 0)
+			{
+				//-----------------
+				//make "zid" which means 
+				//the row location of current missing row repeated by number of observed rows
+				//-----------------
+				zid = NULL; //re-initialize; 
+
+							//-----
+							// "i_size_v_cn_z_i" means all the missing rows that have the same pattern as the current missing row
+							// so, below "i_size_zid" means that all the observed rows (nr2) will fill the missing rows 
+							//-----
+				i_size_zid = i_size_v_cn_z_i*nr2;
+				zid = new int[i_size_zid];
+
+				for (int j = 0; j<i_size_v_cn_z_i; j++)
+				{
+					for (int k = 0; k<nr2; k++) //nr2 times repeated copy with the id number 
+					{
+						//NOTE: zid contains ACTUAL id number 
+						//Meaning id's of the missing rows that have the identical pattern as the current missing rows 
+						zid[j*nr2 + k] = id[v_cn_z_i[j] - 1]; //-1 for actual location
+					}
+				}
+
+				//-------------------
+				//get ready w[] at srst = ncol
+				//-------------------
+				w_srst_ncol = NULL; //re-initialize
+				w_srst_ncol = new double[i_size_loc_srst_ncol*nr2];
+				for (int j = 0; j<i_size_loc_srst_ncol; j++)  //repeat each entity by nr2 times
+				{
+					for (int k = 0; k<nr2; k++)
+					{
+						w_srst_ncol[j*nr2 + k] = w[loc_srst_ncol[j] - 1]; //-1 for actual location
+					}
+				}
+
+				//-------------------
+				//get ready second column
+				//-------------------
+				const int z_i_now = v_table_tmvec_row2[i];
+				jp_zi = NULL; //re-initialize 
+				jp_zi = new double[i_size_jp * z_i_now];
+				for (int j = 0; j<z_i_now; j++)  //repeat entire jp..[] by z_i_now times 
+				{
+					for (int k = 0; k<i_size_jp; k++)
+						jp_zi[j*i_size_jp + k] = jp_prob[k] / sum_jp;
+				}
+
+				//-------------------
+				//make a matrix that consists of zid & repeated weights for all missing rows
+				//-------------------
+				double** rst_temp = New_dMatrix(i_size_zid, 2);
+
+				for (int j = 0; j<i_size_v_cn_z_i; j++)
+				{
+					for (int k = 0; k<nr2; k++) //repeated copy of the id number 
+					{
+						i_loc = j*nr2 + k; //serial number of the entire rows of the matrix
+
+										   //first column is zid[]
+						rst_temp[i_loc][0] = zid[i_loc];
+
+						//second column joint prob * weight 
+						rst_temp[i_loc][1] = jp_zi[i_loc] * w_srst_ncol[i_loc];
+					}
+				}
+				//---
+				//Append the entire matrix to rst
+				//---
+				rst.bind_blocks(i_size_zid, 2, rst_temp);
+
+				//testout
+				/*
+				RPrint(" == in Cal_W Condition 1 ==== i: "); RPrint(i);
+				RPrint("zid:"); RPrint(zid, i_size_zid);
+				RPrint("rst:");
+				rst.print_rbind_FHDI();
+				*/
+
+				//---------
+				//local deallocation
+				//---------
+				Del_dMatrix(rst_temp, i_size_zid, 2);
+			}
+
+			//----------------------
+			//----------------------
+			//Condition 2: some cells of current row are not missing
+			//----------------------
+			//----------------------
+			//int nl = 0;
+			if (i_sum_x > 0)
+			{
+				////------
+				////number of observed cells on this row
+				////------
+				//nl = 0; 
+				//for(int j=0; j<ncol; j++) 
+				//{
+				//	if(mox[i][j]>0) nl++; //number of the observed 
+				//}
+				//
+				////-------
+				////indicator matrix that matches the donors
+				////srst: row-wise sum of the indicator matrix 
+				////-------
+				//loc_srst_ncol1.clear(); //re-initialize //Note: this is different from loc_srst_ncol
+				//Fill_iVector(i_srst1, nr2, 0); //re-initialize 
+				//	
+				//for(int j=0; j<nr2; j++)
+				//{
+				//	int i_sum_crst = 0; 
+				//	for(int k=0; k<ncol; k++)
+				//	{
+				//		//Note: in below check, mox is fixed at ith row 
+				//		if(fabs(mox[i][k] - uox[j][k])<1e-3) //part of missing cell = obserbed cell 
+				//		{
+				//			i_sum_crst++; // increment if a cell of the current missing row = obs. cell 
+				//		}
+				//	}
+				//	//---
+				//	//store how many cells of the current missing row match those of the observed row
+				//	//---
+				//	i_srst1[j] = i_sum_crst; 
+				//	
+				//	//---
+				//	//store row number of the observed that matches the current missing row
+				//	//---
+				//	if(i_sum_crst==nl) loc_srst_ncol1.push_back(j+1); //Actual location 				
+				//}
+				//testout
+				/*
+				RPrint(" == in Cal_W Condition2. ====== i: "); RPrint(i);
+				RPrint("nl: "); RPrint(nl);
+				RPrint("srst: "); RPrint(i_srst, nr2);
+				RPrint("loc_srst_ncol: "); RPrint(loc_srst_ncol);
+				*/
+				loc_srst_ncol1.clear(); //re-initialize //Note: this is different from loc_srst_ncol
+				Fill_iVector(i_srst1, nr2, 0); //re-initialize 
+
+				List_nU.get_block_yicheng(i, loc_srst_ncol1);
+				//-----
+				//total number of the observed rows that matches the current missing row
+				//-----
+				const int i_size_loc_srst_ncol1 = (int)loc_srst_ncol1.size();
+				if (i_size_loc_srst_ncol1 == 0) //error case
+
+				{
+					Rprintf("Error! there is no matched cell! \n");
+
+					//deallocation before early return
+					delete[] i_temp_x;
+					delete[] zid;
+					delete[] i_srst;
+					delete[] i_srst1;
+					delete[] w_srst_ncol;
+					delete[] jp_zi;
+
+					return 0;
+				}
+
+
+				if (i_size_loc_srst_ncol1 > 0)
+				{
+					//-----------------
+					//make "zid" which means 
+					//the row location of current missing row repeated by number of observed rows
+					//-----------------
+					zid = NULL; //re-initialize; 
+					i_size_zid = i_size_v_cn_z_i * i_size_loc_srst_ncol1; //Note: .._ncol1 is used NOT .._ncol
+					zid = new int[i_size_zid];
+
+					for (int j = 0; j<i_size_v_cn_z_i; j++)
+					{
+						for (int k = 0; k<i_size_loc_srst_ncol1; k++) //repeated copy of the id number 
+						{
+							//NOTE: zid contains ACTUAL id number 
+							zid[j*i_size_loc_srst_ncol1 + k] = id[v_cn_z_i[j] - 1]; //-1 for actual location
+						}
+					}
+
+					//-------------------
+					//get ready w[] at srst = ncol
+					//-------------------
+					w_srst_ncol = NULL; //re-initialize
+					w_srst_ncol = new double[i_size_loc_srst_ncol * i_size_loc_srst_ncol1];
+					for (int j = 0; j<i_size_loc_srst_ncol; j++)  //repeat each entity 
+					{
+						for (int k = 0; k<i_size_loc_srst_ncol1; k++)
+						{
+							//------
+							//Note: the weights are pulled out from loc_srst_loc NOT .._loc1 
+							//      below "loc_srst_ncol" means the target rows to be imputed later
+							//------
+							w_srst_ncol[j*i_size_loc_srst_ncol1 + k] = w[loc_srst_ncol[j] - 1]; //-1 for actual location
+						}
+					}
+
+					//-------------------
+					//get ready second column
+					//below "loc_srst_ncol1" contains the obs. row numbers that will serve as donor
+					//-------------------
+					double sum_jp_loc = 0.0; //sum of jp only at location where srst = ncol
+					for (int j = 0; j<i_size_loc_srst_ncol1; j++)
+						sum_jp_loc += jp_prob[loc_srst_ncol1[j] - 1];
+
+					const int z_i_now = v_table_tmvec_row2[i];
+					jp_zi = new double[i_size_loc_srst_ncol1 * z_i_now];
+					for (int j = 0; j<z_i_now; j++)  //repeat entire jp..[] by z_i_now times 
+					{
+						for (int k = 0; k<i_size_loc_srst_ncol1; k++)
+							jp_zi[j*i_size_loc_srst_ncol1 + k]
+							= jp_prob[loc_srst_ncol1[k] - 1] / sum_jp_loc;
+					}
+
+
+					//-------------------
+					//make a matrix that consists of zid & repeated uox for all missing rows
+					//-------------------
+					double** rst_temp2 = New_dMatrix(i_size_zid, 2);
+
+					for (int j = 0; j<i_size_v_cn_z_i; j++)
+					{
+						for (int k = 0; k<i_size_loc_srst_ncol1; k++) //repeated copy of the id number 
+						{
+							i_loc = j*i_size_loc_srst_ncol1 + k; //serial number of the entire rows of the matrix
+
+																 //first column is zid[]
+							rst_temp2[i_loc][0] = zid[i_loc];
+
+							//second column. joint prob * weight 
+							rst_temp2[i_loc][1] = jp_zi[i_loc] * w_srst_ncol[i_loc]; //-1 for actual location
+						}
+					}
+					//---
+					//Append the entire matrix to rst
+					//---
+					rst.bind_blocks(i_size_zid, 2, rst_temp2);
+
+					//testout
+					/*
+					RPrint("zid:"); RPrint(zid, i_size_zid);
+					RPrint("rst:");
+					rst.print_rbind_FHDI();
+					*/
+
+					//---------
+					//local deallocation
+					//---------
+					Del_dMatrix(rst_temp2, i_size_zid, ncol + 1);
+				}
+			}
+
+		} //end of LOOP for all missing rows
+
+		  //----------------
+		  //re-order rst in terms of id (the first column)
+		  //----------------
+		const int n_row_rst = rst.size_row();
+		int* i_rst_id = new int[n_row_rst];
+		for (int i = 0; i<n_row_rst; i++) i_rst_id[i] = (int)rst(i, 0);
+		order_FHDI(i_rst_id, n_row_rst); //returned with the order of rows in ascending magnitude
+										 //testout
+										 //RPrint("n_row_rst :"); RPrint(n_row_rst);
+										 //RPrint("i_rst_id :"); RPrint(i_rst_id, n_row_rst);
+
+
+										 //--------------------
+										 //remove the first column with id
+										 //store the rst into the final storage
+										 //--------------------
+		double* d_row_rst = new double[2];
+		double  d_row_rst_short = 0.0;
+		for (int i = 0; i<n_row_rst; i++)
+		{
+			rst.get_block(i_rst_id[i] - 1, d_row_rst); //get a row// -1 for actual loc
+			d_row_rst_short = d_row_rst[1]; //without id  
+			v_rst_final.push_back(d_row_rst_short);	//append a new row to the final storage 
+		}
+
+		//testout
+		//RPrint("End of Cal_W =========="); 
+		//RPrint("v_rst_final:"); RPrint(v_rst_final); 
+
+
+		//-------
+		//local deallocation
+		//-------
+		delete[] i_temp_x;
+		delete[] zid;
+		delete[] i_srst;
+		delete[] i_srst1;
+		delete[] w_srst_ncol;
+		delete[] jp_zi;
+		delete[] i_rst_id;
+		delete[] d_row_rst;
+
+		return 1;
+	}
+
+} //end of namespace
+
 
 //Fn===========================================================================
 
@@ -18827,7 +22970,7 @@ bool Cell_Prob_Extension_cpp(double** z, const int nrow, const int ncol,
 	}
 
 
-
+	//Rprintf("========= Cell_Prob_Extension.. has successfully finished! \n");
 
 
 	//-------------
@@ -19465,6 +23608,7 @@ namespace FHDI {
 
 		//testout
 		//RPrint(" ========= Cell_Prob_Extension.. has successfully finished!", TestOut);
+		//Rprintf("========= Cell_Prob_Extension_Bigp.. has successfully finished! \n");
 
 		//-------------
 		//deallocation
@@ -19495,6 +23639,609 @@ namespace FHDI {
 
 } //end of namespace
 
+
+  //Fn===========================================================================
+
+  //Cell_Prob_Neighbor_cpp.cc-----------------------------------------------------------------------------
+
+  //Fn===========================================================================
+
+namespace FHDI {
+
+
+	bool Cell_Prob_Neighbor_cpp(double** z, const int nrow, const int ncol, List_FHDI &List_nU,
+		std::vector<double> &jp_prob_return,
+		std::vector<std::string> &jp_name_return,
+		double* w, int* id)
+
+		//Description=========================================
+		// make joint probability of cells with the categorized matrix z 
+		// where 0 means missing data
+		//
+		//
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+		// c++ code: 		Dr. Cho, I. and Yicheng Yang
+		// All rights reserved
+		// 
+		// updated: Aug 11, 2020
+		//----------------------------------------------------
+		//IN    : double z(nrow, ncol)  = catorized matrix corresponding to original matrix x
+		//                                initialized with 0.0 
+		//IN    : double w(nrow) = weights for rows (default = 1.0)
+		//IN    : int    id(nrow) = row id (default = sequential row numbers)
+		//
+		//OUT   : std::vector<double>      jp_prob_return  = final updated joint probability 
+		//OUT   : std::vector<std::string> jp_name_return  = name of final updated joint probability 
+		//====================================================
+	{
+		//testout
+
+		//-------------
+		//maximum number of iterations for updating weights
+		//-------------
+		const int n_maximum_iteration = nrow * 100; //set by user!
+
+
+													//--------------
+													//locations of missing cells (ml) and observed cells (ol)
+													//Note: unlike in Cell_Make..(), std vector is used here
+													//--------------
+		std::vector<int> ol; //Actual row number 
+		std::vector<int> ml; //Actual row number 
+
+		double d_temp = 0.0;
+		for (int i_row = 0; i_row<nrow; i_row++)
+		{
+			d_temp = 1.0;
+			for (int i_col = 0; i_col<ncol; i_col++)
+			{
+				if (z[i_row][i_col] == 0) { d_temp = 0.0; break; } //found zero, i.e. missing cell
+			}
+
+			if (fabs(d_temp) > 1e-15) //this row has no missing cells
+			{
+				ol.push_back(i_row + 1);
+			} //actual number of the row having no missing cells
+
+			if (fabs(d_temp) < 1e-15) //this row has AT LEAST one missing cells
+			{
+				ml.push_back(i_row + 1);
+			}  //actual number of the row having missing cells
+		}
+		const int i_size_ol = (int)ol.size();
+		const int i_size_ml = (int)ml.size();
+
+		if (i_size_ol == 0) { Rprintf("Error! no observed unit in Cell_Prob. \n"); return 0; }
+
+		if (i_size_ml == 0) { Rprintf("Error! no missing  unit in Cell_Prob. \n"); return 0; }
+
+		//----------------
+		//weights corresponding to missing rows. Will be used for Cal_W..() later
+		//select out weights at missing rows
+		//----------------
+		double* w_ml = new double[i_size_ml];
+		for (int i = 0; i<i_size_ml; i++) w_ml[i] = w[ml[i] - 1]; //-1 for actual loc
+
+																  //--------------
+																  //Rows having only observed data (categorized) 
+																  //Rows having AT LEAST one missing data (categorized)
+																  //--------------
+		double** d_ox = New_dMatrix(i_size_ol, ncol);
+		double** d_mx = New_dMatrix(i_size_ml, ncol);
+		for (int i = 0; i<i_size_ol; i++)
+		{
+			for (int j = 0; j<ncol; j++)
+			{
+				d_ox[i][j] = z[ol[i] - 1][j]; //-1 for Actual loc
+			}
+		}
+		for (int i = 0; i<i_size_ml; i++)
+		{
+			for (int j = 0; j<ncol; j++)
+			{
+				d_mx[i][j] = z[ml[i] - 1][j];	//-1 for Actual loc
+			}
+		}
+
+		//--------------
+		//transform z into condensed string format
+		//--------------
+		//std::string cn[nrow]; //declaration of concatenated vector of z
+		//std::string cn0[nrow]; //backup of cn
+		std::string *cn = new std::string[nrow]; //declaration of concatenated vector of z
+		std::string *cn0 = new std::string[nrow]; //backup of cn	
+		Trans(z, nrow, ncol, cn);
+		for (int i = 0; i<nrow; i++) cn0[i] = cn[i];
+
+		//---------------
+		//Rows of Condensed Strings with Observed cells
+		//                          with AT LEAT One Missing  cell
+		//---------------
+		//std::string s_ocn[i_size_ol];
+		//std::string s_mcn[i_size_ml];
+		std::string *s_ocn = new std::string[i_size_ol];
+		std::string *s_mcn = new std::string[i_size_ml];
+		for (int i = 0; i<i_size_ol; i++) s_ocn[i] = cn[ol[i] - 1]; //-1 for actual row
+		for (int i = 0; i<i_size_ml; i++) s_mcn[i] = cn[ml[i] - 1]; //-1 for actual row
+
+																	//---------------------
+																	//---------------------
+																	//make UNIQUE patterns of z by cn
+																	//i.e., uox and mox
+																	//---------------------
+																	//step. Sort the "cn"
+																	//---------------------
+																	//std::string s_ocn_temp[i_size_ol]; //string vector of observed patterns only
+																	//std::string s_mcn_temp[i_size_ml]; //string vector of missing patterns only
+		std::string *s_ocn_temp = new std::string[i_size_ol]; //string vector of observed patterns only
+		std::string *s_mcn_temp = new std::string[i_size_ml]; //string vector of missing patterns only	
+		for (int i = 0; i<i_size_ol; i++) { s_ocn_temp[i] = s_ocn[i]; }
+		for (int i = 0; i<i_size_ml; i++) { s_mcn_temp[i] = s_mcn[i]; }
+
+		std::sort(s_ocn_temp, s_ocn_temp + i_size_ol); //knowing that s_ocn_temp[] has i_size_ol entities
+		std::sort(s_mcn_temp, s_mcn_temp + i_size_ml); //knowing that s_mcn_temp[] has i_size_ml entities
+
+													   //------------
+													   //memorize observed patterns 
+													   //------------
+		double** uox = New_dMatrix(nrow, ncol);
+		double** mox = New_dMatrix(nrow, ncol);
+
+		int i_count_uox = 0; //total number of unique uox 
+		std::string s_temp;
+		for (int i = 0; i<i_size_ol; i++)
+		{
+			s_temp = s_ocn_temp[i]; //get a string 
+			for (int j = 0; j<nrow; j++) //search all rows 
+			{
+				//----
+				//below condition is needed for finding UNIQUE pattern
+				//----
+				//if(j==0 && s_temp == cn[j]) 
+				//if(i==0 && s_temp == cn[j]) //with first string, find the same string in cn 
+				if (i == 0 && s_temp.compare(cn[j]) == 0) //0: equal string
+				{
+					for (int k = 0; k<ncol; k++)
+					{
+						uox[i_count_uox][k] = z[j][k];
+					} //store the found observed pattern
+					i_count_uox++;
+					break;
+				}
+				//if(j>0 && s_temp == cn[j] && s_temp != cn[j-1])
+				//if(i>0 && s_temp == cn[j] && s_temp != s_ocn_temp[i-1]) //find UNIQUE matching 
+				if (i>0 && s_temp.compare(cn[j]) == 0 && s_temp.compare(s_ocn_temp[i - 1]) != 0)
+				{
+					for (int k = 0; k<ncol; k++)
+					{
+						uox[i_count_uox][k] = z[j][k];
+					} //store the found observed pattern				
+					i_count_uox++;
+					break;
+				}
+			}
+		}
+		//Now, i_count_uox means the total number of unique observed patterns
+
+		//------------
+		//memorize missing patterns 
+		//------------
+		int i_count_mox = 0; //total number of unique mox 
+
+		for (int i = 0; i<i_size_ml; i++)
+		{
+			s_temp = s_mcn_temp[i]; //get a string 
+			for (int j = 0; j<nrow; j++) //search all rows 
+			{
+				//----
+				//below condition is needed for finding unique pattern
+				//----
+				//if(j==0 && s_temp == cn[j]) 
+				//if(i==0 && s_temp == cn[j]) //with first string, find matching string in cn
+				if (i == 0 && s_temp.compare(cn[j]) == 0) //0: equal string 
+				{
+					for (int k = 0; k<ncol; k++)
+					{
+						mox[i_count_mox][k] = z[j][k];
+					} //store the found missing pattern
+					i_count_mox++;
+					break;
+				}
+				//if(j>0 && s_temp == cn[j] && s_temp != cn[j-1])
+				//if(i>0 && s_temp == cn[j] && s_temp != s_mcn_temp[i-1]) //find UNIQUE matching string
+				if (i>0 && s_temp.compare(cn[j]) == 0 && s_temp.compare(s_mcn_temp[i - 1]) != 0) //0: equal
+				{
+					for (int k = 0; k<ncol; k++)
+					{
+						mox[i_count_mox][k] = z[j][k];
+					} //store the found missing pattern				
+					i_count_mox++;
+					break;
+				}
+			}
+		}
+		//Now, i_count_mox means the total number of unique missing patterns
+
+		//----------------
+		//additional check for unique observed and missing patterns
+		//----------------
+		//observed patterns//
+		d_temp = 0.0;
+		double** uox_final = New_dMatrix(nrow, ncol);
+		for (int j = 0; j<ncol; j++) { uox_final[0][j] = uox[0][j]; } //first row initialization
+		int i_count_uox_final = 1; //starting from the second row
+
+		for (int i = 1; i<i_count_uox; i++) //starting from the second one
+		{
+			d_temp = 0.0; //initialize 
+			for (int j = 0; j<ncol; j++) { d_temp += fabs(uox[i][j] - uox[i - 1][j]); } //difference of adjacent rows
+
+			if (d_temp > 1e-3) //adjacent rows are NOT the same each other
+			{
+				for (int j = 0; j<ncol; j++) { uox_final[i_count_uox_final][j] = uox[i][j]; }
+				i_count_uox_final++;
+			}
+		}
+		i_count_uox = i_count_uox_final; //replace with the accurate value
+										 //store the final matrix 
+		for (int i = 0; i<i_count_uox; i++)
+		{
+			for (int j = 0; j<ncol; j++)
+				uox[i][j] = uox_final[i][j];
+		}
+		Del_dMatrix(uox_final, nrow, ncol);
+
+		//--------------------------
+		//missing patterns//
+		//--------------------------
+		double** mox_final = New_dMatrix(nrow, ncol);
+		for (int j = 0; j<ncol; j++) { mox_final[0][j] = mox[0][j]; } //first row initialization
+		int i_count_mox_final = 1; //starting from the second row
+
+		for (int i = 1; i<i_count_mox; i++) //starting from the second one
+		{
+			d_temp = 0.0; //initialize
+			for (int j = 0; j<ncol; j++) { d_temp += fabs(mox[i][j] - mox[i - 1][j]); } //difference of adjacent rows
+
+			if (d_temp > 1e-3) //adjacent rows are NOT the same each other
+			{
+				for (int j = 0; j<ncol; j++) { mox_final[i_count_mox_final][j] = mox[i][j]; }
+				i_count_mox_final++;
+			}
+		}
+		i_count_mox = i_count_mox_final; //replace with the accurate value
+
+										 //store the final matrix	
+		for (int i = 0; i<i_count_mox; i++)
+		{
+			for (int j = 0; j<ncol; j++)
+				mox[i][j] = mox_final[i][j];
+		}
+		Del_dMatrix(mox_final, nrow, ncol);
+
+		//!!!!! now uox and mox have the UNIQUE observed and missing patterns
+		//!!!!! i_count_mox and _uox have the final number of meaningful rows of mox and uox, respectively
+
+		//------------------
+		//sort mcn and make a table
+		//------------------
+		for (int i = 0; i<i_size_ml; i++) s_mcn_temp[i] = s_mcn[i];
+		std::sort(s_mcn_temp, s_mcn_temp + i_size_ml);
+
+		std::vector<std::string> v_table_tmvec_row1; //names of the table
+		std::vector<int> 		 v_table_tmvec_row2; //counts of the table
+		table_cpp(s_mcn_temp, i_size_ml, v_table_tmvec_row1, v_table_tmvec_row2);
+
+		//testout
+		//RPrint("============ Cell_Prob before AGMAT==============", TestOut);
+		/*
+		RPrint("z :"); RPrint(z, nrow, ncol);
+		RPrint("ol:"); RPrint(ol);
+		RPrint("ml:"); RPrint(ml);
+		RPrint("ox:"); RPrint(d_ox, i_size_ol, ncol);
+		RPrint("mx:"); RPrint(d_mx, i_size_ml, ncol);
+		RPrint("ocn:"); RPrint(s_ocn, i_size_ol);
+		RPrint("mcn:"); RPrint(s_mcn, i_size_ml);
+		RPrint("uox:"); RPrint(uox, i_count_uox, ncol);
+		RPrint("mox:"); RPrint(mox, i_count_mox, ncol);
+		RPrint("Table of mcn. counts: "); RPrint(v_table_tmvec_row2);
+		*/
+
+		//-------------------
+		//Augment observed cells for missing patterns
+		//algorithm: 
+		// for each missing pattern, find all the possible donors
+		// e.g., 
+		// (1) a missing row   = 000
+		// 	   agmat           = all observed rows
+		// (2) a missing row   = a01
+		//     agmat           = ac1, af1, a11, ..., az1. 
+		//-------------------
+		rbind_FHDI agmat(ncol); //Note: without the first column of id
+		bool b_success_AGMAT_neighbor = AGMAT_Neighbor_cpp(mox, i_count_mox,
+			uox, i_count_uox,
+			ncol, id,
+			v_table_tmvec_row1,
+			v_table_tmvec_row2,
+			cn, nrow, List_nU,
+			agmat);
+
+		if (!b_success_AGMAT_neighbor)
+		{
+			Rprintf("Error! AGMAT KNN Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+			//deallocation before early return
+			delete[] w_ml;
+			Del_dMatrix(d_ox, i_size_ol, ncol);
+			Del_dMatrix(d_mx, i_size_ml, ncol);
+			delete[] cn;
+			delete[] cn0;
+			delete[] s_ocn;
+			delete[] s_mcn;
+			delete[] s_ocn_temp;
+			delete[] s_mcn_temp;
+			Del_dMatrix(uox, nrow, ncol);
+			Del_dMatrix(mox, nrow, ncol);
+
+			return 0; //abnormal ending 								
+		}
+
+		const int n_row_agmat = agmat.size_row(); //get the number of rows 
+
+												  //---------
+												  //Translate 1. existing ox (rows with full observations) & 2. agmat
+												  //without appending the augmented rows onto the previous ox, i.e. the existing rows with observations
+												  //---------
+		const int i_total_ox_agmat = i_size_ol + n_row_agmat;
+		double* d_fmat1 = new double[ncol]; //one row of observations
+		std::string s_fcd1; //one row of translated string 
+							//std::string s_fcd[i_total_ox_agmat]; //total rows of translated ox and augmat
+		std::string *s_fcd = new std::string[i_total_ox_agmat]; //total rows of translated ox and augmat
+
+		for (int i = 0; i<i_total_ox_agmat; i++)
+		{
+			if (i<i_size_ol) //up to all ox rows 
+			{
+				for (int j = 0; j<ncol; j++) d_fmat1[j] = d_ox[i][j];
+				Trans1(d_fmat1, ncol, s_fcd1);
+				s_fcd[i] = s_fcd1;
+			}
+			if (i >= i_size_ol) // all augmat rows 
+			{
+				Fill_dVector(d_fmat1, ncol, 0.0); //re-initialize
+				agmat.get_block(i - i_size_ol, d_fmat1); //row number of agmat = 0...n_row_agmat-1
+				Trans1(d_fmat1, ncol, s_fcd1);
+				s_fcd[i] = s_fcd1;
+			}
+		}
+
+		//-------------
+		//sampling weight of the observed unit
+		//-------------
+		double* w1 = new double[i_size_ol];
+		for (int i = 0; i<i_size_ol; i++) w1[i] = w[ol[i] - 1]; //-1 for actual location
+
+																//testout
+																/*
+																RPrint("After AUGMAT ==========");
+																RPrint("agmat:"); agmat.print_rbind_FHDI();
+																RPrint("s_fcd:"); RPrint(s_fcd, i_total_ox_agmat);
+																RPrint("w1:"); RPrint(w1, i_size_ol);
+																*/
+
+																//----------------
+																//calculate weighted joint probability
+																//Note: Initial jp is calculated only
+																//with all the OBSERVED condensed strings in s_ocn
+																//NOT with Augmented data matix 
+																//-----------------
+		std::vector<std::string> jp_name;
+		std::vector<double>		 jp_prob;
+		wpct_FHDI(s_ocn, i_size_ol, w1, jp_name, jp_prob);
+		const int i_size_jp_prob = (int)jp_prob.size();
+
+		//testout
+		//RPrint("After wpct initial ==========", TestOut);
+		/*
+		RPrint("After wpct initial ==========");
+		std::string s_temp_jp[i_size_jp_prob];
+		for(int i=0; i<i_size_jp_prob; i++) s_temp_jp[i] = jp_name[i];
+		RPrint("jp_name:"); RPrint(s_temp_jp, i_size_jp_prob);
+		RPrint("jp_prob:"); RPrint(jp_prob);
+		*/
+
+		//===================================
+		//===================================
+		//Cal_W(): update new weights and the joint probability of cells
+		//===================================
+		//===================================
+		std::vector<double> 		w20; //new storage for updated weights  
+		std::vector<double>		 	jp_prob_0; //probability backup in the loop
+		std::vector<std::string> 	jp_name_new;
+		std::vector<double>		 	jp_prob_new;
+		for (int j = 0; j<i_size_jp_prob; j++)
+		{
+			jp_name_new.push_back(jp_name[j]); //initialize with jp_prob
+			jp_prob_new.push_back(jp_prob[j]); //initialize with jp_prob 
+		}
+
+		//MAIN ITERATION for Updating weights =======================
+		for (int i_loop = 0; i_loop<n_maximum_iteration; i_loop++)
+		{
+			//------------
+			//intialize with the updated joint probability
+			//------------
+			jp_prob_0.clear(); //re-initialize 
+			for (int j = 0; j<i_size_jp_prob; j++)
+			{
+				jp_prob_0.push_back(jp_prob_new[j]); //initialize with jp_prob_new 
+			}
+
+
+			//---------------------------------------
+			//update weights, w20[] 
+			//Note: prob must be the newest one! i.e. jp_prob_new
+			//---------------------------------------
+			w20.clear();  //re-initialize 
+			bool b_success_Cal_W_neighbor = Cal_W_Neighbor_cpp(mox, i_count_mox,
+				uox, i_count_uox,
+				ncol, id, List_nU,
+				v_table_tmvec_row1,
+				v_table_tmvec_row2,
+				jp_prob_new,
+				d_mx, i_size_ml,
+				w_ml, cn0, nrow,
+				w20);
+
+
+			if (!b_success_Cal_W_neighbor)
+			{
+
+				Rprintf("Error! Cal_W KNN has failed! \n");
+
+				//deallocation before early return
+				delete[] w_ml;
+				Del_dMatrix(d_ox, i_size_ol, ncol);
+				Del_dMatrix(d_mx, i_size_ml, ncol);
+				delete[] cn;
+				delete[] cn0;
+				delete[] s_ocn;
+				delete[] s_mcn;
+				delete[] s_ocn_temp;
+				delete[] s_mcn_temp;
+				Del_dMatrix(uox, nrow, ncol);
+				Del_dMatrix(mox, nrow, ncol);
+				//up to here, memory allocated before AGMAT...			
+				delete[] d_fmat1;
+				delete[] s_fcd;
+				delete[] w1;
+
+				return 0;
+			}
+
+
+			//-----------
+			//combine new weights
+			//-----------
+			double* w12 = new double[i_total_ox_agmat];
+			for (int j = 0; j<i_total_ox_agmat; j++)
+			{
+				if (j<i_size_ol) //weights of existing w1
+				{
+					w12[j] = w1[j];
+				}
+				if (j >= i_size_ol) //updated weights 
+				{
+					w12[j] = w20[j - i_size_ol];
+				}
+			}
+
+			//-----------
+			//new joint probability
+			//Note: Unlike the initial jp, 
+			//new augmented matrix along with the updated weight vector are used for the jp update 
+			//-----------
+			jp_name_new.clear(); //re-initialize
+			jp_prob_new.clear(); //re-initialize
+			wpct_FHDI(s_fcd, i_total_ox_agmat, w12, jp_name_new, jp_prob_new);
+
+			//------------
+			//calculate difference in the joint probability
+			//------------
+			double dif = 0.0;
+			for (int j = 0; j<i_size_jp_prob; j++)
+				dif += (jp_prob_0[j] - jp_prob_new[j])*(jp_prob_0[j] - jp_prob_new[j]);
+
+			//testout
+			//RPrint(" in Cal_W ----------- i_loop: "); RPrint(i_loop);
+			//RPrint(" dif: "); RPrint(dif);
+			//RPrint(" jp_prob_0: "); RPrint(jp_prob_0);
+			//RPrint(" jp_prob_new: "); RPrint(jp_prob_new);
+
+			if (dif < 1e-6)
+			{
+				//TestOut<<" Cell_Prob with KNN... finished after iterations : "<< i_loop+1<<endl;
+				break;
+			}
+
+			//------------
+			//check max iterations
+			//------------
+			if (i_loop == n_maximum_iteration - 1)
+			{
+				Rprintf("CAUTION!! max iteration reached in Cell_Prob KNN. \n");
+
+				//deallocation before early return
+				delete[] w_ml;
+				Del_dMatrix(d_ox, i_size_ol, ncol);
+				Del_dMatrix(d_mx, i_size_ml, ncol);
+				delete[] cn;
+				delete[] cn0;
+				delete[] s_ocn;
+				delete[] s_mcn;
+				delete[] s_ocn_temp;
+				delete[] s_mcn_temp;
+				Del_dMatrix(uox, nrow, ncol);
+				Del_dMatrix(mox, nrow, ncol);
+				//up to here, memory allocated before AGMAT...			
+				delete[] d_fmat1;
+				delete[] s_fcd;
+				delete[] w1;
+				//below is for local 
+				delete[] w12;
+
+				return 0;
+			}
+
+			//------------
+			//local deallocation
+			//------------
+			delete[] w12;
+		}
+
+
+		//---------------------------
+		//prep return 
+		//the latest joint probability
+		//---------------------------
+		jp_prob_return.clear();
+		jp_name_return.clear();
+		for (int j = 0; j<i_size_jp_prob; j++)
+		{
+			jp_prob_return.push_back(jp_prob_new[j]); //return with jp_prob_new
+			jp_name_return.push_back(jp_name_new[j]); //return with jp_name_new		
+		}
+
+		//testout
+		//RPrint(" ========= Cell_Prob_Extension.. has successfully finished!", TestOut);
+		//Rprintf("========= Cell_Prob_Extension_KNN.. has successfully finished! \n");
+		//-------------
+		//deallocation
+		//-------------
+		//delete[] w;
+		delete[] w_ml;
+		delete[] w1;
+		//delete[] id; 
+		delete[] d_fmat1;
+		Del_dMatrix(d_ox, i_size_ol, ncol);
+		Del_dMatrix(d_mx, i_size_ml, ncol);
+		Del_dMatrix(mox, nrow, ncol);
+		Del_dMatrix(uox, nrow, ncol);
+
+		delete[] cn;
+		delete[] cn0;
+		delete[] s_ocn;
+		delete[] s_mcn;
+		delete[] s_fcd;
+
+		delete[] s_ocn_temp;
+		delete[] s_mcn_temp;
+
+		return 1;
+
+	}
+
+} //end of namespace
 
 
 //Fn===========================================================================
@@ -20429,9 +25176,6 @@ void Fractional_Hot_Deck_Imputation(const int i,
 
 		double d_Rg = d_myran;
 
-		
-
-		
 
 		//double d_Rg = 0.0633672; //for debugging !!!
 
@@ -23825,7 +28569,9 @@ void yorder(double** y, const int nrow, const int ncol,
 
 		bool b_success_VM = Inverse_dMatrix_FHDI(VM_backup, i_size_rloc, VM_inv); //backup is to avoid pivotting of VM
 
-		if(!b_success_VM){ Rprintf("CAUTION! inverse matrix may be incorrect!");}
+		//if(!b_success_VM){ Rprintf("CAUTION! inverse matrix may be incorrect!");}
+
+		if (!b_success_VM) {} // Updated on Aug 19, 2020 by Yicheng Yang, this error message is inside main loop, which prints so many times!!!
 		
 		for(int j=0; j<i_size_v_loc; j++)
 
@@ -25745,6 +30491,1731 @@ namespace FHDI {
 
 } //end of namespace
 
+
+  //Fn===========================================================================
+
+  //FHDI_Neighbor_cpp.cc-----------------------------------------------------------------------------
+
+  //Fn===========================================================================
+
+namespace FHDI {
+
+	bool FHDI_Neighbor_cpp(double** y, double** z, int** r,
+
+		const int nrow, const int ncol,
+
+		std::vector<std::string> jp_name,
+
+		std::vector<double> 	 jp_prob,
+
+		std::string s_M, const int i_M, double* w, int* id, List_FHDI &List_nU,
+
+
+
+		rbind_FHDI &rbind_ipmat_FEFI,
+
+		rbind_FHDI &rbind_Resp_FEFI,
+
+		rbind_FHDI &rbind_irmat_FEFI,
+
+
+
+		rbind_FHDI &rbind_ipmat_FHDI,
+
+		rbind_FHDI &rbind_Resp_FHDI,
+
+		rbind_FHDI &rbind_irmat_FHDI,
+
+
+
+		rbind_FHDI &rbind_uox,
+
+		rbind_FHDI &rbind_mox,
+
+		List_FHDI  &List_ord,
+
+		List_FHDI  &List_ocsg)
+
+		//Description=========================================
+
+		// perform
+
+		// Fully Efficient Fractional Imputation OR
+
+		// Fractional Hot Deck Imputation
+
+		// 
+
+		// Algorithm: FEFI of Dr Jae Kwang. Kim and FHDI of Dr Jong Ho. Im
+
+		//
+
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+
+		// c++ code: 		Dr. Cho, In-Ho and Yicheng Yang
+
+		// All rights reserved
+
+		// 
+
+		// updated: Aug 11, 2020
+
+		//----------------------------------------------------
+
+		//IN    : double y(nrow, ncol)= original data matrix with missing cells 
+
+		//IN    : double z(nrow, ncol)= categorized matrix of y. 0 for missing cell
+
+		//IN    : int    r(nrow, ncol) = index matrix of missing unit (0)/observed unit (1)  
+
+		//IN	: vector<string> jp_name  = name of table of joint probability
+
+		//IN	: vector<double> jp_prob  = joint probability 
+
+		//IN  	: string s_M = "FEFI" fully efficient fractional imputation 
+
+		// 					   "FHDI" Fractional Hot Deck Imputation  
+
+		//IN    : int i_M = number of donors used for FHDI
+
+		//OUT   : rbind_FHDI  rbind_ipmat_FEFI(4+ncol); //column size is 4+ncol (i.e., for R: ID, FID, WGT, FWGT, Variables)
+
+		//OUT   : rbind_FHDI  rbind_Resp_FEFI(ncol+1);  //separate response matrix  (i.e. for R: unit responses and Resp0)
+
+		//OUT   : rbind_FHDI  rbind_irmat_FEFI(5+ncol); //column size is 5+ncol (i.e. for R:ID, FID, OID, ORDER, FEFIW, CELL )
+
+		//OUT   : rbind_FHDI  rbind_ipmat_FHDI(4+ncol); //column size is 4+ncol
+
+		//OUT   : rbind_FHDI  rbind_Resp_FHDI(ncol+1);  //separate response matrix  
+
+		//OUT   : rbind_FHDI  rbind_irmat_FHDI(5+ncol); //column size is 5+ncol
+
+		//OUT   : rbind_FHDI  rbind_uox (ncol) //observed unique categorized matrix
+
+		//OUT   : rbind_FHDI  rbind_mox (ncol) //missing  unique categorized matrix
+
+		//OUT   : List_FHDI   List_ord(nrow) //but meaningful up to i_count_mox rows; List_ord(nrow_mox) record transform from ascending donor locations to half-a-half-d order
+
+		//OUT   : List_FHDI   List_ocsg(nrow)//but meaningful up to i_count_mox rows; List_ocsg(nrow_mox) record half-a-half-d donor locations in z 
+
+		//====================================================
+
+	{
+
+		//-----------------
+
+		//random location using uniform distribution   
+
+		//using Numerical Recipes of Press et al 2007. 
+
+		//-----------------
+
+		//Ran_FHDI myran(1); 	//not used for CRAN Compatibility
+
+		//std::srand(123); //window version 
+
+
+		//set.seed(123);// R package version, this should be done at R main 
+
+		double d_myran = 0.0;
+
+
+
+
+
+		//-------------
+
+		//column-wise sum of r matrix
+
+		//-------------
+
+		int* i_rn = new int[ncol];
+
+		int i_temp = 0;
+
+		for (int i = 0; i<ncol; i++)
+
+		{
+
+			i_temp = 0;
+
+			for (int j = 0; j<nrow; j++) i_temp += r[j][i];
+
+			i_rn[i] = i_temp;
+
+		}
+
+
+
+		//-------------
+
+		//sample weight (default is 1)
+
+		//id array (default is row number)
+
+		//-------------
+		/*
+
+		double* w = new double[nrow];
+
+		int* id   = new int[nrow];
+
+		for(int i=0; i<nrow; i++)
+
+		{
+
+		w[i] = 1.0;
+
+		id[i] = i+1; //ACTUAL id
+
+		}
+		*/
+
+
+
+		//--------------
+
+		//locations of missing cells (ml) and observed cells (ol)
+
+		//Note: unlike in Cell_Make..(), std vector is used here
+
+		//--------------
+
+		std::vector<int> ol; //Actual row number 
+
+		std::vector<int> ml; //Actual row number 
+
+
+
+		double d_temp = 0.0;
+
+		for (int i_row = 0; i_row<nrow; i_row++)
+
+		{
+
+			d_temp = 1.0;
+
+			for (int i_col = 0; i_col<ncol; i_col++)
+
+			{
+
+				if (z[i_row][i_col] == 0) { d_temp = 0.0; break; } //found zero, i.e. missing cell
+
+			}
+
+
+
+			if (fabs_FHDI(d_temp) > 1e-15) //this row has no missing cells
+
+			{
+				ol.push_back(i_row + 1);
+			} //actual number of the row having no missing cells
+
+
+
+			if (fabs_FHDI(d_temp) < 1e-15) //this row has AT LEAST one missing cells
+
+			{
+				ml.push_back(i_row + 1);
+			}  //actual number of the row having missing cells
+
+		}
+
+		const int i_size_ol = (int)ol.size();
+
+		const int i_size_ml = (int)ml.size();
+
+		if (i_size_ol == 0) { Rprintf("Error! no observed unit in FHDI_Extension. \n"); return 0; }
+
+		if (i_size_ml == 0) { Rprintf("Error! no missing  unit in FHDI_Extension. \n"); return 0; }
+
+
+
+		//--------------
+
+		//Rows of observed RAW data 
+
+		//Rows of missing  RAW data
+
+		//--------------
+
+		double** d_oy = New_dMatrix(i_size_ol, ncol);
+
+		double** d_my = New_dMatrix(i_size_ml, ncol);
+
+		for (int i = 0; i<i_size_ol; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++)
+
+			{
+
+				d_oy[i][j] = y[ol[i] - 1][j]; //-1 for Actual loc
+
+			}
+
+		}
+
+		for (int i = 0; i<i_size_ml; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++)
+
+			{
+
+				d_my[i][j] = y[ml[i] - 1][j];	//-1 for Actual loc
+
+			}
+
+		}
+
+
+
+		//--------------
+
+		//Rows of observed data 
+
+		//Rows of missing data
+
+		//--------------
+
+		double** d_ox = New_dMatrix(i_size_ol, ncol);
+
+		double** d_mx = New_dMatrix(i_size_ml, ncol);
+
+		for (int i = 0; i<i_size_ol; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++)
+
+			{
+
+				d_ox[i][j] = z[ol[i] - 1][j]; //-1 for Actual loc
+
+			}
+
+		}
+
+		for (int i = 0; i<i_size_ml; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++)
+
+			{
+
+				d_mx[i][j] = z[ml[i] - 1][j];	//-1 for Actual loc
+
+			}
+
+		}
+
+
+
+		//----------------
+
+		//weights corresponding to missing/observed rows. 
+
+		//select out weights at missing rows and observed rows
+
+		//----------------
+
+		double* w_ml = new double[i_size_ml]; //same as mw
+
+		double* w_ol = new double[i_size_ol]; //same as ow
+
+		for (int i = 0; i<i_size_ml; i++) w_ml[i] = w[ml[i] - 1]; //-1 for actual loc
+
+		for (int i = 0; i<i_size_ol; i++) w_ol[i] = w[ol[i] - 1]; //-1 for actual loc
+
+
+
+																  //----------------
+
+																  //index corresponding to missing/observed rows. 
+
+																  //select out weights at missing rows and observed rows
+
+																  //----------------
+
+		int* id_ml = new int[i_size_ml]; //same as mid
+
+		int* id_ol = new int[i_size_ol]; //same as oid
+
+		for (int i = 0; i<i_size_ml; i++) id_ml[i] = id[ml[i] - 1]; //-1 for actual loc
+
+		for (int i = 0; i<i_size_ol; i++) id_ol[i] = id[ol[i] - 1]; //-1 for actual loc
+
+
+
+																	//-------------------------------
+
+																	//Step 1: generate uox and mox
+
+																	//-------------------------------
+
+																	//make UNIQUE patterns of z by cn
+
+																	//--------------
+
+																	//transform z into condensed string format
+
+																	//--------------
+
+																	//std::string cn[nrow]; //declaration of concatenated vector of z
+
+		std::string *cn = new std::string[nrow]; //declaration of concatenated vector of z
+
+		Trans(z, nrow, ncol, cn);
+
+
+
+		//---------------
+
+		//Rows of Condensed Strings with Observed cells
+
+		//                          with Missing  cells
+
+		//---------------
+
+		//std::string s_ocn[i_size_ol];
+
+		//std::string s_mcn[i_size_ml];
+
+		std::string *s_ocn = new std::string[i_size_ol];
+
+		std::string *s_mcn = new std::string[i_size_ml];
+
+		for (int i = 0; i<i_size_ol; i++) s_ocn[i] = cn[ol[i] - 1]; //-1 for actual row
+
+		for (int i = 0; i<i_size_ml; i++) s_mcn[i] = cn[ml[i] - 1]; //-1 for actual row
+
+
+
+
+
+		std::string *s_ocn_temp = new std::string[i_size_ol]; //string vector of observed patterns only
+
+		std::string *s_mcn_temp = new std::string[i_size_ml]; //string vector of missing patterns only	
+
+		for (int i = 0; i<i_size_ol; i++) { s_ocn_temp[i] = s_ocn[i]; }
+
+		for (int i = 0; i<i_size_ml; i++) { s_mcn_temp[i] = s_mcn[i]; }
+
+		//sort 		
+
+		std::sort(s_ocn_temp, s_ocn_temp + i_size_ol); //knowing that s_ocn_temp[] has i_size_ol entities
+
+		std::sort(s_mcn_temp, s_mcn_temp + i_size_ml); //knowing that s_mcn_temp[] has i_size_ml entities
+
+
+
+													   //------------
+
+													   //memorize observed patterns. Only unique patterns are stored  
+
+													   //------------
+
+		double** uox = New_dMatrix(nrow, ncol);
+
+		double** mox = New_dMatrix(nrow, ncol);
+
+
+
+		int i_count_uox = 0; //total number of unique uox 
+
+		std::string s_temp;
+
+		for (int i = 0; i<i_size_ol; i++)
+
+		{
+
+			s_temp = s_ocn_temp[i]; //get a string 
+
+			for (int j = 0; j<nrow; j++) //search all rows 
+
+			{
+
+				//----
+
+				//below condition is needed for finding UNIQUE pattern
+
+				//----
+
+				//if(j==0 && s_temp == cn[j]) 
+
+				//if(i==0 && s_temp == cn[j]) //with first string, find the same string in cn 
+
+				if (i == 0 && s_temp.compare(cn[j]) == 0) //0: equal string
+
+				{
+
+					for (int k = 0; k<ncol; k++)
+
+					{
+						uox[i_count_uox][k] = z[j][k];
+					} //store the found observed pattern
+
+					i_count_uox++;
+
+					break;
+
+				}
+
+				//if(j>0 && s_temp == cn[j] && s_temp != cn[j-1])
+
+				//if(i>0 && s_temp == cn[j] && s_temp != s_ocn_temp[i-1]) //find UNIQUE matching 
+
+				if (i>0 && s_temp.compare(cn[j]) == 0 && s_temp.compare(s_ocn_temp[i - 1]) != 0)
+
+				{
+
+					for (int k = 0; k<ncol; k++)
+
+					{
+						uox[i_count_uox][k] = z[j][k];
+					} //store the found observed pattern				
+
+					i_count_uox++;
+
+					break;
+
+				}
+
+			}
+
+		}
+
+		//Now, i_count_uox means the total number of unique observed patterns
+
+
+
+		//------------
+
+		//memorize missing patterns 
+
+		//------------
+
+		int i_count_mox = 0; //total number of unique mox 
+
+
+
+		for (int i = 0; i<i_size_ml; i++)
+
+		{
+
+			s_temp = s_mcn_temp[i]; //get a string 
+
+			for (int j = 0; j<nrow; j++) //search all rows 
+
+			{
+
+				//----
+
+				//below condition is needed for finding unique pattern
+
+				//----
+
+				//if(j==0 && s_temp == cn[j]) 
+
+				//if(i==0 && s_temp == cn[j]) //with first string, find matching string in cn
+
+				if (i == 0 && s_temp.compare(cn[j]) == 0) //0: equal string 
+
+				{
+
+					for (int k = 0; k<ncol; k++)
+
+					{
+						mox[i_count_mox][k] = z[j][k];
+					} //store the found missing pattern
+
+					i_count_mox++;
+
+					break;
+
+				}
+
+				//if(j>0 && s_temp == cn[j] && s_temp != cn[j-1])
+
+				//if(i>0 && s_temp == cn[j] && s_temp != s_mcn_temp[i-1]) //find UNIQUE matching string
+
+				if (i>0 && s_temp.compare(cn[j]) == 0 && s_temp.compare(s_mcn_temp[i - 1]) != 0) //0: equal
+
+				{
+
+					for (int k = 0; k<ncol; k++)
+
+					{
+						mox[i_count_mox][k] = z[j][k];
+					} //store the found missing pattern				
+
+					i_count_mox++;
+
+					break;
+
+				}
+
+			}
+
+		}
+
+		//Now, i_count_mox means the total number of unique missing patterns
+
+
+
+		//----------------
+
+		//additional check for unique observed and missing patterns
+
+		//----------------
+
+		//observed patterns//
+
+		d_temp = 0.0;
+
+		double** uox_final = New_dMatrix(nrow, ncol);
+
+		for (int j = 0; j<ncol; j++) { uox_final[0][j] = uox[0][j]; } //first row initialization
+
+		int i_count_uox_final = 1; //starting from the second row
+
+
+
+		for (int i = 1; i<i_count_uox; i++) //starting from the second one
+
+		{
+
+			d_temp = 0.0; //initialize 
+
+			for (int j = 0; j<ncol; j++) { d_temp += fabs_FHDI(uox[i][j] - uox[i - 1][j]); } //difference of adjacent rows
+
+
+
+			if (d_temp > 1e-3) //adjacent rows are NOT the same each other
+
+			{
+
+				for (int j = 0; j<ncol; j++) { uox_final[i_count_uox_final][j] = uox[i][j]; }
+
+				i_count_uox_final++;
+
+			}
+
+		}
+
+		i_count_uox = i_count_uox_final; //replace with the accurate value
+
+										 //store the final matrix 
+
+		for (int i = 0; i<i_count_uox; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++)
+
+				uox[i][j] = uox_final[i][j];
+
+		}
+
+		Del_dMatrix(uox_final, nrow, ncol);
+
+
+
+		//--------------------------
+
+		//missing patterns//
+
+		//--------------------------
+
+		double** mox_final = New_dMatrix(nrow, ncol);
+
+		for (int j = 0; j<ncol; j++) { mox_final[0][j] = mox[0][j]; } //first row initialization
+
+		int i_count_mox_final = 1; //starting from the second row
+
+
+
+		for (int i = 1; i<i_count_mox; i++) //starting from the second one
+
+		{
+
+			d_temp = 0.0; //initialize
+
+			for (int j = 0; j<ncol; j++) { d_temp += fabs_FHDI(mox[i][j] - mox[i - 1][j]); } //difference of adjacent rows
+
+
+
+			if (d_temp > 1e-3) //adjacent rows are NOT the same each other
+
+			{
+
+				for (int j = 0; j<ncol; j++) { mox_final[i_count_mox_final][j] = mox[i][j]; }
+
+				i_count_mox_final++;
+
+			}
+
+		}
+
+		i_count_mox = i_count_mox_final; //replace with the accurate value
+
+
+
+										 //store the final matrix	
+
+		for (int i = 0; i<i_count_mox; i++)
+
+		{
+
+			for (int j = 0; j<ncol; j++)
+
+				mox[i][j] = mox_final[i][j];
+
+		}
+
+		Del_dMatrix(mox_final, nrow, ncol);
+
+
+		//!!!!! now uox and mox have the UNIQUE observed and missing patterns
+
+		//!!!!! i_count_mox and _uox have the final number of meaningful rows of mox and uox, respectively
+
+		const int nrm = i_count_mox;
+
+		//const int nru = i_count_uox;
+
+
+
+		//-------------------------------------------
+
+		//-------------------------------------------
+
+		//Step 2: Impute missing cells
+
+		//        using all possible donors per missing pattern
+
+		//-------------------------------------------
+
+		//-------------------------------------------
+
+		int* i_temp_x = new int[ncol];
+
+		int i_sum_x = 0;
+
+
+
+		std::vector<int> v_mxl; //a row's columns having observed cells  
+
+		rbind_FHDI rbind_icell(ncol); //all possible donor cells 
+
+
+
+		std::vector<int> v_cn_z_i;
+
+		//int* zid = NULL;
+
+		//int i_size_zid=0; 
+
+		//int i_loc=0;	
+
+		//int* i_srst = new int[nru];
+
+		std::vector<int> loc_srst_nl;
+
+		double* d_temp_cn = new double[ncol];
+
+
+
+		//List_FHDI List_ord(nrm); //order records used for variance estimation
+
+		//List_FHDI List_ocsg(nrm); //order records used for variance estimation
+
+
+
+		//--------------------------------
+
+		//--------------------------------
+
+		//--------------------------------
+
+		//Main Loop for FEFI and FHDI
+
+		//--------------------------------
+
+		//--------------------------------
+
+		//--------------------------------
+
+		rbind_FHDI rbind_imat_FEFI(7 + 2 * ncol); //large storage that will accumulate fmat from FEFI  
+
+		rbind_FHDI rbind_imat_FHDI(7 + 2 * ncol); //large storage that will accumulate fmat from FHDI
+
+
+
+
+
+		for (int i = 0; i<nrm; i++)
+
+		{
+
+			//get current row of missing cell 
+
+			for (int j = 0; j<ncol; j++) i_temp_x[j] = (int)mox[i][j];
+
+			i_sum_x = sum_FHDI(i_temp_x, ncol);
+
+
+
+
+
+			//-------
+
+			//re-initialization for this missing row 
+
+			//-------
+
+			rbind_icell.initialize(ncol);
+
+
+
+			//----------------------
+
+			//Condition 1: this row's cells are all missing
+
+			//-----------------------
+
+			if (i_sum_x == 0)
+
+			{
+
+				v_mxl.clear(); //no missing cells  
+
+				rbind_icell.bind_blocks(i_count_uox, ncol, uox); //fine due to row-based copy
+
+			}
+
+
+
+			//----------------------
+
+			//Condition 2: this row's cells are partly missing
+
+			//-----------------------
+
+			int nl = 0;
+
+			if (i_sum_x > 0)
+
+			{
+
+				//------
+
+				//number of observed cells on this row
+
+				//------
+
+				nl = 0;
+
+				v_mxl.clear();
+
+				for (int j = 0; j<ncol; j++)
+
+				{
+
+					if (mox[i][j]>0)
+
+					{
+
+						nl++;
+
+						v_mxl.push_back(j + 1); //Actual non-missing cell location 
+
+					}
+
+				}
+
+
+
+
+
+				//-------
+
+				//indicator matrix that matches the donors
+
+				//srst: row-wise sum of the indicator matrix 
+
+				//-------
+
+				loc_srst_nl.clear(); //re-initialize
+
+									 //Fill_iVector(i_srst, nru, 0); //re-initialize 
+
+
+
+									 //for (int j = 0; j<nru; j++)
+
+									 //{
+
+									 //	int i_sum_crst = 0;
+
+									 //	for (int k = 0; k<ncol; k++)
+
+									 //	{
+
+									 //		//Note: in below check, mox is fixed at ith row 
+
+									 //		if (fabs_FHDI(mox[i][k] - uox[j][k])<1e-3) //part of missing cell = obserbed cell 
+
+									 //		{
+
+									 //			i_sum_crst++; // increment if a cell of missing row = obs. cell 
+
+									 //		}
+
+									 //	}
+
+									 //	//---
+
+									 //	//store how many cells of missing row match those of observed row
+
+									 //	//---
+
+									 //	i_srst[j] = i_sum_crst;
+
+									 //	if (i_sum_crst == nl) loc_srst_nl.push_back(j + 1); //Actual location 				
+
+									 //}
+
+				List_nU.get_block_yicheng(i, loc_srst_nl);
+
+				//-----
+
+				//total matching rows
+
+				//-----
+
+				const int i_size_loc_srst_nl = (int)loc_srst_nl.size();
+
+				if (i_size_loc_srst_nl == 0) //error case
+
+				{
+					Rprintf("Error! there is no matched cell! \n"); return 0;
+				}
+
+
+
+				if (i_size_loc_srst_nl > 0)
+
+				{
+
+					double* d_temp_srst = new double[ncol];
+
+					for (int j = 0; j<i_size_loc_srst_nl; j++)
+
+					{
+
+						for (int k = 0; k<ncol; k++)
+
+						{
+							d_temp_srst[k] = uox[loc_srst_nl[j] - 1][k];
+						}//-1 for actual loc
+
+
+
+						rbind_icell.append_block(d_temp_srst); //ncol is the same 
+
+					}
+
+					delete[] d_temp_srst;
+
+				}
+
+			}
+
+
+
+			//----------------------------
+
+			//step 3: Assign donors in uox to missing cell 
+
+			//----------------------------
+
+			const int nic = rbind_icell.size_row(); //number of donors for mox[i] in uox
+
+													//std::string s_icn[nic];
+
+			std::string * s_icn = new std::string[nic]; // uox as donors for mox[i] in string format
+
+			double* d_temp_icell = new double[ncol];
+
+			std::string s_icn_temp;
+
+			for (int j = 0; j<nic; j++)
+
+			{
+
+				for (int k = 0; k<ncol; k++) d_temp_icell[k] = rbind_icell(j, k); //get jth row
+
+				Trans1(d_temp_icell, ncol, s_icn_temp); //transform one row
+
+				s_icn[j] = s_icn_temp;
+
+			}
+
+			delete[] d_temp_icell;
+
+
+
+			//------------------
+
+			//search locations where icn = name of jp_name
+
+			//------------------
+
+			const int i_size_jp_name = (int)jp_name.size();
+
+			std::vector<double>      v_cp;  //selected joint probability of donors in uox
+
+			std::vector<std::string> v_ncp; //names of the selected joint probability of donors in uox
+
+			v_cp.clear();
+
+			v_ncp.clear();
+
+
+
+			for (int j = 0; j<nic; j++)
+
+			{
+
+				s_temp = s_icn[j]; //one donor 
+
+				for (int k = 0; k<i_size_jp_name; k++) //search all names of jp
+
+				{
+
+					if (s_temp.compare(jp_name[k]) == 0) //0 means the same string
+
+					{
+
+						v_cp.push_back(jp_prob[k]); //store the joint probability 
+
+						v_ncp.push_back(jp_name[k]); //store name
+
+						break; //stop searching after finding the first match 
+
+					}
+
+				}
+
+			}
+
+
+			const int i_size_v_cp = (int)v_cp.size();
+
+			double d_sum_v_cp = 0.0;
+
+			for (int j = 0; j<i_size_v_cp; j++) d_sum_v_cp += v_cp[j];
+
+			if (d_sum_v_cp != 0)
+
+			{
+
+				for (int j = 0; j<i_size_v_cp; j++) v_cp[j] = v_cp[j] / d_sum_v_cp;
+
+			}
+
+
+			//-----------
+
+			//transform current missing row to string for step 3
+
+			//-----------
+
+			for (int j = 0; j<ncol; j++) d_temp_cn[j] = mox[i][j];
+
+			Trans1(d_temp_cn, ncol, s_temp);
+
+			v_cn_z_i.clear(); //re-initialize 
+
+			which(cn, nrow, s_temp, v_cn_z_i); //Note: Actual location of mox[i] in z is returned
+
+			int i_size_v_cn_z_i = (int)v_cn_z_i.size(); //number of locations in cn having s_temp
+
+			const int mg = i_size_v_cn_z_i; //Note: loc2 =  i_size_v_cn_z_i
+
+
+
+
+
+											//---------------------
+
+											//select out all cells that have s_icn[1:nic] from cn
+
+											//---------------------
+
+			std::vector<int> v_obsg0; v_obsg0.clear();//actual locations of all donors in cn
+
+			for (int j = 0; j<nic; j++)
+
+			{
+
+				s_temp = s_icn[j];
+
+				for (int k = 0; k<nrow; k++)
+
+				{
+
+					if (s_temp.compare(cn[k]) == 0) //0=equal string
+
+					{
+						v_obsg0.push_back(k + 1);
+					}//ACTUAL location stored. No exit 
+
+				}
+
+			}
+
+			const int i_size_v_obsg0 = (int)v_obsg0.size();
+
+
+
+			//---------------
+
+			//sort the found cells
+
+			//---------------
+
+			int* i_obsg0_sorted = new int[i_size_v_obsg0];
+
+			for (int k = 0; k<i_size_v_obsg0; k++) i_obsg0_sorted[k] = v_obsg0[k];
+
+			std::sort(i_obsg0_sorted, i_obsg0_sorted + i_size_v_obsg0);
+
+			for (int k = 0; k<i_size_v_obsg0; k++) v_obsg0[k] = i_obsg0_sorted[k];
+
+			delete[] i_obsg0_sorted;
+
+
+
+
+
+			//------------------
+
+			//half-ascending and -descending ordering 
+
+			//------------------
+
+			std::vector<int> v_obsg; //half-asc and desc obsg0 of actual locations of donors in cn
+
+
+
+			int* i_ym_return = new int[i_size_v_obsg0]; //half-asc and desc 
+
+			yorder(y, nrow, ncol,
+
+				d_temp_cn,
+
+				v_obsg0, i_ym_return);
+
+
+
+			v_obsg.clear();
+
+			for (int j = 0; j<i_size_v_obsg0; j++) v_obsg.push_back(i_ym_return[j]);
+
+			//below is temporary for wrong yorder()
+
+			//for(int j=0; j<i_size_v_obsg0; j++) v_obsg.push_back(v_obsg0[j]); 
+
+
+
+			const int i_size_v_obsg = (int)v_obsg.size(); // size of donors in cn
+
+			delete[] i_ym_return;
+
+
+
+
+
+			//testout
+
+			//RPrint("============= after yorder() ================");
+
+			//RPrint("v_obsg0 :"); RPrint(v_obsg0);
+
+			//RPrint("v_obsg :");  RPrint(v_obsg);
+
+
+
+			//-------------
+
+			// find positions of matches between obsg in obsg0
+
+			// then Store them into List 
+
+			//-------------
+
+			std::vector<int> v_rbsg; v_rbsg.clear();
+
+			match_FHDI(v_obsg, v_obsg0, v_rbsg); //get loc stored in v_rbsg
+
+			const int i_size_v_rbsg = (int)v_rbsg.size();
+
+			//store rbsg
+
+			double* d_temp_rbsg = new double[i_size_v_rbsg];
+
+			for (int k = 0; k<i_size_v_rbsg; k++) d_temp_rbsg[k] = v_rbsg[k];
+
+			List_ord.put_block(i, i_size_v_rbsg, d_temp_rbsg); //put into storage as ith row
+
+			delete[] d_temp_rbsg;
+
+			//store obsg
+
+			double* d_temp_obsg = new double[i_size_v_obsg];
+
+			for (int k = 0; k<i_size_v_obsg; k++) d_temp_obsg[k] = v_obsg[k];
+
+			List_ocsg.put_block(i, i_size_v_obsg, d_temp_obsg); //put into storage as ith row
+
+			delete[] d_temp_obsg;
+
+
+
+			const int ng = i_size_v_obsg;
+
+			//------------------------------
+
+			//------------------------------
+
+			//Compute Fractional Weights (fwij)
+
+			//Fractional weights for FEFI representing sampling w
+
+			//------------------------------
+
+			//------------------------------
+
+			//std::string cn_obsg[i_size_v_obsg]; //cn at locations of obsg
+
+			std::string * cn_obsg = new std::string[i_size_v_obsg]; //cn at locations of obsg; actual uox as donors for mox[i] 
+
+			for (int k = 0; k<i_size_v_obsg; k++)
+
+			{
+				cn_obsg[k] = cn[v_obsg[k] - 1];
+			}//-1 for actual location 
+
+
+
+			 //-----
+
+			 //make a table of cn at obsg locations
+
+			 //------
+
+			std::vector<std::string> v_table_name_cn_obsg; // unique names of donors for mox[i]
+
+			std::vector<int>         v_table_count_cn_obsg; // occurances of donors for mox[i]
+
+
+															//Important!!! Note that the v_table_name_cn_obsg will be sorted
+															//Make sure the names of selected donors from uox are sorted as well
+															//There may be an issue of unmatch of name of donors
+
+			table_cpp(cn_obsg, i_size_v_obsg,
+
+				v_table_name_cn_obsg, v_table_count_cn_obsg);
+
+			//const int i_size_table_cn_obsg = (int)v_table_count_cn_obsg.size(); 
+
+			//------
+
+			//get joint probability of the selected donor 
+
+			//------
+
+			std::vector<int> v_cn_obsg_ncp; //positions of cn_obsg in ncp 
+
+
+			match_FHDI(cn_obsg, i_size_v_obsg, v_ncp,
+
+				v_cn_obsg_ncp); //Note: Actual locations are returned 
+
+								//Example:
+								// cn_obsg = 11, 22,22, 11,22
+								// v_ncp = 11, 22
+								//v_cn_obsg_ncp = 1, 2, 2, 1, 2
+
+			const int i_size_v_cn_obsg_ncp = (int)v_cn_obsg_ncp.size(); //size of donors in cn
+
+
+																		//------
+
+																		//calculate fractional weights
+
+																		//------
+
+
+			double* fwij = new double[i_size_v_cn_obsg_ncp]; //fractional weights 
+
+			double* d_obsp = new double[i_size_v_cn_obsg_ncp]; //joint prob of selected donors
+
+			int*    i_obsn = new int[i_size_v_cn_obsg_ncp]; //counts of the selected donors
+
+															//fwij is in half-ascending and half-descending order
+															//Note that v_cp and v_table_name_cn_obsg must be in the ascend orders, or there will be mismacth problem leading to wrong fractional weights
+			for (int k = 0; k<i_size_v_cn_obsg_ncp; k++)
+
+			{
+
+				d_obsp[k] = v_cp[v_cn_obsg_ncp[k] - 1];// -1 for actual location 
+
+				i_obsn[k] = v_table_count_cn_obsg[v_cn_obsg_ncp[k] - 1];// -1 for actual location  
+
+				fwij[k] = 1.0; //default for error case  
+
+				if (i_obsn[k] != 0) fwij[k] = d_obsp[k] / i_obsn[k];
+
+				if (i_obsn[k] == 0) Rprintf("Error! zero count in obsn!");
+
+			}
+
+			//testout
+
+			//RPrint("fwij[] :"); RPrint(fwij, i_size_v_cn_obsg_ncp);
+
+
+			//----------------------
+
+			//FEFI Imputation
+
+			//  Algorithm: impute by using all possible donors
+
+			//  final outcome is "fmat" in which each column means that
+
+			//  col1: id
+
+			//  col2: fid, i.e., id of imputed value
+
+			//  col3: sampling weight
+
+			//  col4: fractional weights 
+
+			//  col5: imputed original data (matrix with column of ncol) 
+
+			//  col6: imputed category data (matrix with column of ncol)
+
+			//  col7: 1:ng 
+
+			//  col8: = col2  (for consistency with FHDI results)
+
+			//  col9: = col3  (for consistency with FHDI results)
+
+			//----------------------
+
+			std::vector<int> v_obsg_times_mg; v_obsg_times_mg.clear();
+
+			if (s_M.compare("FEFI") == 0) //0=equal string
+
+			{
+
+				double** fmat_FEFI = New_dMatrix(ng*mg, 7 + 2 * ncol); //7columns and two blocks of ncol 
+
+
+
+				Fully_Efficient_Fractional_Imputation(ng, mg,
+
+					v_obsg, v_mxl,
+
+					y, z, nrow, ncol,
+
+					v_cn_z_i, fwij, i_size_v_cn_obsg_ncp,
+
+					w, id,
+
+					fmat_FEFI);
+
+
+
+				//testout
+
+				//RPrint("in ==== M=FEFI =after making fmat_FEFI[][]====");
+
+				//RPrint("fmat_FEFI : "); RPrint(fmat_FEFI, ng*mg, 7+2*ncol);
+
+
+
+				//------------------
+
+				//Append fmat_FEFI onto global storage imat
+
+				//------------------
+
+				rbind_imat_FEFI.bind_blocks(ng*mg, 7 + 2 * ncol, fmat_FEFI);
+
+
+
+				//-----------------------
+
+				//local deallocation
+
+				//-----------------------
+
+				Del_dMatrix(fmat_FEFI, ng*mg, 7 + 2 * ncol);
+
+			}
+
+
+
+
+
+			//------------------------------------
+
+			//FHDI
+
+			//Fractional Hot Deck Imputation
+
+			//------------------------------------
+
+			//if(s_M.compare("FHDI") == 0) //0= equal string
+
+
+
+			const int i_mxl = (int)v_mxl.size();
+
+
+
+			//prepare return matrix. Note the different row size from fmat of FEFI 
+
+			int i_row_fmat_FHDI = i_M*mg; //default row size of return matrix of FHDI
+
+			if (i_size_v_obsg <= i_M) i_row_fmat_FHDI = i_size_v_obsg*mg;  //if donors are less than i_M
+
+
+
+			if (s_M.compare("FHDI") == 0) //0= equal string
+
+			{
+
+				double** fmat_FHDI = New_dMatrix(i_row_fmat_FHDI, 7 + 2 * ncol); //return matrix from FHDI
+
+																				 //below random number between 0 and 1 should use appropriate library depending upon version	
+
+																				 //d_myran = static_cast<double>(std::rand())/static_cast<double>(RAND_MAX); //Window ver
+
+				d_myran = Rf_runif(0.0, 1.0); //R package version 
+
+											  //testout
+
+											  // Rprintf("d_myran: "); Rprintf("%g ", d_myran); 
+											  //cout<<"rand(): "<<std::rand()<<endl;
+											  //cout << "RAND_MAX: " << RAND_MAX << endl;
+											  //cout<<"d_myran: "<< d_myran <<endl;
+
+				Fractional_Hot_Deck_Imputation(i,
+
+					ng, List_ocsg, ncol,
+
+					mox, y, nrow, i_M,
+
+					mg, z, i_mxl,
+
+					v_cn_z_i, v_mxl,
+
+					v_obsg,
+
+					fwij, i_size_v_cn_obsg_ncp,
+
+					d_obsp, i_obsn,
+
+					d_myran,
+
+					w, id,
+
+					fmat_FHDI);
+
+
+
+				//------------------
+
+				//Append fmat_FHDI onto global storage imat
+
+				//------------------
+
+				rbind_imat_FHDI.bind_blocks(i_row_fmat_FHDI, 7 + 2 * ncol, fmat_FHDI);
+
+
+
+				//-----------------------
+
+				//local deallocation
+
+				//-----------------------
+
+				Del_dMatrix(fmat_FHDI, i_row_fmat_FHDI, 7 + 2 * ncol);
+
+			}
+
+
+
+			//-----------------------
+
+			//local deallocation
+
+			//-----------------------
+
+			delete[] s_icn;
+
+			delete[] cn_obsg;
+
+			delete[] fwij;
+
+			delete[] d_obsp;
+
+			delete[] i_obsn;
+
+
+
+		} //end of Main loop for all rows of missing patterns 
+
+
+
+
+
+		  //---------------
+
+		  //---------------
+
+		  //Step 4: construct output results
+
+		  //---------------
+
+		  //------------------------------------------------------
+
+		  //ipmat  = final imputation results
+
+		  //     	col1: ID 	= unit index
+
+		  //		col2: FID 	= ID of fractionally imputed value
+
+		  // 		col3: WGT 	= weight 
+
+		  //		col4: FWGT	= Frational weight
+
+		  //		col5: Variables 
+
+		  //		col6: Responses
+
+		  //irmat  = imputation results related to the categorized matrix 
+
+		  //     	col1: ID 	= unit index
+
+		  //		col2: FID 	= ID of fractionally imputed value
+
+		  //		col3: OID	= original rank of the imputed value
+
+		  //		col4: ORDER = SN(selected donor)
+
+		  //		col5: FEFIW	= Fefi weights 
+
+		  //		col6: CELL	= cells 
+
+		  //----------------------------------------------------
+
+		  //FEFI                           FEFI //
+
+		  //get ipmat, Resp (separately), irmat from FEFI results 
+
+		  //rbind_FHDI  rbind_ipmat_FEFI(4+ncol); //column size is 4+ncol
+
+		  //rbind_FHDI  rbind_Resp_FEFI(ncol+1);  //separate response matrix  
+
+		  //rbind_FHDI  rbind_irmat_FEFI(5+ncol); //column size is 5+ncol
+
+		if (s_M.compare("FEFI") == 0) //0= equal string
+
+		{
+
+			Results_Fully_Efficient_Fractional_Imputation(i_size_ol,
+
+				ncol, nrow,
+
+				id_ol, w_ol, d_oy, d_ox,
+
+				rbind_imat_FEFI, r,
+
+
+
+				rbind_ipmat_FEFI, rbind_Resp_FEFI, rbind_irmat_FEFI);
+
+			//testout
+
+			/*
+
+			RPrint("after Results_... rbind_ipmat_FEFI after binding :");
+
+			rbind_ipmat_FEFI.print_rbind_FHDI();
+
+			RPrint("after Results_... rbind_Resp_FEFI after binding :");
+
+			rbind_Resp_FEFI.print_rbind_FHDI();
+
+			RPrint("after Results_... rbind_irmat_FEFI after binding :");
+
+			rbind_irmat_FEFI.print_rbind_FHDI();
+
+			*/
+
+		}
+
+
+
+		//FHDI ------------------------- FHDI //
+
+		//get ipmat, Resp (separately), irmat from FHDI results 
+
+		//rbind_FHDI  rbind_ipmat_FHDI(4+ncol); //column size is 4+ncol
+
+		//rbind_FHDI  rbind_Resp_FHDI(ncol+1);  //separate response matrix  
+
+		//rbind_FHDI  rbind_irmat_FHDI(5+ncol); //column size is 5+ncol
+
+
+
+		if (s_M.compare("FHDI") == 0) //0= equal string
+
+		{
+
+			Results_Fractional_Hot_Deck_Imputation(i_size_ol,
+
+				ncol, nrow,
+
+				id_ol, w_ol, d_oy, d_ox,
+
+				rbind_imat_FHDI, r,
+
+
+
+				rbind_ipmat_FHDI, rbind_Resp_FHDI, rbind_irmat_FHDI);
+
+			//testout
+
+			/*
+
+			RPrint("after Results_... rbind_ipmat_FHDI after binding :");
+
+			rbind_ipmat_FHDI.print_rbind_FHDI();
+
+			RPrint("after Results_... rbind_Resp_FHDI after binding :");
+
+			rbind_Resp_FHDI.print_rbind_FHDI();
+
+			RPrint("after Results_... rbind_irmat_FHDI after binding :");
+
+			rbind_irmat_FHDI.print_rbind_FHDI();
+
+			*/
+
+		}
+
+
+
+		//------
+
+		//prep returns of other matrices
+
+		//------
+
+		rbind_uox.bind_blocks(i_count_uox, ncol, uox);
+
+		rbind_mox.bind_blocks(i_count_mox, ncol, mox);
+
+
+
+		//testout
+
+		Rprintf(" ========= FHDI KNN has successfully finished! \n");
+
+
+
+
+
+		//----------------
+
+		//Deallocation
+
+		//----------------
+
+		delete[] cn;
+
+		delete[] s_ocn;
+
+		delete[] s_mcn;
+
+		delete[] s_ocn_temp;
+
+		delete[] s_mcn_temp;
+
+
+
+		delete[] i_rn;
+
+		//lete[] w; 
+
+		//lete[] id; 
+
+		Del_dMatrix(d_oy, i_size_ol, ncol);
+
+		Del_dMatrix(d_my, i_size_ml, ncol);
+
+		Del_dMatrix(d_ox, i_size_ol, ncol);
+
+		Del_dMatrix(d_mx, i_size_ml, ncol);
+
+
+
+		delete[] w_ml;
+
+		delete[] w_ol;
+
+		delete[] id_ml;
+
+		delete[] id_ol;
+
+
+
+		Del_dMatrix(uox, nrow, ncol);
+
+		Del_dMatrix(mox, nrow, ncol);
+
+
+
+		delete[] i_temp_x;
+
+		//delete[] i_srst;
+
+		delete[] d_temp_cn;
+
+
+
+
+
+		return 1;
+
+
+
+	}
+
+
+
+} //end of namespace
 
 
 
@@ -28465,6 +34936,1025 @@ namespace FHDI
 }//end of namespace
 
 
+ //Fn===========================================================================
+
+ //Variance_Est_FEFI_Neighbor_cpp.cc-----------------------------------------------------------------------------
+
+ //Fn===========================================================================
+
+namespace FHDI
+{
+
+	bool Rep_CellP_Neighbor(double** d_cx, const int nrow, const int ncol, FHDI::RepWeight_FHDI &d_rw, int*  id,
+		List_FHDI        &List_nU,
+		List_FHDI        &List_rst_prob,
+		List_string_FHDI &List_rst_name,
+		std::vector<std::string> &s_ncx)
+		//Description============================================
+		// compute cell probability using replicate weight rw
+		// 
+		// R code: Dr. Im, J., and Dr. Kim, J. 
+		// C++   : Dr. Cho, I. and Yicheng Yang
+		// All rights reserved
+		// Last update: Aug 11, 2020
+		//
+
+		//IN   : double d_cx[nrow, ncol] = categoraized matrix
+		//IN   : double d_rw[nrow, nrow] = replicate weights
+		//IN   : int    id[nrow] = index of rows
+		//
+		//below two lists have meaningful values up to i_nc rows  
+		//OUT  : List_FHDI List_rst_prob(nrow->i_nc); //list of joint probabilities for all missing patterns 
+		//OUT  : List_string_FHDI List_rst_name(nrow->i_nc); //names of joint probabilities for all missing patterns 
+		//OUT  : std::vector<std::string> s_ncx; //uniqe cn0
+		//======================================================== 
+	{
+		//--------------
+		//make a condensed expression "cn0" of cx, i.e. z
+		//--------------
+		//std::string cn0[nrow];
+		//std::string cn0_backup[nrow];
+		std::string *cn0 = new std::string[nrow];
+		std::string *cn0_backup = new std::string[nrow];
+
+		Trans(d_cx, nrow, ncol, cn0);
+
+		for (int i = 0; i<nrow; i++) cn0_backup[i] = cn0[i];
+
+		//---------------------
+		//SORT & UNIQUE patterns of cn0
+		//---------------------
+		//std::string s_cn0_temp[nrow]; 
+		std::string *s_cn0_temp = new std::string[nrow];
+		for (int i = 0; i<nrow; i++) s_cn0_temp[i] = cn0[i];
+		std::sort(s_cn0_temp, s_cn0_temp + nrow);
+
+		//------------
+		//memorize observed patterns 
+		//------------
+		//std::vector<std::string> s_ncx; //uniqe cn0
+
+		int i_count_cn0 = 0; //total number of unique cn0 
+		std::string s_temp;
+		for (int i = 0; i<nrow; i++)
+		{
+			s_temp = s_cn0_temp[i]; //get a string from the sorted strings 
+			for (int j = 0; j<nrow; j++) //search all rows 
+			{
+				//----
+				//below condition is needed for finding UNIQUE pattern
+				//----
+				if (s_temp.compare(cn0_backup[j]) == 0) //0: equal string
+				{
+					s_ncx.push_back(cn0_backup[j]);  //store the found observed pattern
+
+													 //----------
+													 //remove all identical string after the current string
+													 //----------
+					for (int k = j; k<nrow; k++)
+					{
+						if (s_temp.compare(cn0_backup[k]) == 0) //0: equal string
+						{
+							cn0_backup[k] = ""; //nullify for the next search
+						}
+					}
+
+					i_count_cn0++;
+					break;
+				}
+
+			}
+		}
+		//Now, i_count_cn0 means the total number of unique sorted strings
+		const int i_nc = i_count_cn0;
+
+
+		//testout
+		//RPrint("=====in Rep_CellP ========");
+		//RPrint("s_ncx"); RPrint(s_ncx);
+		//RPrint("i_nc"); RPrint(i_nc);
+		/*cout<<"=====in Rep_CellP ========"<<endl;
+		cout<<"s_ncx"<<endl;
+		for(int i=0; i<(int)s_ncx.size(); i++) cout<<s_ncx[i]<<" ,  ";
+		cout<<endl;
+		cout<<"i_nc: "<<i_nc<<endl;
+		*/
+
+		//-----------------------------
+		//calculate joint probability and names of all missing patterns
+		//using the Jackknife replicate weights
+		//------------------------------
+		//List_FHDI        List_rst_prob(i_nc); //list of joint probabilities for all missing patterns 
+		//List_string_FHDI List_rst_name(i_nc); //names of joint probabilities for all missing patterns 
+
+		std::vector<double> jp_prob_return;
+		std::vector<std::string> jp_name_return;
+		//std::vector<double> w_UserDefined; 
+		double* w_UserDefined = new double[nrow];
+
+		for (int i = 0; i<i_nc; i++)
+		{
+			//---
+			//search current missing pattern from all strings
+			//---
+			std::string s_temp = s_ncx[i];
+			int i_loc = 0;
+			for (int j = 0; j<nrow; j++)
+			{
+				if (s_temp.compare(cn0[j]) == 0)
+				{
+					i_loc = j;
+					break;
+				}
+			}
+			//testout
+			/*
+			cout<<"loop i (1:i_nc) :"<<i<<"  found i_loc:"<<i_loc<<endl;
+			if(i==7)
+			{
+			for(int j_temp=0; j_temp<nrow; j_temp++) cout<<d_rw[j_temp][i_loc]<<",  ";
+			}
+			cout<<endl;
+			*/
+
+			//----
+			//joint probability and names
+			//----
+			jp_prob_return.clear();
+			jp_name_return.clear();
+			//w_UserDefined.clear();
+			//for(int j=0; j<nrow; j++) w_UserDefined.push_back(d_rw[j][i_loc]) ; 
+			for (int j = 0; j<nrow; j++) w_UserDefined[j] = d_rw(j, i_loc);
+
+			bool b_success_CellProb_KNN = Cell_Prob_Neighbor_cpp(d_cx, nrow, ncol, List_nU,
+				jp_prob_return,
+				jp_name_return,
+				w_UserDefined, id);
+
+			if (!b_success_CellProb_KNN)
+			{
+				Rprintf("Error! Cell Prob KNN Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+				return 0; //abnormal ending 								
+			}
+
+			//---
+			//prep return
+			//---
+			List_rst_prob.put_block(i, jp_prob_return); //jth row has joint prob
+			List_rst_name.put_block(i, jp_name_return); //jth row has name of the joint prob
+
+		}
+
+		//testout
+		//RPrint("List_rst_name"); List_rst_name.print_List_string_FHDI();
+		//RPrint("List_rst_prob"); List_rst_prob.print_List_FHDI();
+
+
+		delete[] cn0;
+		delete[] cn0_backup;
+		delete[] s_cn0_temp;
+
+		delete[] w_UserDefined;
+
+		return 1;
+	}
+
+
+	bool Variance_Est_FEFI_Neighbor_cpp(double** y, double** z, const int nrow, const int ncol,
+		FHDI::RepWeight_FHDI &d_rw, double* w, int* id, List_FHDI &List_nU,
+		rbind_FHDI  &rbind_ipmat_FEFI,
+		rbind_FHDI  &rbind_Resp_FEFI,
+		rbind_FHDI  &rbind_irmat_FEFI,
+		rbind_FHDI  &rbind_ipmat_FHDI,
+		rbind_FHDI  &rbind_Resp_FHDI,
+		rbind_FHDI  &rbind_irmat_FHDI,
+		rbind_FHDI  &rbind_uox,
+		rbind_FHDI  &rbind_mox,
+		List_FHDI 	&List_ord,
+		List_FHDI 	&List_ocsg,
+		std::string s_M,
+		double** wmat)
+
+		//Description----------------------
+		//estimate variance for FEFI using Jackknife method 
+		//  Algorithm: 
+		//
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+		// c++ code: 		Dr. Cho, I. 
+		// All rights reserved
+		// 
+		// updated: March 28, 2017
+		//
+		//IN   : double y(nrow, ncol)= original data matrix with missing cells 
+		//IN   : double z(nrow, ncol)= categorized matrix of y. 0 for missing cell
+		//IN   : double d_rw[nrow, nrow] = replicate weights 
+		//IN   : double w(nrow) = sampling weight (default = 1.0)
+		//IN   : int    id(nrow) = id number of each row (default = 1 to nrow)
+		//FEFI --------returns----------------- FEFI //
+		//IN   : rbind_FHDI  rbind_ipmat_FEFI(4+ncol); //column size is 4+ncol
+		//IN   : rbind_FHDI  rbind_Resp_FEFI(ncol+1);  //separate response matrix  
+		//IN   : rbind_FHDI  rbind_irmat_FEFI(5+ncol); //column size is 5+ncol
+		//FHDI --------returns----------------- FHDI //
+		//IN   : rbind_FHDI  rbind_ipmat_FHDI(4+ncol); //column size is 4+ncol
+		//IN   : rbind_FHDI  rbind_Resp_FHDI(ncol+1);  //separate response matrix  
+		//IN   : rbind_FHDI  rbind_irmat_FHDI(5+ncol); //column size is 5+ncol
+		//other matrices
+		//IN   : rbind_FHDI  rbind_uox(ncol); //observed unique categorized matrix 
+		//IN   : rbind_FHDI  rbind_mox(ncol); //missing  unique categorized matrix
+		//Note: below Lists contain meaningful items up to i_count_mox rows  
+		//IN   : List_FHDI 	List_ord(nrow); //order records used for variance estimation
+		//IN   : List_FHDI 	List_ocsg(nrow); //order records used for variance estimation
+		//IN   : std::string s_M = "FEFI" = fully efficient fractional imputation
+		//						   "FHDI" = fractional hot deck imputation
+		//
+		//OUT  : double** wmat = New_dMatrix(nrow_dat2_FEFI, L=nrow); //nrow_dat2_FHDI = rows of w1
+		//
+		//Data Structure Note
+		//----------------------
+		//dat1 in R version:  id   w  y_matrix  z_matrix
+		//     in C++ ver  :  id   w  y         z
+		//----------------------
+		//dat2 in R version:  id  FID  WGT  FWGT  imputed matrix     Response(0/1)
+		//     in C++ ver  :  ----- rbind_ipmat_FEFI------------     rbind_Resp_FEFI 
+		//                 :  ----- rbind_ipmat_FHDI------------     rbind_Resp_FHDI
+		//----------------------
+		//
+		//ipmat  = final imputation results
+		//     	col1: ID 	= unit index
+		//		col2: FID 	= ID of fractionally imputed value
+		// 		col3: WGT 	= weight 
+		//		col4: FWGT	= Frational weight
+		//		col5: Variables 
+		//		col6: Responses (separately in  rbind_Resp_...)
+		//------------------------
+		//
+		//irmat  = imputation results related to the categorized matrix 
+		//     	col1: ID 	= unit index
+		//		col2: FID 	= ID of fractionally imputed value
+		//		col3: OID	= original rank of the imputed value
+		//		col4: ORDER = SN(selected donor)
+		//		col5: FEFIW	= Fefi weights 
+		//		col6: CELL	= cells 
+		//----------------------
+	{
+		//testout
+		//RPrint("=========== Begin Variance Estimation of FEFI ================");
+		//cout<<"=========== Begin Variance Estimation of FEFI  ================"<<endl;
+
+
+		//----------------------------
+		//Basic constants declaration
+		//----------------------------
+		const int nrow_dat2_FEFI = rbind_ipmat_FEFI.size_row();
+		const int nrow_dat2_FHDI = rbind_ipmat_FHDI.size_row();
+		const int nrow_mox = rbind_mox.size_row();
+		const int L = nrow; //size of d_rw 
+
+							//--------------------
+							//get ready id table of FEFI
+							//--------------------
+		double* d_id_FEFI = new double[nrow_dat2_FEFI];
+		for (int i = 0; i<nrow_dat2_FEFI; i++) d_id_FEFI[i] = rbind_ipmat_FEFI(i, 0); //id, 1st col 
+		std::vector<double> v_table_name_id_FEFI; //same as "nimp" in R version
+		std::vector<int>    v_table_count_id_FEFI;//same as "nimp" in R version 
+		table_cpp(d_id_FEFI, nrow_dat2_FEFI, v_table_name_id_FEFI, v_table_count_id_FEFI);
+
+		//testout 
+		//cout<<"Main Var Est FEFI: after table_"<<endl;
+
+		//---------------------
+		//imputed real data matrix
+		//---------------------
+		int nrow_d_iy = nrow_dat2_FEFI; //default
+		if (s_M == "FDFI") { nrow_d_iy = nrow_dat2_FEFI; }
+		if (s_M == "FHDI") { nrow_d_iy = nrow_dat2_FHDI; }
+		double** d_iy = New_dMatrix(nrow_d_iy, ncol); //imputed matrix of real values 
+		for (int i = 0; i<ncol; i++)
+		{
+			for (int j = 0; j<nrow_d_iy; j++)
+			{
+				if (s_M == "FEFI")
+				{
+					d_iy[j][i] = rbind_ipmat_FEFI(j, 4 + i);
+				} //col5~ncol contains imputed real values 
+				if (s_M == "FHDI")
+				{
+					d_iy[j][i] = rbind_ipmat_FHDI(j, 4 + i);
+				} //col5~ncol contains imputed real values 
+
+			}
+		}
+
+		//testout 
+		/*
+		cout<<"Main Var Est FEFI: after getting ipmat"<<endl;
+		cout<<"d_iy matrix"<<endl;
+		for(int i=0; i<nrow_d_iy; i++)
+		{
+		for(int j=0; j<ncol; j++)
+		{
+		cout<<d_iy[i][j]<<",  ";
+		}
+		cout<<endl;
+		}
+		*/
+
+		//----------------------
+		//categorized matrix
+		//----------------------
+		double** d_cx = New_dMatrix(nrow, ncol);
+		Copy_dMatrix(z, nrow, ncol, d_cx);
+
+		//testout 
+		/*
+		cout<<"Main Var Est FEFI: after getting z = d_cx"<<endl;
+		cout<<"d_cx matrix"<<endl;
+		for(int i=0; i<nrow; i++)
+		{
+		for(int j=0; j<ncol; j++)
+		{
+		cout<<d_cx[i][j]<<",  ";
+		}
+		cout<<endl;
+		}
+		*/
+
+		//---------------------
+		//ocg, observed donors for each missing pattern. 
+		//---------------------
+		//the same as List_ocsg[nrow_mox]
+		//---------------------
+		int* i_locg = new int[nrow_mox]; //length of each list of ocg
+		for (int i = 0; i<nrow_mox; i++)
+		{
+			int i_temp = 0;
+			List_ocsg.get_a_row_size(i, i_temp);
+			i_locg[i] = i_temp;
+		}
+
+		//testout 
+		//cout<<"Main Var Est FEFI: after i_locg"<<endl;
+
+		//testout
+		//RPrint("==========DEBUG: after i_locg ================");
+
+		//testout
+		/*
+		RPrint("==== in Variance_Est_Extension_cpp ========");
+		RPrint("id: "); RPrint(id, n);
+		RPrint("n : "); RPrint(n);
+		RPrint("nr: "); RPrint(nr);
+		RPrint("nc: "); RPrint(nc);
+		RPrint("--------dat1: id (above)and w,  y and z ");
+		RPrint("w: "); RPrint(w, n);
+		RPrint("y: "); RPrint(y, nrow, ncol);
+		RPrint("z: "); RPrint(z, nrow, ncol);
+		RPrint("--------dat2: ipmat_FEFI     Resp_FEFI ------- ");
+		rbind_ipmat_FEFI.print_rbind_FHDI();
+		rbind_Resp_FEFI.print_rbind_FHDI();
+		RPrint("--------dat2: ipmat_FHDI     Resp_FHDI ------- ");
+		rbind_ipmat_FHDI.print_rbind_FHDI();
+		rbind_Resp_FHDI.print_rbind_FHDI();
+		RPrint("iy : (imputed real data)"); RPrint(d_iy, nrow_d_iy, ncol);
+		RPrint("cx : (categorized matrix)"); RPrint(d_cx, nrow, ncol);
+		RPrint("ocg: ");  List_ocsg.print_List_FHDI();
+		RPrint("locg: "); RPrint(i_locg, nrow_mox);
+		RPrint("nr1: "); RPrint(nr1);
+		RPrint("nr2: "); RPrint(nr2);
+		*/
+
+		//------------------------
+		//cell probability using replicate weight
+		//------------------------
+		List_FHDI         List_rst_prob(nrow); //only i_nc rows are meaningful
+		List_string_FHDI  List_rst_name(nrow); //only i_nc rows are meaningful
+		std::vector<std::string> s_ncx;
+
+		bool b_success_Rep_CellP_KNN = Rep_CellP_Neighbor(d_cx, nrow, ncol, d_rw, id, List_nU,
+			List_rst_prob,
+			List_rst_name,
+			s_ncx);
+
+
+		if (!b_success_Rep_CellP_KNN)
+		{
+			Rprintf("Error! Rep_CellP_KNN Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+			return 0; //abnormal ending 								
+		}
+
+		//--------------------
+		//put 1 into fully observed rows
+		//--------------------
+		double* d_rr0 = new double[nrow];
+		for (int i = 0; i<nrow; i++)
+		{
+			double d_prod = 1.0;
+			for (int j = 0; j<ncol; j++)
+			{
+				d_prod = d_prod*d_cx[i][j];
+			}
+			//-----
+			//0: at least one missing;  1: all observed
+			//-----
+			d_rr0[i] = d_prod;
+			if (fabs(d_prod) >0.0) d_rr0[i] = 1;
+		}
+
+		//--------------
+		//calculate w1 = sampling weight
+		//--------------
+		//std::string cn[nrow]; 
+		std::string *cn = new std::string[nrow];
+		Trans(d_cx, nrow, ncol, cn);
+		double* d_w1 = new double[nrow_dat2_FEFI];
+		for (int i = 0; i<nrow_dat2_FEFI; i++)
+			d_w1[i] = rbind_ipmat_FEFI(i, 2); //3rd column contains WGT
+
+											  //testout
+											  //RPrint("rr0: "); RPrint(d_rr0, nrow);
+											  //RPrint("w1: "); RPrint(d_w1, nrow_dat2_FEFI);
+											  //testout 
+											  //cout<<"Main Var Est FEFI: after d_w1"<<endl;			  
+
+											  //------------------
+											  //make Covariance matrix for following replication process
+											  //------------------
+		int* i_lloc;
+		std::vector<int> v_mox_0;
+		double** d_dy;
+		double** V_var; //covariance matrix of dy
+		List_FHDI List_V(nrow_mox); //storage of covariance matrix
+									//Note: store cov mat by "row-first" rule 
+		for (int i = 0; i<nrow_mox; i++)
+		{
+			int i_size_lloc = i_locg[i]; //length of the ocg associated with current missing row
+
+										 //-----------
+										 //when zero size continue to next iteration
+										 //-----------
+			if (i_size_lloc <= 0) { continue; }
+			i_lloc = new int[i_size_lloc];
+			for (int j = 0; j< i_size_lloc; j++) i_lloc[j] = (int)List_ocsg(i, j); //ith row, jth entity
+
+																				   //-----
+																				   //find missing column in current row
+																				   //------
+			v_mox_0.clear();
+			for (int j = 0; j<ncol; j++)
+			{
+				if (rbind_mox(i, j) == 0.0) v_mox_0.push_back(j + 1); //ACTUAL zero column id 
+			}
+			const int i_size_v_mox_0 = (int)v_mox_0.size();
+
+			//-------
+			//extract matrix of missing patterns
+			//-------
+			d_dy = New_dMatrix(i_size_lloc, i_size_v_mox_0);
+			V_var = New_dMatrix(i_size_v_mox_0, i_size_v_mox_0); //column-wise covariance 
+			for (int j = 0; j< i_size_lloc; j++)
+			{
+				for (int k = 0; k<i_size_v_mox_0; k++)
+				{
+					d_dy[j][k] = y[i_lloc[j] - 1][v_mox_0[k] - 1]; //-1 for actual location 
+				}
+			}
+			//----------
+			//"Estimated covariance" of d_dy by column-to-column method
+			//----------
+			cov_FHDI(d_dy, i_size_lloc, i_size_v_mox_0, V_var);
+
+
+			//----------
+			//store the covariance matrix 
+			//row-first rule
+			//----------
+			//const int i_List_V_col = i_size_v_mox_0*i_size_v_mox_0;  
+			//double* d_V_temp = new double[i_List_V_col];
+			//for(int j=0; j<i_size_v_mox_0; j++) 
+			//{
+			//	for(int k=0; k<i_size_v_mox_0; k++)
+			//		d_V_temp[j*i_size_v_mox_0 + k]= V_var[k][j]; 
+			//}
+
+			//List_V.put_block(i, i_List_V_col, d_V_temp); //ith covariance matrix 
+			List_V.put_block(i, i_size_v_mox_0, i_size_v_mox_0, V_var); //direct matrix saving
+
+																		//---
+																		//local deallocation
+																		//---
+			delete[] i_lloc;
+			Del_dMatrix(d_dy, i_size_lloc, i_size_v_mox_0);
+			Del_dMatrix(V_var, i_size_v_mox_0, i_size_v_mox_0);
+			//delete[] d_V_temp; 
+
+		}
+		//testout 
+		//cout<<"Main Var Est FEFI: after V_var"<<endl;			  
+
+		//testout
+		//RPrint("==========DEBUG: after V_var ================");	
+
+		//testout
+		//RPrint("FEFI  List_V");
+		//List_V.print_List_FHDI(); 
+
+		//----------------
+		//wmat: Replication Weights
+		//----------------
+		//double** wmat = New_dMatrix(nrow_dat2_FEFI, L); //nrow_dat2_FEFI = rows of w1
+
+		//------------------------------
+		//------------------------------
+		//MAIn loop for L replications
+		//------------------------------
+		//------------------------------
+		double* rw0 = new double[nrow];
+
+		int i_sum_Rw = 0;
+		for (int i = 0; i<nrow; i++) i_sum_Rw += v_table_count_id_FEFI[i];
+		double* Rw = new double[i_sum_Rw];
+
+		double* wijk = new double[nrow_dat2_FEFI]; //FWGT from ipmat 
+
+												   //testout
+												   //RPrint("==========DEBUG: begin main loop of l=L ==============");	
+												   //testout 
+												   //cout<<"Main Var Est FEFI: begin main loop of l=L"<<endl;			  
+
+		for (int l = 0; l<L; l++)
+		{
+			//testout
+			//RPrint("==========DEBUG: Inside main loop of l :"); RPrint(l); 			
+			//cout<<"main loop of l:"<<l<<endl;
+
+			//-------
+			//replicate weight from lth column
+			//-------
+			for (int i = 0; i<nrow; i++) rw0[i] = d_rw(i, l); //l_th column 
+			int i_sum = 0;
+			for (int i = 0; i<nrow; i++)
+			{
+				for (int j = 0; j<v_table_count_id_FEFI[i]; j++) Rw[i_sum++] = rw0[i];
+			}
+
+			//---------
+			//FWGT of ipmat
+			//----------
+			for (int i = 0; i<nrow_dat2_FEFI; i++)
+				wijk[i] = rbind_ipmat_FEFI(i, 3); //4th column is FWGT 
+
+												  //----------
+												  //joint probability associated with current string
+												  //-----------
+			std::string cn_current = cn[l]; //lth string 
+			std::vector<int> v_ncx_cn;
+			which(s_ncx, cn_current, v_ncx_cn); //actual location 
+												//const int i_size_v_ncx_cn = (int)v_ncx_cn.size(); //MUST BE "1"
+
+			int i_size_cellp = 0;
+			List_rst_prob.get_a_row_size(v_ncx_cn[0] - 1, i_size_cellp); //get a size of the row in the list 
+
+																		 //-----------
+																		 //when zero size continue to next iteration
+																		 //-----------
+			if (i_size_cellp <= 0) { continue; }
+			double* d_cellp = new double[i_size_cellp];
+			List_rst_prob.get_block(v_ncx_cn[0] - 1, d_cellp); //-1 for actual row location 
+
+															   //testout
+															   //RPrint(" ======== in Main Loop l+1: "); RPrint(l+1); 
+															   //RPrint("Rw"); RPrint(Rw, i_sum_Rw); 
+															   //RPrint("wijk"); RPrint(wijk, nrow_dat2_FEFI); 
+															   //RPrint("d_cellp"); RPrint(d_cellp, i_size_cellp); 
+
+															   //----------------------------------------
+															   //1. if the deleted is missing unit, no further action is taken
+															   //2. if the deleted is observed unit, then the fractional weights are re-computed 
+															   //----------------------------------------
+			int* idd = new int[nrow_mox]; //location of the deleted donor in ocg 
+			Fill_iVector(idd, nrow_mox, 0);
+			if (fabs(d_rr0[l]) > 0)
+			{
+				//---------------------
+				//locations of the deleted unit in observed list
+				//---------------------
+				std::vector<int> v_lg; //Actual locations 
+				v_lg.clear();
+				for (int j = 0; j<nrow_mox; j++) //list length 
+				{
+					for (int k = 0; k<i_locg[j]; k++) //a row in the List
+					{
+						int i_temp_lg = (int)List_ocsg(j, k);
+						if (i_temp_lg == (l + 1)) //+1 for actual location  
+						{
+							v_lg.push_back(j + 1); //actual row location 
+							idd[j] = k + 1; //actual location 
+							break;
+						}
+					}
+				}
+				const int nlg = (int)v_lg.size();
+
+				//testout
+				//RPrint(" in condition rr0[l]!=0 at l+1 ="); RPrint(l+1);
+				//RPrint("idd:"); RPrint(idd, nrow_mox);
+				//RPrint("lg :"); RPrint(v_lg);
+				//RPrint("nlg:"); RPrint(nlg); 
+
+				//--------------------------
+				//Adjust fractional weights for all units in lg
+				//--------------------------
+				if (nlg>0)
+				{
+					for (int j = 0; j<nlg; j++)
+					{
+						int i_row_lg = v_lg[j] - 1; // row number [0,...) 
+						double* d_1_mox = new double[ncol];
+						for (int k = 0; k<ncol; k++) d_1_mox[k] = rbind_mox(i_row_lg, k);
+
+						//---
+						//actual col number of missing cell in current missing row
+						//---
+						std::vector<int> v_rloc; v_rloc.clear();
+						for (int k = 0; k<ncol; k++)
+						{
+							if (d_1_mox[k] == 0.0) { v_rloc.push_back(k + 1); } //actual col
+						}
+						//const int nrloc = (int)v_rloc.size();
+						std::string cng;
+						Trans1(d_1_mox, ncol, cng);
+
+						//-------
+						//location of cn which has cng
+						//-------
+						std::vector<int> v_mlog; v_mlog.clear();
+						which(cn, nrow, cng, v_mlog);
+						const int nmlog = (int)v_mlog.size();
+
+						//testout
+						//RPrint("rloc: "); RPrint(v_rloc);
+						//RPrint("mlog: "); RPrint(v_mlog);
+
+						//------------------------
+						//------------------------
+						//FEFI
+						//------------------------
+						//------------------------
+						std::vector<int> v_elog;
+						if (s_M.compare("FEFI") == 0) //0=equal 
+						{
+							//-----
+							//find locations of mlog in dat2$ID
+							//v_mlog contains the row numbers that have the same string as
+							//current missing row 
+							//nmlog = n(v_mlog)
+							//-----
+							v_elog.clear();
+							for (int k1 = 0; k1<nmlog; k1++) //loop for mlog
+							{
+								int i_temp1 = id[v_mlog[k1] - 1]; //dat1$ID in R version  
+								for (int k2 = 0; k2<nrow_dat2_FEFI; k2++)
+								{
+									int i_temp2 = rbind_ipmat_FEFI(k2, 0); //1st col is dat2$ID
+									if (i_temp1 == i_temp2)
+									{
+										v_elog.push_back(k2 + 1); //actual location 
+									}
+								}
+							}
+							const int i_size_v_elog = (int)v_elog.size();
+							//testout
+							//RPrint(" elog: "); RPrint(v_elog); 
+
+							//----
+							//donor id
+							//-----
+							std::vector<int> v_did; v_did.clear();
+
+							int i_temp_lg_j = v_lg[j] - 1; //-1 for actual location  
+							for (int k1 = 0; k1<i_locg[i_temp_lg_j]; k1++) //a row in the List 
+							{
+								v_did.push_back((int)List_ocsg(i_temp_lg_j, k1));
+							}
+							const int i_size_nic = (int)v_did.size(); //length of did 
+
+																	  //----
+																	  //donor string patterns
+																	  //----
+																	  //std::string s_icn[i_size_nic];
+							std::string *s_icn = new std::string[i_size_nic];
+							for (int k1 = 0; k1<i_size_nic; k1++)
+								s_icn[k1] = cn[v_did[k1] - 1]; //-1 for actual location  		
+
+															   //testout 
+															   //RPrint("did :"); RPrint(v_did);
+															   //RPrint("icn :"); RPrint(s_icn, i_size_nic);
+
+															   //------
+															   //unique icn
+															   //-------
+							std::vector<std::string> v_unique_icn; v_unique_icn.clear();
+							//std::string s_icn_backup[i_size_nic];
+							std::string *s_icn_backup = new std::string[i_size_nic];
+							for (int k1 = 0; k1<i_size_nic; k1++) s_icn_backup[k1] = s_icn[k1];
+
+							for (int k1 = 0; k1<i_size_nic; k1++)
+							{
+								std::string s_uicn_temp = s_icn[k1];
+								for (int k2 = 0; k2<i_size_nic; k2++)
+								{
+									if (s_uicn_temp.compare(s_icn_backup[k2]) == 0)
+									{
+										//store the found unique string pattern 
+										v_unique_icn.push_back(s_uicn_temp);
+
+										//nullify all the remaining unit that has the same string
+										for (int k3 = k2; k3<i_size_nic; k3++)
+										{
+											if (s_uicn_temp.compare(s_icn_backup[k3]) == 0)
+												s_icn_backup[k3] = ""; //nullify
+										}
+
+										break;
+									}
+								}
+							}
+							const int i_unic = (int)v_unique_icn.size();
+
+							//testout 
+							//RPrint("v_unique_icn :"); RPrint(v_unique_icn);
+							//RPrint("i_unic :"); 	  RPrint(i_unic);
+
+							//----------
+							//sort the unique donors
+							//----------
+							//std::string s_unique_icn_sorted[i_unic]; //sorted donors
+							std::string *s_unique_icn_sorted = new std::string[i_unic]; //sorted donors
+							for (int k1 = 0; k1<i_unic; k1++) s_unique_icn_sorted[k1] = v_unique_icn[k1];
+							std::sort(s_unique_icn_sorted, s_unique_icn_sorted + i_unic);
+
+							//---------
+							//match the sorted unique donors to njp
+							//---------
+							//make "njp" 
+							int i_temp2 = 0; List_rst_name.get_a_row_size(0, i_temp2);
+							//std::string s_njp[i_temp2]; 
+							std::string *s_njp = new std::string[i_temp2];
+							for (int k1 = 0; k1<i_temp2; k1++) s_njp[k1] = List_rst_name(0, k1);
+
+							std::vector<int> v_icn_njp; v_icn_njp.clear();
+							for (int k1 = 0; k1<i_unic; k1++)
+							{
+								std::string s_temp_cp = s_unique_icn_sorted[k1];
+
+								for (int k2 = 0; k2<i_temp2; k2++)
+								{
+									if (s_temp_cp.compare(s_njp[k2]) == 0)
+									{
+										v_icn_njp.push_back(k2 + 1); break;
+									} //+1 for actual location 
+								}
+							}
+							const int i_size_v_icn_njp = (int)v_icn_njp.size();
+
+
+							//-------------------------------------
+							//get joint probability at the matched location only
+							//-------------------------------------
+							//-----------
+							//when zero size continue to next iteration
+							//-----------
+							if (i_size_v_icn_njp <= 0) { continue; }
+							double* d_cp = new double[i_size_v_icn_njp]; //joint prob
+																		 //std::string s_ncp[i_size_v_icn_njp];          //names of the matches
+							std::string *s_ncp = new std::string[i_size_v_icn_njp];          //names of the matches
+							double d_sum_cp = 0.0;
+							for (int k1 = 0; k1<i_size_v_icn_njp; k1++)
+							{
+								d_cp[k1] = d_cellp[v_icn_njp[k1] - 1]; //-1 for actual location 
+								s_ncp[k1] = s_njp[v_icn_njp[k1] - 1];
+
+								d_sum_cp += d_cp[k1]; //summation of d_cp[]
+							}
+							for (int k1 = 0; k1<i_size_v_icn_njp; k1++)
+							{
+								d_cp[k1] = d_cp[k1] / d_sum_cp;
+							}
+
+							//testout
+							//RPrint("njp"); RPrint(s_njp, i_temp2); 
+							//RPrint("match unique icn and njp :"); RPrint(v_icn_njp); 
+							//RPrint("cp"); RPrint(d_cp, i_size_v_icn_njp);
+							//RPrint("ncp"); RPrint(s_ncp, i_size_v_icn_njp);						
+
+							//-----------
+							//match donors 
+							//-----------
+							std::vector<int> v_obsp; v_obsp.clear();
+							std::vector<double> v_obsp_cp; v_obsp_cp.clear();
+							match_FHDI(s_icn, i_size_nic,
+								s_ncp, i_size_v_icn_njp,
+								v_obsp);
+							const int i_size_v_obsp = (int)v_obsp.size();
+							for (int k1 = 0; k1<i_size_v_obsp; k1++)
+								v_obsp_cp.push_back(d_cp[v_obsp[k1] - 1]);
+
+							//---------------------------------------
+							//Replicated sampling weights for donors
+							//---------------------------------------
+							//-----------
+							//when zero size continue to next iteration
+							//-----------
+							if (i_size_nic <= 0) { continue; }
+							double* d_drw0 = new double[i_size_nic]; //length of did
+							double d_sum_drw0 = 0.0;
+							for (int k1 = 0; k1<i_size_nic; k1++)
+							{
+								d_drw0[k1] = rw0[v_did[k1] - 1];
+								d_sum_drw0 += d_drw0[k1];
+							}
+
+							//----------
+							//update weighted probability
+							//----------
+							std::vector<std::string> jp_name_icn; jp_name_icn.clear();
+							std::vector<double> 	 jp_prob_icn; jp_prob_icn.clear();
+
+							wpct_FHDI(s_icn, i_size_nic, d_drw0,
+								jp_name_icn, jp_prob_icn);
+							const int i_size_jp_prob_icn = (int)jp_prob_icn.size(); //=i_unic
+							for (int k1 = 0; k1<i_size_jp_prob_icn; k1++)
+								jp_prob_icn[k1] = jp_prob_icn[k1] * d_sum_drw0;  //ws.icn
+
+																				 //testout
+																				 //RPrint("obsp: "); RPrint(v_obsp);
+																				 //RPrint("jp_name_icn :"); RPrint(jp_name_icn);
+																				 //RPrint("jp_prob_icn = ws.icn :"); RPrint(jp_prob_icn);
+
+
+
+							const int i_current_locg = i_locg[v_lg[j] - 1]; //-1 for actual loc
+																			//-----------
+																			//when zero size continue to next iteration
+																			//-----------
+							if (i_size_v_obsp <= 0) { continue; }
+							double* d_Fefiw = new double[i_size_v_obsp];
+							//---------------
+							//weight update I: at deleted donor locations
+							//---------------
+							if (i_unic == i_current_locg)
+							{
+								for (int k1 = 0; k1<i_size_v_obsp; k1++)
+									d_Fefiw[k1] = v_obsp_cp[k1];
+							}
+							//-----------------------------------------------
+							//weight update II: at deleted donor locations
+							//-----------------------------------------------
+							//-----------
+							//when zero size continue to next iteration
+							//-----------
+							if (i_size_nic <= 0) { continue; }
+							double* d_drw1 = new double[i_size_nic];
+							Fill_dVector(d_drw1, i_size_nic, 0.0); //initialized with 0
+							if (i_unic < i_current_locg)
+							{
+								//-----------
+								//match donors 
+								//-----------
+								std::vector<int> v_temp; v_temp.clear();
+								match_FHDI(s_icn, i_size_nic,
+									s_unique_icn_sorted, i_unic,
+									v_temp);
+
+								for (int k1 = 0; k1<i_size_nic; k1++)
+								{
+									if (jp_prob_icn[v_temp[k1] - 1] != 0.0)
+										d_drw1[k1] = d_drw0[k1] / jp_prob_icn[v_temp[k1] - 1];
+								}
+
+								//------------
+								//final updated weights
+								//------------
+								for (int k1 = 0; k1<i_size_nic; k1++)
+									d_Fefiw[k1] = v_obsp_cp[k1] * d_drw1[k1];
+
+								//testout
+								/*
+								RPrint("d_drw0 :"); RPrint(d_drw0, i_size_nic);
+								RPrint("jp_prob_icn[v_temp[k1]-1] :");
+								for(int k1=0; k1<i_size_nic; k1++)
+								RPrint(jp_prob_icn[v_temp[k1]-1]);
+								RPrint("jp_name_icn[v_temp[k1]-1] :");
+								std::vector<std::string> v_s_temp; v_s_temp.clear();
+								for(int k1=0; k1<i_size_nic; k1++)
+								{	v_s_temp.push_back(jp_name_icn[v_temp[k1]-1]); }
+								RPrint(v_s_temp);
+								RPrint("v_obsp_cp :"); RPrint(v_obsp_cp);
+								RPrint("d_drw1 :"); RPrint(d_drw1, i_size_nic);
+								RPrint("d_Fefiw :"); RPrint(d_Fefiw, i_size_nic);
+								*/
+
+							}
+
+							//------------
+							//update wijk: repeated copy, if needed
+							//------------
+							int i_cycle_wijk = (int)floor(i_size_v_elog*1.0 / i_size_nic*1.0); //expected evenly divisible
+							int i_loc_elog = 0; //sequential id
+
+												//testout
+												//RPrint("v_elog :"); RPrint(v_elog);
+												//RPrint("wijk (updated one only):"); 
+
+							for (int k1 = 0; k1<i_cycle_wijk;k1++)
+							{
+								for (int k2 = 0; k2<i_size_nic; k2++)
+								{
+									wijk[v_elog[i_loc_elog++] - 1] = d_Fefiw[k2];
+									//testout
+									//RPrint(d_Fefiw[k2]);
+								}
+							}
+
+							//---
+							//local deallocation
+							//---
+							delete[] s_icn;
+							delete[] s_icn_backup;
+							delete[] d_cp;
+							delete[] d_drw0;
+							delete[] d_Fefiw;
+							delete[] d_drw1;
+						}
+
+						//local deallocation 
+						delete[] d_1_mox;
+					}
+				}
+
+			}
+
+
+			//-------------------------------
+			//store the updated weights
+			//-------------------------------
+			int i_nrow_imputation = nrow;
+			if (s_M == "FEFI") i_nrow_imputation = nrow_dat2_FEFI;
+			if (s_M == "FHDI") i_nrow_imputation = nrow_dat2_FHDI;
+
+			for (int k1 = 0; k1<i_nrow_imputation; k1++)
+			{
+				wmat[k1][l] = Rw[k1] * wijk[k1];
+			}
+
+			//testout
+
+			/*
+			double* d_temp_wmat1 = new double[i_nrow_imputation];
+			for(int j=0; j<i_nrow_imputation; j++) d_temp_wmat1[j] = wmat[j][l];
+			RPrint("wmat[,l]:");
+			RPrint(d_temp_wmat1, i_nrow_imputation);
+			delete[] d_temp_wmat1;
+			*/
+
+			//--------------------
+			//local deallocation
+			//--------------------
+			delete[] idd;
+			delete[] d_cellp;
+
+
+
+		} //end of main loop for L
+		  //testout
+		  //RPrint(" ========= Variance_Est_FEFI.. has successfully finished!");
+		Rprintf(" ========= Variance estimation KNN has successfully finished!\n");
+		//testout 
+		//cout<<"Main Var Est FEFI: Variance_Est_FEFI.. has successfully finished!"<<endl;			  
+
+		//-------------
+		//deallocation
+		//-------------
+		//delete[] w; 
+		//delete[] id; 
+		delete[] cn;
+		delete[] d_id_FEFI;
+		Del_dMatrix(d_iy, nrow_d_iy, ncol);
+		Del_dMatrix(d_cx, nrow, ncol);
+		delete[] i_locg;
+		delete[] d_rr0;
+		delete[] d_w1;
+		//Del_dMatrix(wmat, nrow_dat2_FEFI, L);
+		delete[] rw0;
+		delete[] Rw;
+		delete[] wijk;
+
+		return 1;
+	}
+
+}//end of namespace
 
 
 //Fn===========================================================================
@@ -31013,6 +38503,951 @@ namespace FHDI
 }//end of namespace
 
 
+ //Fn===========================================================================
+
+ //Variance_Est_FHDI_Neighbor_cpp.cc-----------------------------------------------------------------------------
+
+ //Fn===========================================================================
+
+namespace FHDI
+{
+
+
+
+	bool Variance_Est_FHDI_Neighbor_cpp(double** y, double** z, const int nrow, const int ncol,
+		FHDI::RepWeight_FHDI &d_rw, double* w, int* id, List_FHDI &List_nU,
+		rbind_FHDI  &rbind_ipmat_FEFI,
+		rbind_FHDI  &rbind_Resp_FEFI,
+		rbind_FHDI  &rbind_irmat_FEFI,
+		rbind_FHDI  &rbind_ipmat_FHDI,
+		rbind_FHDI  &rbind_Resp_FHDI,
+		rbind_FHDI  &rbind_irmat_FHDI,
+		rbind_FHDI  &rbind_uox,
+		rbind_FHDI  &rbind_mox,
+		List_FHDI 	&List_ord,
+		List_FHDI 	&List_ocsg,
+		std::string s_M,
+		double** wmat)
+
+		//Description----------------------
+		//estimate variance for FHDI using Jackknife method 
+		//  Algorithm: 
+		//
+		// original R code: Dr. Im, J. and Dr. Kim, J. 
+		// c++ code: 		Dr. Cho, I. and Yicheng Yang
+		// All rights reserved
+		// 
+		// updated: Aug 11, 2020
+		//
+		//IN   : double y(nrow, ncol)= original data matrix with missing cells 
+		//IN   : double z(nrow, ncol)= categorized matrix of y. 0 for missing cell
+		//IN   : double d_rw[nrow, nrow] = replicate weights 
+		//IN   : double w(nrow) = sampling weight (default = 1.0)
+		//IN   : int    id(nrow) = id number of each row (default = 1 to nrow)
+		//FEFI --------returns----------------- FEFI //
+		//IN   : rbind_FHDI  rbind_ipmat_FEFI(4+ncol); //column size is 4+ncol
+		//IN   : rbind_FHDI  rbind_Resp_FEFI(ncol+1);  //separate response matrix  
+		//IN   : rbind_FHDI  rbind_irmat_FEFI(5+ncol); //column size is 5+ncol
+		//FHDI --------returns----------------- FHDI //
+		//IN   : rbind_FHDI  rbind_ipmat_FHDI(4+ncol); //column size is 4+ncol
+		//IN   : rbind_FHDI  rbind_Resp_FHDI(ncol+1);  //separate response matrix  
+		//IN   : rbind_FHDI  rbind_irmat_FHDI(5+ncol); //column size is 5+ncol
+		//other matrices
+		//IN   : rbind_FHDI  rbind_uox(ncol); //observed unique categorized matrix 
+		//IN   : rbind_FHDI  rbind_mox(ncol); //missing  unique categorized matrix
+		//Note: below Lists contain meaningful items up to i_count_mox rows  
+		//IN   : List_FHDI 	List_ord(nrow); //order records used for variance estimation
+		//IN   : List_FHDI 	List_ocsg(nrow); //order records used for variance estimation
+		//IN   : std::string s_M = "FEFI" = fully efficient fractional imputation
+		//						   "FHDI" = fractional hot deck imputation
+		//OUT  : double** wmat = New_dMatrix(nrow_dat2_FHDI, L=nrow); //nrow_dat2_FHDI = rows of w1
+		//
+		//    
+		//Data Structure Note
+		//----------------------
+		//dat1 in R version:  id   w  y_matrix  z_matrix
+		//     in C++ ver  :  id   w  y         z
+		//----------------------
+		//dat2 in R version:  id  FID  WGT  FWGT  imputed matrix     Response(0/1)
+		//     in C++ ver  :  ----- rbind_ipmat_FEFI------------     rbind_Resp_FEFI 
+		//                 :  ----- rbind_ipmat_FHDI------------     rbind_Resp_FHDI
+		//----------------------
+		//
+		//ipmat  = final imputation results
+		//     	col1: ID 	= unit index
+		//		col2: FID 	= ID of fractionally imputed value
+		// 		col3: WGT 	= weight 
+		//		col4: FWGT	= Frational weight
+		//		col5: Variables 
+		//		col6: Responses (separately in  rbind_Resp_...)
+		//------------------------
+		//
+		//irmat  = imputation results related to the categorized matrix 
+		//     	col1: ID 	= unit index
+		//		col2: FID 	= ID of fractionally imputed value
+		//		col3: OID	= original rank of the imputed value
+		//		col4: ORDER = SN(selected donor)
+		//		col5: FEFIW	= Fefi weights 
+		//		col6: CELL	= cells 
+		//----------------------
+	{
+		//testout
+		//RPrint("=========== Begin Variance Estimation of FHDI ================");
+
+		//below is defined by User 
+		/*	//-------------
+		//sample weight (default is 1)
+		//id array (default is row number)
+		//-------------
+		double* w = new double[nrow];
+		int* id   = new int[nrow];
+		for(int i=0; i<nrow; i++)
+		{
+		w[i] = 1.0;
+		id[i] = i+1; //ACTUAL id
+		}
+		*/
+
+		//----------------------------
+		//Basic constants declaration
+		//----------------------------
+		/*
+		const int n  = nrow;
+		const int nr = nrow;
+		const int nc = ncol;
+		const int nr1 = rbind_uox.size_row();
+		const int nr2 = rbind_mox.size_row();
+		const int nrow_uox 		 = rbind_uox.size_row();
+		*/
+		const int nrow_dat2_FEFI = rbind_ipmat_FEFI.size_row();
+		const int nrow_dat2_FHDI = rbind_ipmat_FHDI.size_row();
+		const int nrow_mox = rbind_mox.size_row();
+		const int L = nrow; //size of d_rw 
+
+							//--------------------
+							//get ready id table of FEFI
+							//--------------------
+		double* d_id_FHDI = new double[nrow_dat2_FHDI];
+		for (int i = 0; i<nrow_dat2_FHDI; i++) d_id_FHDI[i] = rbind_ipmat_FHDI(i, 0); //id, 1st col 
+		std::vector<double> v_table_name_id_FHDI; //same as "nimp" in R version
+		std::vector<int>    v_table_count_id_FHDI;//same as "nimp" in R version 
+		table_cpp(d_id_FHDI, nrow_dat2_FHDI, v_table_name_id_FHDI, v_table_count_id_FHDI);
+
+		//---------------------
+		//imputed real data matrix
+		//---------------------
+		int nrow_d_iy = nrow_dat2_FHDI; //default
+		if (s_M == "FDFI") { nrow_d_iy = nrow_dat2_FEFI; }
+		if (s_M == "FHDI") { nrow_d_iy = nrow_dat2_FHDI; }
+		double** d_iy = New_dMatrix(nrow_d_iy, ncol); //imputed matrix of real values 
+		for (int i = 0; i<ncol; i++)
+		{
+			for (int j = 0; j<nrow_d_iy; j++)
+			{
+				if (s_M == "FEFI")
+				{
+					d_iy[j][i] = rbind_ipmat_FEFI(j, 4 + i);
+				} //col5~ncol contains imputed real values 
+				if (s_M == "FHDI")
+				{
+					d_iy[j][i] = rbind_ipmat_FHDI(j, 4 + i);
+				} //col5~ncol contains imputed real values 
+
+			}
+		}
+
+		//----------------------
+		//categorized matrix
+		//----------------------
+		double** d_cx = New_dMatrix(nrow, ncol);
+		Copy_dMatrix(z, nrow, ncol, d_cx);
+
+		//---------------------
+		//ocg, observed donors for each missing pattern. 
+		//---------------------
+		//the same as List_ocsg[nrow_mox]
+		//---------------------
+		int* i_locg = new int[nrow_mox]; //length of donor rows for each missing pattern 
+		for (int i = 0; i<nrow_mox; i++)
+		{
+			int i_temp = 0;
+			List_ocsg.get_a_row_size(i, i_temp);
+			i_locg[i] = i_temp; //meaning how many rows used as the donor for ith missing pattern 
+		}
+
+		//testout
+		/*
+		RPrint("==== in Variance_Est_Extension_cpp ========");
+		RPrint("id: "); RPrint(id, n);
+		RPrint("n : "); RPrint(n);
+		RPrint("nr: "); RPrint(nr);
+		RPrint("nc: "); RPrint(nc);
+		RPrint("--------dat1: id (above)and w,  y and z ");
+		RPrint("w: "); RPrint(w, n);
+		RPrint("y: "); RPrint(y, nrow, ncol);
+		RPrint("z: "); RPrint(z, nrow, ncol);
+		RPrint("--------dat2: ipmat_FEFI     Resp_FEFI ------- ");
+		rbind_ipmat_FEFI.print_rbind_FHDI();
+		rbind_Resp_FEFI.print_rbind_FHDI();
+		RPrint("--------dat2: ipmat_FHDI     Resp_FHDI ------- ");
+		rbind_ipmat_FHDI.print_rbind_FHDI();
+		rbind_Resp_FHDI.print_rbind_FHDI();
+		RPrint("iy : (imputed real data)"); RPrint(d_iy, nrow_d_iy, ncol);
+		RPrint("cx : (categorized matrix)"); RPrint(d_cx, nrow, ncol);
+		RPrint("ocg: ");  List_ocsg.print_List_FHDI();
+		RPrint("locg: "); RPrint(i_locg, nrow_mox);
+		RPrint("nr1: "); RPrint(nr1);
+		RPrint("nr2: "); RPrint(nr2);
+		*/
+
+		//------------------------
+		//cell probability using replicate weight
+		//------------------------
+		List_FHDI         List_rst_prob(nrow); //only i_nc rows are meaningful
+		List_string_FHDI  List_rst_name(nrow); //only i_nc rows are meaningful
+		std::vector<std::string> s_ncx;
+
+		bool b_success_Rep_CellP_KNN = Rep_CellP_Neighbor(d_cx, nrow, ncol, d_rw, id, List_nU,
+			List_rst_prob,
+			List_rst_name,
+			s_ncx);
+
+		if (!b_success_Rep_CellP_KNN)
+		{
+			Rprintf("Error! Rep_CellP Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+			return 0; //abnormal ending 								
+		}
+
+		//--------------------
+		//put 1 into fully observed rows
+		//--------------------
+		double* d_rr0 = new double[nrow];
+		for (int i = 0; i<nrow; i++)
+		{
+			double d_prod = 1.0;
+			for (int j = 0; j<ncol; j++)
+			{
+				d_prod = d_prod*d_cx[i][j];
+			}
+			//-----
+			//0: at least one missing;  1: all observed
+			//-----
+			d_rr0[i] = d_prod;
+			if (fabs(d_prod) >0.0) d_rr0[i] = 1;
+		}
+
+		//--------------
+		//calculate w1 = sampling weight
+		//--------------
+		//std::string cn[nrow]; 
+		std::string *cn = new std::string[nrow];
+		Trans(d_cx, nrow, ncol, cn);
+		double* d_w1 = new double[nrow_dat2_FHDI];
+		for (int i = 0; i<nrow_dat2_FHDI; i++)
+			d_w1[i] = rbind_ipmat_FHDI(i, 2); //3rd column contains WGT
+
+											  //testout
+											  //RPrint("rr0: "); RPrint(d_rr0, nrow);
+											  //RPrint("w1: "); RPrint(d_w1, nrow_dat2_FHDI);
+
+											  //------------------
+											  //make Covariance matrix for the subsequent replication process
+											  //------------------
+		int* i_lloc;
+		std::vector<int> v_mox_0;
+		double** d_dy;
+		double** V_var; //covariance matrix of dy
+		List_FHDI List_V(nrow_mox); //storage of covariance matrix
+									//Note: store cov mat by "row-first" rule 
+		for (int i = 0; i<nrow_mox; i++)
+		{
+			//---------------------------
+			//how many donor rows for the ith missing pattern
+			//------------------------
+			int i_size_lloc = i_locg[i];
+			//-----------
+			//when zero size continue to next iteration
+			//-----------
+			if (i_size_lloc <= 0) { continue; }
+			i_lloc = new int[i_size_lloc]; //vector of actual donor row numbers 
+			for (int j = 0; j< i_size_lloc; j++) i_lloc[j] = (int)List_ocsg(i, j); //ith row, jth entity
+
+																				   //-----
+																				   //find missing columns in current missing row
+																				   //------
+			v_mox_0.clear();
+			for (int j = 0; j<ncol; j++)
+			{
+				if (rbind_mox(i, j) == 0.0) v_mox_0.push_back(j + 1); //ACTUAL zero column id 
+			}
+			const int i_size_v_mox_0 = (int)v_mox_0.size();
+
+			//----------------------------------
+			//extract matrix of missing patterns
+			//----------------------------------
+			//-----------
+			//when zero size continue to next iteration
+			//-----------
+			if (i_size_lloc <= 0) { continue; }
+			if (i_size_v_mox_0 <= 0) { continue; }
+			d_dy = New_dMatrix(i_size_lloc, i_size_v_mox_0);
+			V_var = New_dMatrix(i_size_v_mox_0, i_size_v_mox_0); //column-wise covariance 
+			for (int j = 0; j< i_size_lloc; j++) //LOOP for donor rows 
+			{
+				for (int k = 0; k<i_size_v_mox_0; k++) //LOOP for missing columns 
+				{
+					d_dy[j][k] = y[i_lloc[j] - 1][v_mox_0[k] - 1]; //-1 for actual location 
+				}
+			}
+			//----------
+			//"Estimated covariance" of d_dy by column-to-column method
+			//----------
+			cov_FHDI(d_dy, i_size_lloc, i_size_v_mox_0, V_var);
+
+
+			//----------
+			//store the covariance matrix 
+			//row-first rule
+			//----------
+			//const int i_List_V_col = i_size_v_mox_0*i_size_v_mox_0;  
+			//double* d_V_temp = new double[i_List_V_col];
+			//for(int j=0; j<i_size_v_mox_0; j++) 
+			//{
+			//	for(int k=0; k<i_size_v_mox_0; k++)
+			//		d_V_temp[j*i_size_v_mox_0 + k]= V_var[k][j]; 
+			//}
+
+			//List_V.put_block(i, i_List_V_col, d_V_temp); //ith covariance matrix 
+			List_V.put_block(i, i_size_v_mox_0, i_size_v_mox_0, V_var); //direct matrix saving
+
+																		//---
+																		//local deallocation
+																		//---
+			delete[] i_lloc;
+			Del_dMatrix(d_dy, i_size_lloc, i_size_v_mox_0);
+			Del_dMatrix(V_var, i_size_v_mox_0, i_size_v_mox_0);
+			//delete[] d_V_temp; 
+
+		}
+
+		//testout
+		//RPrint("  List_V");
+		//List_V.print_List_FHDI(); 
+
+		//----------------
+		//wmat: Replication Weights
+		//----------------
+		//double** wmat = New_dMatrix(nrow_dat2_FHDI, L); //nrow_dat2_FHDI = rows of w1
+
+		//------------------------------
+		//------------------------------
+		//MAIn loop for L replications
+		//------------------------------
+		//------------------------------
+		double* rw0 = new double[nrow];
+
+		int i_sum_Rw = 0;
+		for (int i = 0; i<nrow; i++) i_sum_Rw += v_table_count_id_FHDI[i];
+		double* Rw = new double[i_sum_Rw];
+
+		double* wijk = new double[nrow_dat2_FHDI]; //FWGT from ipmat 
+
+		for (int l = 0; l<L; l++)
+		{
+			//-------
+			//replicate weight from lth column
+			//-------
+			for (int i = 0; i<nrow; i++) rw0[i] = d_rw(i, l); //l_th column 
+			int i_sum = 0;
+			for (int i = 0; i<nrow; i++)
+			{
+				for (int j = 0; j<v_table_count_id_FHDI[i]; j++) Rw[i_sum++] = rw0[i];
+			}
+
+			//---------
+			//FWGT of ipmat
+			//----------
+			for (int i = 0; i<nrow_dat2_FHDI; i++)
+				wijk[i] = rbind_ipmat_FHDI(i, 3); //4th column is FWGT 
+
+												  //----------
+												  //joint probability associated with current string
+												  //-----------
+			std::string cn_current = cn[l]; //lth string 
+			std::vector<int> v_ncx_cn;
+			which(s_ncx, cn_current, v_ncx_cn); //actual location 
+												//const int i_size_v_ncx_cn = (int)v_ncx_cn.size(); //MUST BE "1"
+
+			int i_size_cellp = 0;
+			List_rst_prob.get_a_row_size(v_ncx_cn[0] - 1, i_size_cellp); //get a size of the row in the list 
+																		 //-----------
+																		 //when zero size continue to next iteration
+																		 //-----------
+			if (i_size_cellp <= 0) { continue; }
+			double* d_cellp = new double[i_size_cellp];
+			List_rst_prob.get_block(v_ncx_cn[0] - 1, d_cellp); //-1 for actual row location 
+
+															   //testout
+															   //RPrint(" ======== in Main Loop l+1: "); RPrint(l+1); 
+															   //RPrint("Rw"); RPrint(Rw, i_sum_Rw); 
+															   //RPrint("wijk"); RPrint(wijk, nrow_dat2_FHDI); 
+															   //RPrint("d_cellp"); RPrint(d_cellp, i_size_cellp); 
+
+															   //----------------------------------------
+															   //1. if the deleted is missing unit, no further action is taken
+															   //2. if the deleted is observed unit, then the fractional weights are re-computed 
+															   //----------------------------------------
+			int* idd = new int[nrow_mox]; //location of the deleted donor in ocg 
+			Fill_iVector(idd, nrow_mox, 0);
+			if (fabs(d_rr0[l]) > 0)
+			{
+				//---------------------
+				//locations of the deleted unit in observed list
+				//---------------------
+				std::vector<int> v_lg; //Actual locations 
+				v_lg.clear();
+				for (int j = 0; j<nrow_mox; j++) //all missing patterns
+				{
+					for (int k = 0; k<i_locg[j]; k++) //donor rows for the jth missing pattern
+					{
+						int i_temp_lg = (int)List_ocsg(j, k);
+						if (i_temp_lg == (l + 1)) //+1 for actual location  
+						{
+							v_lg.push_back(j + 1); //actual id of jth missing pattern  
+							idd[j] = k + 1; //actual number of donor rows for jth missing pattern 
+							break;
+						}
+					}
+				}
+				const int nlg = (int)v_lg.size();
+
+				//testout
+				//RPrint(" in condition rr0[l]!=0 at l+1 ="); RPrint(l+1);
+				//RPrint("idd:"); RPrint(idd, nrow_mox);
+				//RPrint("lg :"); RPrint(v_lg);
+				//RPrint("nlg:"); RPrint(nlg); 
+
+				//--------------------------
+				//Adjust fractional weights for all units in lg
+				//--------------------------
+				if (nlg>0)
+				{
+					for (int j = 0; j<nlg; j++)
+					{
+						int i_row_lg = v_lg[j] - 1; // row number [0,...) 
+						double* d_1_mox = new double[ncol];
+						for (int k = 0; k<ncol; k++) d_1_mox[k] = rbind_mox(i_row_lg, k);
+
+						//---
+						//actual col number of missing cell in current missing row
+						//---
+						std::vector<int> v_rloc; v_rloc.clear();
+						for (int k = 0; k<ncol; k++)
+						{
+							if (d_1_mox[k] == 0.0) { v_rloc.push_back(k + 1); } //actual col
+						}
+
+						//---
+						//number of missing columns in current missing row
+						//---
+						const int nrloc = (int)v_rloc.size();
+						std::string cng;
+						Trans1(d_1_mox, ncol, cng);
+
+						//-------
+						//location of cn which has cng
+						//-------
+						std::vector<int> v_mlog; v_mlog.clear();
+						which(cn, nrow, cng, v_mlog);
+						const int nmlog = (int)v_mlog.size();
+
+						//testout
+						//RPrint("rloc: "); RPrint(v_rloc);
+						//RPrint("mlog: "); RPrint(v_mlog);
+
+
+						//------------------------
+						//------------------------
+						//FHDI
+						//------------------------
+						//------------------------
+						std::vector<int> v_elog; v_elog.clear();
+						if (s_M.compare("FHDI") == 0) //0=equal 
+						{
+							//-----
+							//find locations of mlog in dat2$ID
+							//v_mlog contains the row numbers that have the same string as
+							//current missing row 
+							//nmlog = n(v_mlog)
+							//-----
+							v_elog.clear();
+							for (int k1 = 0; k1<nmlog; k1++) //loop for mlog
+							{
+								int i_temp1 = id[v_mlog[k1] - 1]; //dat1$ID in R version  
+								for (int k2 = 0; k2<nrow_dat2_FHDI; k2++)
+								{
+									int i_temp2 = rbind_ipmat_FHDI(k2, 0); //1st col is dat2$ID
+									if (i_temp1 == i_temp2)
+									{
+										v_elog.push_back(k2 + 1); //actual location 
+									}
+								}
+							}
+							const int i_size_v_elog = (int)v_elog.size();
+
+							//------------------------------------
+							//set of donors for missing columns
+							//------------------------------------
+							//-----------
+							//when zero size continue to next iteration
+							//-----------
+							if (i_size_v_elog <= 0) { continue; }
+							if (nrloc <= 0) { continue; }
+							double** dy_FHDI = New_dMatrix(i_size_v_elog, nrloc);
+							for (int k1 = 0; k1<nrloc; k1++)
+							{
+								for (int k2 = 0; k2<i_size_v_elog; k2++)
+								{
+									dy_FHDI[k2][k1] = d_iy[v_elog[k2] - 1][v_rloc[k1] - 1];
+								}
+							}
+							//testout
+							//RPrint(" = FHDI l+1: "); RPrint(l+1); 
+							//RPrint(" elog: "); RPrint(v_elog); 
+							//RPrint(" dy  : "); RPrint(dy_FHDI,i_size_v_elog, nrloc); 
+
+							//---------------------
+							// nrloc >= 1: number of missing columns in current missing row
+							//---------------------
+							if (nrloc >= 1)
+							{
+
+								//----
+								//make dk matrix
+								//filled with l_th original data 
+								//at missing column locations  
+								//Note: this is the Jackknifed row
+								//----------------------------------------
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (i_size_v_elog <= 0) { continue; }
+								if (nrloc <= 0) { continue; }
+								double** dk = New_dMatrix(i_size_v_elog, nrloc);
+								for (int k1 = 0; k1<nrloc; k1++)
+								{
+									double d_temp_dk = y[l][v_rloc[k1] - 1]; //-1 for actual location  
+									for (int k2 = 0; k2<i_size_v_elog; k2++)
+									{
+										dk[k2][k1] = d_temp_dk;
+									}
+								}
+								//testout
+								//RPrint("i_size_v_elog:"); RPrint(i_size_v_elog); 
+								//RPrint("nrloc        :"); RPrint(nrloc); 
+								//RPrint("dk:"); RPrint(dk, i_size_v_elog, nrloc); 
+
+								//---------
+								//difference between   dy         and dk 
+								//i.e., difference b/w donor rows and jackknifed row  
+								//-------------------------------------------
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (i_size_v_elog <= 0) { continue; }
+								if (nrloc <= 0) { continue; }
+								double** diff = New_dMatrix(i_size_v_elog, nrloc);
+								for (int k1 = 0; k1<nrloc; k1++)
+								{
+									for (int k2 = 0; k2<i_size_v_elog; k2++)
+									{
+										diff[k2][k1] = dk[k2][k1] - dy_FHDI[k2][k1];
+									}
+								}
+
+
+								//----------
+								//get l_th covariance matrix
+								//--------------------------------------------
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (nrloc <= 0) { continue; }
+								double** V_var_l = New_dMatrix(nrloc, nrloc);
+								int i_loc_lg_j = v_lg[j] - 1; //-1 for actual location 
+								List_V.get_block(i_loc_lg_j, nrloc, nrloc, V_var_l); //matrix read by row-first rule
+
+																					 //testout
+																					 //RPrint(" = FHDI l+1: "); RPrint(l+1); 
+																					 //RPrint(" nrloc: ");   RPrint(nrloc); 
+																					 //RPrint(" V_var_l: "); RPrint(V_var_l, nrloc, nrloc); 
+
+
+																					 //-------------------------------------
+																					 // diff * (V)^-1 *diff^T
+																					 //-------------------------------------
+																					 //-----------
+																					 //when zero size continue to next iteration
+																					 //-----------
+								if (nrloc <= 0) { continue; }
+								double** V_inv = New_dMatrix(nrloc, nrloc);
+
+								bool b_success_V_inv = true; //false when abrupt exit due to zero diagonal
+								if (nrloc > 1) b_success_V_inv = Inverse_dMatrix_FHDI(V_var_l, nrloc, V_inv);
+								if (nrloc == 1) V_inv[0][0] = 1.0 / V_var_l[0][0];
+								if (!b_success_V_inv)
+								{
+									//testout
+									/*cout<<"nrloc: "<<nrloc<<endl;
+									cout<<"l: "<<l<<",  L :"<<j<<endl;
+									cout<<"j: "<<j<<",  nlg :"<<nlg<<endl;
+									cout<<"V_var_l[][]"<<endl;
+									RPrint(V_var_l, nrloc, nrloc);
+									for(int i_V_var = 0; i_V_var<nrloc; i_V_var++)
+									{
+									cout<<i_V_var<<":  "<<V_var_l[i_V_var][i_V_var]<<endl;
+									}*/
+
+									//----
+									//below is an option to abort 
+									//zero-diagonal Variance matrix
+									//However, if donor vector was zero
+									//vector, exceptional consideration
+									//is needed
+									//Feb 07, 2017
+									//----
+									//cout<<endl<<"Error! zero diagonal term in V_var_l"<<endl; return; 
+
+									//----
+									//special remedy for zero diagonal covariance matrix
+									//Feb 7 2017
+									//This is enough since we are interested in 
+									//relative ordering to find minimum distance later
+									//----
+									for (int i_inv1 = 0; i_inv1<nrloc; i_inv1++)
+									{
+										double d_temp_inv = V_var_l[i_inv1][i_inv1];
+
+										//for zero diagonal term: a big number 
+										if (fabs(d_temp_inv) <= 1e-13)
+										{
+											V_inv[i_inv1][i_inv1] = 1E15;
+										}
+
+										//for non-zero diagonal term: simple inverse
+										if (fabs(d_temp_inv) > 1e-13)
+										{
+											V_inv[i_inv1][i_inv1] = 1.0 / d_temp_inv;
+										}
+									}
+								}
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (nrloc <= 0) { continue; }
+								if (i_size_v_elog <= 0) { continue; }
+								double** diff_T = New_dMatrix(nrloc, i_size_v_elog);
+								for (int k1 = 0; k1<nrloc; k1++)
+								{
+									for (int k2 = 0; k2<i_size_v_elog; k2++)
+									{
+										diff_T[k1][k2] = diff[k2][k1];
+									}
+								}
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (i_size_v_elog <= 0) { continue; }
+								double** diff_V_diffT = New_dMatrix(i_size_v_elog, i_size_v_elog);
+								dMatrix_Mul_AtBA(diff_T, nrloc, i_size_v_elog,
+									V_inv, diff_V_diffT);
+
+								//-----------
+								//score = diagonal terms
+								//-----------
+								double* d_score = new double[i_size_v_elog];
+								for (int k1 = 0; k1<i_size_v_elog; k1++)
+									d_score[k1] = diff_V_diffT[k1][k1];
+
+
+								//testout
+								//RPrint(" = FHDI l+1: "); RPrint(l+1); 
+								//RPrint("score        :"); RPrint(d_score, i_size_v_elog); 
+
+								//------
+								//MM calculation
+								//------
+								if (nmlog == 0)
+								{
+									Rprintf("Caution! zero mlog!"); continue;
+								}
+
+								const int MM = i_size_v_elog / nmlog;
+								const int ncol_imt = (int)floor(i_size_v_elog / MM);
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (ncol_imt <= 0) { continue; }
+								if (MM <= 0) { continue; }
+								double** d_imt = New_dMatrix(MM, ncol_imt);
+								int i_score = 0;
+								for (int k1 = 0; k1<ncol_imt; k1++)
+								{
+									for (int k2 = 0; k2<MM; k2++) //row-first rule 
+									{
+										d_imt[k2][k1] = d_score[i_score++];
+									}
+								}
+
+								//-----------------------------------------
+								//extract weights
+								//-----------------------------------------
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (i_size_v_elog <= 0) { continue; }
+								double* ewijk = new double[i_size_v_elog];
+								double* fefiw = new double[i_size_v_elog];
+
+								for (int k1 = 0; k1<i_size_v_elog; k1++)
+								{
+									ewijk[k1] = wijk[v_elog[k1] - 1]; //-1 for actual loc
+																	  //5th column is FEFIW of fhdi[[2]] in r version 
+									fefiw[k1] = rbind_irmat_FHDI(v_elog[k1] - 1, 4); //5th column
+								}
+
+								//testout
+								//RPrint("MM :"); RPrint(MM);
+								//RPrint("ewijk :"); RPrint(ewijk, i_size_v_elog);
+								//RPrint("fefiw :"); RPrint(fefiw, i_size_v_elog);
+								//RPrint("d_imt :"); RPrint(d_imt, MM, ncol_imt);
+
+								//-------------------
+								//find eloc
+								//-------------------
+								std::vector<int> LMM; LMM.clear();
+								for (int k1 = 0; k1<nmlog; k1++) LMM.push_back(k1*MM);
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (nmlog <= 0) { continue; }
+								int* i_eloc = new int[nmlog];
+								//column-wise min location (Actual)
+								for (int k1 = 0; k1<nmlog; k1++)
+								{
+									double d_temp = d_imt[0][k1]; //1st row  
+									int    i_min = 1;
+									for (int k2 = 1; k2<MM; k2++)
+									{
+										if ((d_temp - d_imt[k2][k1]) > 1e-3)
+										{
+											d_temp = d_imt[k2][k1];
+											i_min = k2 + 1; //actual row location 
+										}
+									}
+									//----
+									//store the column-wise min location (Actual)
+									//----
+									i_eloc[k1] = i_min + LMM[k1];
+									//testout
+									//RPrint("LMM[k1] :"); RPrint(LMM[k1]);
+									//RPrint("i_eloc[k1] :"); RPrint(i_eloc[k1]);
+									//RPrint("i_min :"); RPrint(i_min);
+
+								}
+
+								//-------------
+								//maximum difference (>0) between ewijk and fefiw
+								//-------------------------------------
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (nmlog <= 0) { continue; }
+								double* d_maxew = new double[nmlog]; //nmlog = length of i_eloc
+								double* d_maxval = new double[nmlog]; //nmlog = length of i_eloc
+								for (int k1 = 0; k1<nmlog; k1++)
+								{
+									double d_temp = ewijk[i_eloc[k1] - 1] - fefiw[i_eloc[k1] - 1]; //-1 for actual loc
+									d_maxew[k1] = 0.0;
+									if (d_temp > 0.0) d_maxew[k1] = d_temp;
+
+									d_maxval[k1] = ewijk[i_eloc[k1] - 1] - d_maxew[k1];
+								}
+								//testout
+								//RPrint("d_maxew :"); RPrint(d_maxew, nmlog);
+								//RPrint("d_maxval :"); RPrint(d_maxval, nmlog);
+
+								//------
+								//ewijk update
+								//------
+								for (int k1 = 0; k1<nmlog; k1++)
+								{
+									ewijk[i_eloc[k1] - 1] = d_maxew[k1];
+								}
+
+								//-------------
+								//extend maxval array
+								//-------------
+								if (MM == 1) { Rprintf("Error! MM is 1 in Var FHDI \n"); return 0; }
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if (nmlog <= 0) { continue; }
+								double* d_maxval_extended = new double[nmlog*(MM - 1)];
+								int i_maxval = 0;
+								for (int k1 = 0; k1<nmlog; k1++)
+								{
+									double d_temp = d_maxval[k1] / (MM - 1);
+									for (int k2 = 0; k2<(MM - 1); k2++)
+									{
+										d_maxval_extended[i_maxval++] = d_temp;
+									}
+								}
+
+								//---------------
+								//update ewijk with extended maxval
+								//---------------
+								//exclude eloc locations
+								//-----------
+								//when zero size continue to next iteration
+								//-----------
+								if ((i_size_v_elog - nmlog) <= 0) { continue; }
+								int* i_without_eloc = new int[i_size_v_elog - nmlog];
+								int i_eloc_temp = 0;
+								for (int k1 = 0; k1<i_size_v_elog; k1++)
+								{
+									bool b_same = false;
+									for (int k2 = 0; k2<nmlog; k2++)
+									{
+										if (i_eloc[k2] - 1 == k1)
+										{
+											b_same = true;
+											break;
+										}
+									}
+									if (!b_same) { i_without_eloc[i_eloc_temp++] = k1; }
+								}
+								//store values
+								for (int k1 = 0; k1<(i_size_v_elog - nmlog); k1++)
+								{
+									int i_loc_ew = i_without_eloc[k1];
+									ewijk[i_loc_ew] = ewijk[i_loc_ew] + d_maxval_extended[k1];
+								}
+								//testout
+								//RPrint("ewijk :"); RPrint(ewijk, i_size_v_elog);
+
+
+								//----------------
+								//final update wijk with ewijk
+								//----------------
+								for (int k1 = 0; k1<i_size_v_elog; k1++)
+								{
+									wijk[v_elog[k1] - 1] = ewijk[k1];
+
+									//testout
+									//RPrint("v_elog[k1]-1 :"); RPrint(v_elog[k1]-1);
+									//RPrint("wijk[..] :"); RPrint(wijk[v_elog[k1]-1]);
+
+								}
+
+
+								//---
+								//local deallocation
+								//---
+								Del_dMatrix(dk, i_size_v_elog, nrloc);
+								Del_dMatrix(diff, i_size_v_elog, nrloc);
+								Del_dMatrix(V_var_l, nrloc, nrloc);
+								Del_dMatrix(V_inv, nrloc, nrloc);
+								Del_dMatrix(diff_T, nrloc, i_size_v_elog);
+								Del_dMatrix(diff_V_diffT, i_size_v_elog, i_size_v_elog);
+								delete[] d_score;
+								Del_dMatrix(d_imt, MM, ncol_imt);
+								delete[] ewijk;
+								delete[] fefiw;
+								delete[] i_eloc;
+								delete[] d_maxew;
+								delete[] d_maxval;
+								delete[] d_maxval_extended;
+								delete[] i_without_eloc;
+
+								//NOTE: dy_FHDI has different order from R version
+								//as of Nov 27, 2016. It looks fine overall, but 
+								//need to check later !!!!
+							}
+
+
+							//----------
+							//local deallocation 
+							//----------
+							Del_dMatrix(dy_FHDI, i_size_v_elog, nrloc);
+						}
+
+						//local deallocation 
+						delete[] d_1_mox;
+					}
+				}
+
+			}
+
+
+			//-------------------------------
+			//store the updated weights
+			//-------------------------------
+			int i_nrow_imputation = nrow;
+			if (s_M == "FEFI") i_nrow_imputation = nrow_dat2_FEFI;
+			if (s_M == "FHDI") i_nrow_imputation = nrow_dat2_FHDI;
+
+			for (int k1 = 0; k1<i_nrow_imputation; k1++)
+			{
+				wmat[k1][l] = Rw[k1] * wijk[k1];
+			}
+
+			//testout
+			/*
+			double* d_temp_wmat1 = new double[i_nrow_imputation];
+			for(int j=0; j<i_nrow_imputation; j++) d_temp_wmat1[j] = wmat[j][l];
+			RPrint("wmat[,l]:");
+			RPrint(d_temp_wmat1, i_nrow_imputation);
+			delete[] d_temp_wmat1;
+			*/
+
+			//--------------------
+			//local deallocation
+			//--------------------
+			delete[] idd;
+			delete[] d_cellp;
+
+
+
+		} //end of main loop for L
+
+
+		  //testout
+		Rprintf(" ========= Variance estimation KNN has successfully finished!\n");
+
+		//-------------
+		//deallocation
+		//-------------
+		//delete[] w; 
+		//delete[] id;
+		delete[] cn;
+		delete[] d_id_FHDI;
+		Del_dMatrix(d_iy, nrow_d_iy, ncol);
+		Del_dMatrix(d_cx, nrow, ncol);
+		delete[] i_locg;
+		delete[] d_rr0;
+		delete[] d_w1;
+		//Del_dMatrix(wmat, nrow_dat2_FHDI, L);
+		delete[] rw0;
+		delete[] Rw;
+		delete[] wijk;
+
+		return 1;
+	}
+
+}//end of namespace
+
 
 
 
@@ -31034,7 +39469,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 				   int* id, double* z_UserDefined, 
 				   
-				   int* NonCollapsible_categorical, int* i_option_SIS, int* s_option_SIS,
+				   int* NonCollapsible_categorical, int* i_option_SIS, int* s_option_SIS, int* i_option_cellmake, int* top_corr_var,
 
 				   rbind_FHDI &rbind_ipmat_FEFI,
 
@@ -31129,6 +39564,10 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 //IN    : int    s_option_SIS = 1: SIS with intersection; 2: SIS with union; 3: SIS with global ranking 
 
+//IN    : int    i_option_cellmake = 1: cell make with merging; 2: cell make with KNN
+
+//IN    : int    top_corr_var = number to get top rankings of variables of correlation
+
 //IN    : int    id(nrow_x) = ID of raw data 
 
 //IN    : double z_UserDefined(nrow_x, ncol_x) = user-defined category matrix (i_option_perform=4 only)
@@ -31201,6 +39640,16 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	const int s_SIS = *s_option_SIS;
 	
+	const int i_cellmake = *i_option_cellmake;
+
+	const int top = *top_corr_var;
+
+	//Rprintf("i_cellmake inside main function is \n");
+	//Rprintf("%d", i_cellmake);
+
+	//Rprintf("top inside main function is \n");
+	//Rprintf("%d", top);
+
 	//------
 	//copy the original k vector since it may be updated for categorical variables
 	//------
@@ -31319,14 +39768,14 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 	//--------------------------------------------------
 	//if i_option_perform = 4, user-defined z option, skip Cell_Make
 	//April 4, 2017 =======================
-	if( (i_option_perform != 4) && (i_SIS == 0))
+	if( (i_option_perform != 4) && (i_cellmake ==1) && (i_SIS == 0))
 	{
 		bool b_success_CM = FHDI::Cell_Make_Extension_cpp(x_raw, nrow, ncol, k, 
 									NonCollapsible_categorical,
 									z, 
 								  rbind_uox_CellMake, rbind_mox_CellMake, 
 								  i_merge);   
-		if(b_success_CM == 0) 
+		if(!b_success_CM) 
 		{
 			Rprintf("ERROR! Cell Make failed! ");
 			Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
@@ -31339,7 +39788,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	int** codes = New_iMatrix(nrow, i_SIS);
 
-	if ((i_option_perform != 4) && (i_SIS != 0)) // Written by Yicheng Yang
+	if ((i_option_perform != 4) && (i_cellmake==1) && (i_SIS != 0)) // Written by Yicheng Yang
 	{
 
 		//---------------------------------------------------------------------
@@ -31347,10 +39796,10 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 			NonCollapsible_categorical,
 			z, codes,
 			rbind_uox_CellMake, rbind_mox_CellMake, 
-			i_merge, i_SIS, s_SIS);
+			i_merge, i_SIS, s_SIS, top);
 
 
-		if (b_success_CM_Bigp == 0)
+		if (!b_success_CM_Bigp)
 		{
 			Rprintf("ERROR! Cell Make with SIS failed! ");
 			Rprintf(" Change k, check data quality, further break down categorical variables, or so. It may help ");
@@ -31360,7 +39809,48 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	}
 
+	List_FHDI List_nU(nrow); //default for the size of nrow, but will be updated in the main loop
 
+	if ((i_option_perform != 4) && (i_cellmake == 2) && (i_SIS == 0)) // Written by Yicheng Yang
+	{
+		bool b_success_CM_KNN = FHDI::Cell_Make_Neighbor_cpp(x_raw, nrow, ncol, k,
+			NonCollapsible_categorical,
+			z,
+			rbind_uox_CellMake, rbind_mox_CellMake, List_nU,
+			i_merge);
+	
+		if (!b_success_CM_KNN)
+		{
+			Rprintf("ERROR! Cell Make KNN failed! ");
+			Rprintf(" Change k, check data quality, further break down categorical variables, increase top_corr_var or so. It may help ");
+
+			return 0; //abnormal ending 
+		}
+
+		//Rprintf("List_nU in cell make KNN is \n");
+		//List_nU.print_List_FHDI();
+
+	}
+
+	if ((i_option_perform != 4) && (i_cellmake == 2) && (i_SIS != 0)) // Written by Yicheng Yang
+	{
+		bool b_success_CM_Bigp_KNN = FHDI::Cell_Make_Neighbor_Bigp_cpp(x_raw, r_raw, nrow, ncol, k,
+			NonCollapsible_categorical,
+			z, codes,
+			rbind_uox_CellMake, rbind_mox_CellMake, List_nU,
+			i_merge, i_SIS, s_SIS, top);
+
+		if (!b_success_CM_Bigp_KNN)
+		{
+			Rprintf("ERROR! Cell Make KNN with SIS failed! ");
+			Rprintf(" Change k, check data quality, further break down categorical variables, increase top_corr_var or so. It may help ");
+
+			return 0; //abnormal ending 
+		}
+
+		//Rprintf("List_nU in cell make bigp KNN is \n");
+		//List_nU.print_List_FHDI();
+	}
 	//--------------------------------
 
 	//User-Defined z matrix: Override z of Cell Make 
@@ -31461,7 +39951,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 	std::vector<double> jp_prob_return; //the latest joint probability 
 
 	
-	if (i_SIS == 0) {
+	if ( (i_cellmake == 1) && (i_SIS == 0)) {
 
 		bool b_success_CellProb = FHDI::Cell_Prob_Extension_cpp(z, nrow, ncol, jp_prob_return, jp_name_return,
 
@@ -31477,7 +39967,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 	}
 
 	
-	if (i_SIS != 0) { // Written by Yicheng Yang
+	if ( (i_cellmake == 1) && (i_SIS != 0)) { // Written by Yicheng Yang
 
 		bool b_success_CellProb_Bigp = FHDI::Cell_Prob_Extension_Bigp_cpp(z, nrow, ncol, i_SIS, jp_prob_return, jp_name_return,
 			d_w, id, codes);
@@ -31490,6 +39980,20 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 		}
 
 	}
+
+	if (i_cellmake == 2) {
+
+		bool b_success_CellProb_KNN = FHDI::Cell_Prob_Neighbor_cpp(z, nrow, ncol, List_nU, jp_prob_return, jp_name_return,
+			d_w, id);
+
+		if (!b_success_CellProb_KNN)
+		{
+			Rprintf("Error! Cell Prob KNN Failed! Change k, check data quality, further break down categorical variables, or so. It may help \n");
+
+			return 0; //abnormal ending 								
+		}
+	}
+
 
 	//=====================================
 
@@ -31553,11 +40057,11 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	std::string s_M = "FEFI"; 
 
-	if( (i_imputation == 1) && (i_SIS == 0 )) //FEFI
+	if( (i_imputation == 1) && (i_cellmake == 1) && (i_SIS == 0 )) //FEFI
 
 	{
 
-		bool b_success_FHDI = FHDI::FHDI_Extension_cpp(x_raw, z, r_raw, 
+		bool b_success_FEFI = FHDI::FHDI_Extension_cpp(x_raw, z, r_raw, 
 
 						     nrow, ncol, 
 
@@ -31577,7 +40081,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 				List_ord,  List_ocsg);
 				
-		if(!b_success_FHDI)
+		if(!b_success_FEFI)
 		{
 			Rprintf(" FEFI failed! Change k, break down categories, or check data quality. It may help. \n");
 			return 0; 
@@ -31585,11 +40089,11 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	}
 
-	if ((i_imputation == 1) && (i_SIS != 0)) //FEFI Written by Yicheng Yang
+	if ((i_imputation == 1) && (i_cellmake == 1) && (i_SIS != 0)) //FEFI Written by Yicheng Yang
 
 	{
 
-		bool b_success_FHDI_Bigp = FHDI::FHDI_Extension_Bigp_cpp(x_raw, z, r_raw,
+		bool b_success_FEFI_Bigp = FHDI::FHDI_Extension_Bigp_cpp(x_raw, z, r_raw,
 
 			nrow, ncol, i_SIS,
 
@@ -31609,7 +40113,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 			List_ord, List_ocsg);
 
-		if (!b_success_FHDI_Bigp)
+		if (!b_success_FEFI_Bigp)
 		{
 			Rprintf(" FEFI with SIS failed! Change k, break down categories, or check data quality. It may help. \n");
 			return 0;
@@ -31620,7 +40124,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 
 
-	if( (i_imputation == 2) && (i_SIS == 0)) //FHDI
+	if( (i_imputation == 2) && (i_cellmake == 1) && (i_SIS == 0)) //FHDI
 
 	{
 
@@ -31655,7 +40159,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 	}	
 
 
-	if ((i_imputation == 2) && (i_SIS != 0)) //FHDI Written by Yicheng Yang
+	if ((i_imputation == 2) && (i_cellmake == 1) && (i_SIS != 0)) //FHDI Written by Yicheng Yang
 
 	{
 
@@ -31690,6 +40194,54 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 	}
 	
 
+
+	if ((i_imputation == 1) && (i_cellmake == 2)) {
+	
+		s_M = "FEFI";
+
+		bool b_success_FEFI_KNN = FHDI::FHDI_Neighbor_cpp(x_raw, z, r_raw,
+			nrow, ncol,
+			jp_name_return,
+			jp_prob_return,
+			s_M, i_M, d_w, id, List_nU,
+
+			rbind_ipmat_FEFI, rbind_Resp_FEFI, rbind_irmat_FEFI,
+			rbind_ipmat_FHDI, rbind_Resp_FHDI, rbind_irmat_FHDI,
+			rbind_uox, rbind_mox,
+			List_ord, List_ocsg);
+
+		if (!b_success_FEFI_KNN)
+		{
+			Rprintf(" FEFI KNN failed! Change k, break down categories, or check data quality. It may help. \n");
+			return 0;
+		}
+
+	}
+
+	if ((i_imputation == 2) && (i_cellmake == 2)) {
+	
+		s_M = "FHDI";
+
+		bool b_success_FHDI_KNN = FHDI::FHDI_Neighbor_cpp(x_raw, z, r_raw,
+			nrow, ncol,
+			jp_name_return,
+			jp_prob_return,
+			s_M, i_M, d_w, id, List_nU,
+
+			rbind_ipmat_FEFI, rbind_Resp_FEFI, rbind_irmat_FEFI,
+			rbind_ipmat_FHDI, rbind_Resp_FHDI, rbind_irmat_FHDI,
+			rbind_uox, rbind_mox,
+			List_ord, List_ocsg);
+
+		if (!b_success_FHDI_KNN)
+		{
+			Rprintf(" FHDI KNN failed! Change k, break down categories, or check data quality. It may help. \n");
+			return 0;
+		}
+
+	}
+
+
 	//---------
 
 	//Jackknife weights for variance estimation
@@ -31718,7 +40270,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	
 
-	if(i_variance == 1 && i_imputation == 1 && i_SIS==0) //when FEFI's variance estimation is required
+	if(i_variance == 1 && i_imputation == 1 && i_SIS==0 && i_cellmake ==1) //when FEFI's variance estimation is required
 
     { 
 
@@ -31732,7 +40284,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 
 
-		FHDI::Variance_Est_FEFI_Extension_cpp(x_raw, z, nrow, ncol, 
+		bool b_success_variance_FEFI = FHDI::Variance_Est_FEFI_Extension_cpp(x_raw, z, nrow, ncol,
 
 				d_rw, d_w, id, 
 
@@ -31748,7 +40300,11 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 				wmat_FEFI);
 
-		
+		if (!b_success_variance_FEFI)
+		{
+			Rprintf(" Variance estimation of FEFI failed! \n");
+			return 0;
+		}
 
 		//-------
 
@@ -31779,7 +40335,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 	}
 
 
-	if (i_variance == 1 && i_imputation == 1 && i_SIS != 0) //when FEFI's variance estimation is required Written by Yicheng Yang
+	if (i_variance == 1 && i_imputation == 1 && i_SIS != 0 && i_cellmake ==1) //when FEFI's variance estimation is required Written by Yicheng Yang
 
 	{
 
@@ -31793,7 +40349,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 
 
-		FHDI::Variance_Est_FEFI_Extension_Bigp_cpp(x_raw, z, nrow, ncol, i_SIS,
+		bool b_success_variance_FEFI_bigp = FHDI::Variance_Est_FEFI_Extension_Bigp_cpp(x_raw, z, nrow, ncol, i_SIS,
 
 			d_rw, d_w, id,
 
@@ -31810,6 +40366,61 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 			wmat_FEFI, codes);
 
 
+		if (!b_success_variance_FEFI_bigp)
+		{
+			Rprintf(" Variance estimation bigp of FEFI failed! \n");
+			return 0;
+		}
+
+		//-------
+
+		//prep return
+
+		//-------
+
+		double* d_vrst_temp = new double[nrow];
+
+		for (int i = 0; i<nrow_dat2_FEFI; i++)
+
+		{
+
+			for (int j = 0; j<nrow; j++) d_vrst_temp[j] = wmat_FEFI[i][j];
+
+			rbind_vrst_FEFI.append_block(d_vrst_temp); //append row-by-row
+
+		}
+
+
+
+		//deallocation 		
+
+		Del_dMatrix(wmat_FEFI, nrow_dat2_FEFI, nrow);
+
+		delete[] d_vrst_temp;
+
+	}
+
+
+	if (i_variance == 1 && i_imputation == 1 && i_cellmake == 2) {
+
+		if (nrow_dat2_FEFI <= 0) { Rprintf("ERROR! dimension of ipmat is less than 0!"); }
+
+		double** wmat_FEFI = New_dMatrix(nrow_dat2_FEFI, nrow); //nrow_dat2_FEFI = rows of w1
+
+		bool b_success_variance_FEFI_KNN = FHDI::Variance_Est_FEFI_Neighbor_cpp(x_raw, z, nrow, ncol,
+			d_rw, d_w, id, List_nU,
+			rbind_ipmat_FEFI, rbind_Resp_FEFI, rbind_irmat_FEFI,
+			rbind_ipmat_FHDI, rbind_Resp_FHDI, rbind_irmat_FHDI,
+			rbind_uox, rbind_mox,
+			List_ord, List_ocsg,
+			s_M,
+			wmat_FEFI);
+
+		if (!b_success_variance_FEFI_KNN)
+		{
+			Rprintf(" Variance estimation KNN of FEFI failed! \n");
+			return 0;
+		}
 
 		//-------
 
@@ -31842,7 +40453,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 	//---------------------------
 
-	//Variable Estimation using FEFI results
+	//Variable Estimation using FHDI results
 
 	//---------------------------
 
@@ -31856,7 +40467,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 
 
-    if(i_variance == 1 && i_imputation == 2 && i_SIS == 0) //when FHDI's variance estimation is required
+    if(i_variance == 1 && i_imputation == 2 && i_SIS == 0 && i_cellmake == 1) //when FHDI's variance estimation is required
 
 	{
 
@@ -31870,7 +40481,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 		
 
-		FHDI::Variance_Est_FHDI_Extension_cpp(x_raw, z, nrow, ncol, 
+		bool b_success_variance_FHDI = FHDI::Variance_Est_FHDI_Extension_cpp(x_raw, z, nrow, ncol,
 
 				d_rw, d_w, id, 
 
@@ -31887,6 +40498,11 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 				wmat_FHDI);
 
 
+		if (!b_success_variance_FHDI)
+		{
+			Rprintf(" Variance estimation of FHDI failed! \n");
+			return 0;
+		}
 
 		//-------
 
@@ -31919,7 +40535,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 	}
 
 
-	if (i_variance == 1 && i_imputation == 2 && i_SIS != 0) //when FHDI's variance estimation is required
+	if (i_variance == 1 && i_imputation == 2 && i_SIS != 0 && i_cellmake == 1) //when FHDI's variance estimation is required
 
 	{
 
@@ -31933,7 +40549,7 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 
 
-		FHDI::Variance_Est_FHDI_Extension_Bigp_cpp(x_raw, z, nrow, ncol, i_SIS,
+		bool b_success_variance_FHDI_bigp = FHDI::Variance_Est_FHDI_Extension_Bigp_cpp(x_raw, z, nrow, ncol, i_SIS,
 
 			d_rw, d_w, id,
 
@@ -31949,7 +40565,11 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 
 			wmat_FHDI, codes);
 
-
+		if (!b_success_variance_FHDI_bigp)
+		{
+			Rprintf(" Variance estimation bigp of FHDI failed! \n");
+			return 0;
+		}
 
 		//-------
 
@@ -31980,6 +40600,54 @@ bool Rfn_test(double* x, int* r, int* nrow_x, int* ncol_x, double* k_original,
 		delete[] d_vrst_temp;
 
 	}
+
+
+	if (i_variance == 1 && i_imputation == 2 && i_cellmake == 2) {
+	
+		if (nrow_dat2_FHDI <= 0) { Rprintf("ERROR! dimension of ipmat is less than 0!"); }
+
+		double** wmat_FHDI = New_dMatrix(nrow_dat2_FHDI, nrow); //nrow_dat2_FHDI = rows of w1
+
+		bool b_success_variance_FHDI_KNN = FHDI::Variance_Est_FHDI_Neighbor_cpp(x_raw, z, nrow, ncol,
+			d_rw, d_w, id, List_nU,
+			rbind_ipmat_FEFI, rbind_Resp_FEFI, rbind_irmat_FEFI,
+			rbind_ipmat_FHDI, rbind_Resp_FHDI, rbind_irmat_FHDI,
+			rbind_uox, rbind_mox,
+			List_ord, List_ocsg,
+			s_M,
+			wmat_FHDI);
+
+		if (!b_success_variance_FHDI_KNN)
+		{
+			Rprintf(" Variance estimation KNN of FHDI failed! \n");
+			return 0;
+		}
+
+		//-------
+
+		//prep return
+
+		//-------
+
+		double* d_vrst_temp = new double[nrow];
+
+		for (int i = 0; i<nrow_dat2_FHDI; i++)
+
+		{
+
+			for (int j = 0; j<nrow; j++) d_vrst_temp[j] = wmat_FHDI[i][j];
+
+			rbind_vrst_FHDI.append_block(d_vrst_temp); //append row-by-row
+
+		}
+
+		//deallocation		
+
+		Del_dMatrix(wmat_FHDI, nrow_dat2_FHDI, nrow);
+
+		delete[] d_vrst_temp;
+	}
+
 	
 
 	//=========================
@@ -32622,7 +41290,7 @@ bool Rfn_test_call(double* x, int* r, int * nrow_x, int * ncol_x,
 
 				   int * id, double* z_UserDefined,
 
-				   int * NonCollapsible_categorical, int * i_option_SIS, int * s_option_SIS,
+				   int * NonCollapsible_categorical, int * i_option_SIS, int * s_option_SIS, int * i_option_cellmake, int * top_corr_var,
 				   
 				   rbind_FHDI &rbind_ipmat_FEFI_return,
 
@@ -32672,7 +41340,7 @@ bool Rfn_test_call(double* x, int* r, int * nrow_x, int * ncol_x,
 
 			 id, z_UserDefined,
 			 
-			 NonCollapsible_categorical, i_option_SIS, s_option_SIS,
+			 NonCollapsible_categorical, i_option_SIS, s_option_SIS, i_option_cellmake, top_corr_var,
 
 			 rbind_ipmat_FEFI_return, rbind_Resp_FEFI_return, rbind_irmat_FEFI_return,
 
@@ -32727,7 +41395,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 			  
 			  SEXP NonCollapsible_categorical_R, SEXP i_option_SIS_R, SEXP s_option_SIS_R,
 			  
-			  SEXP i_option_merge_R )
+			  SEXP i_option_merge_R, SEXP i_option_cellmake_R, SEXP top_corr_var_R)
 			  
 
 
@@ -32942,6 +41610,15 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 	int    *s_option_SIS = INTEGER(s_option_SIS_R);
 
+	i_option_cellmake_R = PROTECT(Rf_coerceVector(i_option_cellmake_R, INTSXP));
+	n_protect_total++;
+
+	int    *i_option_cellmake = INTEGER(i_option_cellmake_R);
+
+	top_corr_var_R = PROTECT(Rf_coerceVector(top_corr_var_R, INTSXP));
+	n_protect_total++;
+
+	int    *top_corr_var = INTEGER(top_corr_var_R);
 	//UP TO here 13 "protect" as of Feb 2017
 	//+1    for NonCollapsible_categorical_R as of April 21, 2018
 
@@ -33081,7 +41758,7 @@ SEXP CWrapper(SEXP x_R, SEXP r_R, SEXP z_R, SEXP i_option_perform_R,
 
 	              i_option_imputation, i_option_variance, id, z_UserDefined,
 				  
-				  NonCollapsible_categorical, i_option_SIS, s_option_SIS,
+				  NonCollapsible_categorical, i_option_SIS, s_option_SIS, i_option_cellmake, top_corr_var,
 
 				  rbind_ipmat_FEFI_return, rbind_Resp_FEFI_return, rbind_irmat_FEFI_return,
 
@@ -33905,7 +42582,7 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 			  
 			  SEXP NonCollapsible_categorical_R, SEXP i_option_SIS_R, SEXP s_option_SIS_R,
 			  
-			  SEXP i_option_merge_R)
+			  SEXP i_option_merge_R, SEXP i_option_cellmake_R, SEXP top_corr_var_R)
 
 //Description -------------------------------------------
 
@@ -34093,6 +42770,16 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	int    *s_option_SIS = INTEGER(s_option_SIS_R);
 	
+
+	i_option_cellmake_R = PROTECT(Rf_coerceVector(i_option_cellmake_R, INTSXP));
+	n_protect_total++;
+
+	int    *i_option_cellmake = INTEGER(i_option_cellmake_R);
+
+	top_corr_var_R = PROTECT(Rf_coerceVector(top_corr_var_R, INTSXP));
+	n_protect_total++;
+
+	int    *top_corr_var = INTEGER(top_corr_var_R);
 	//--------
 
 	//prep return variables
@@ -34151,7 +42838,7 @@ SEXP CWrapper_CellMake(SEXP x_R, SEXP r_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	              i_option_imputation, i_option_variance, id, z_UserDefined,
 				  
-				  NonCollapsible_categorical, i_option_SIS, s_option_SIS,
+				  NonCollapsible_categorical, i_option_SIS, s_option_SIS, i_option_cellmake, top_corr_var,
 
 				  rbind_ipmat_FEFI_return, rbind_Resp_FEFI_return, rbind_irmat_FEFI_return,
 
@@ -34520,7 +43207,7 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 			           SEXP id_R,
 					   
-					   SEXP NonCollapsible_categorical_R, SEXP i_option_SIS_R, SEXP s_option_SIS_R)
+					   SEXP NonCollapsible_categorical_R, SEXP i_option_SIS_R, SEXP s_option_SIS_R, SEXP i_option_cellmake_R, SEXP top_corr_var_R)
 
 //Description -------------------------------------------
 
@@ -34666,6 +43353,18 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	int    *s_option_SIS = INTEGER(s_option_SIS_R);
 
+
+
+	i_option_cellmake_R = PROTECT(Rf_coerceVector(i_option_cellmake_R, INTSXP));
+	n_protect_total++;
+
+	int    *i_option_cellmake = INTEGER(i_option_cellmake_R);
+
+	top_corr_var_R = PROTECT(Rf_coerceVector(top_corr_var_R, INTSXP));
+	n_protect_total++;
+
+	int    *top_corr_var = INTEGER(top_corr_var_R);
+
 	//--------
 
 	//prep return variables
@@ -34727,7 +43426,7 @@ SEXP CWrapper_CellProb(SEXP x_R, SEXP nrow_x_R, SEXP ncol_x_R,
 
 	              i_option_imputation, i_option_variance, id, z_UserDefined,
 				  
-				  NonCollapsible_categorical, i_option_SIS, s_option_SIS,
+				  NonCollapsible_categorical, i_option_SIS, s_option_SIS, i_option_cellmake, top_corr_var,
 
 				  rbind_ipmat_FEFI_return, rbind_Resp_FEFI_return, rbind_irmat_FEFI_return,
 
